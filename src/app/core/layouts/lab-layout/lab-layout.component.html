@@ -1,0 +1,276 @@
+<div class="min-h-screen flex bg-background font-sans" [dir]="translationService.isRtl() ? 'rtl' : 'ltr'">
+  <!-- Desktop Sidebar Navigation -->
+  <aside class="hidden md:flex flex-col w-64 bg-surface border-x border-border p-6 justify-between flex-shrink-0 z-30">
+    <div class="flex flex-col gap-8">
+      <!-- Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl brand-gradient flex items-center justify-center shadow-md">
+          <span class="text-white font-black text-lg">B</span>
+        </div>
+        <span class="text-lg font-bold text-secondary">BKR CAD</span>
+      </div>
+
+      <!-- Menu Links (Designer Portal) -->
+      <nav class="flex flex-col gap-1.5">
+        <a routerLink="/lab/dashboard" routerLinkActive="bg-primary/10 text-primary" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-text-secondary hover:bg-background hover:text-secondary transition duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+          </svg>
+          {{ 'nav.dashboard' | translate }}
+        </a>
+
+        <a routerLink="/lab/cases" routerLinkActive="bg-primary/10 text-primary" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-text-secondary hover:bg-background hover:text-secondary transition duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.43 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          </svg>
+          الحالات المسندة
+        </a>
+
+        <a routerLink="/lab/financials" routerLinkActive="bg-primary/10 text-primary" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-text-secondary hover:bg-background hover:text-secondary transition duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-1.971-.659-1.171-.879-1.171-2.303 0-3.182 1.172-.879 3.07-.879 4.242 0L15 9M1.5 12h21" /></svg>
+          الأرباح والمالية
+        </a>
+
+        <a routerLink="/lab/meetings" routerLinkActive="bg-primary/10 text-primary" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-text-secondary hover:bg-background hover:text-secondary transition duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+          <span>الاجتماعات</span>
+        </a>
+
+        <a routerLink="/lab/profile" routerLinkActive="bg-primary/10 text-primary" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-text-secondary hover:bg-background hover:text-secondary transition duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
+          الملف الشخصي
+        </a>
+
+        <a routerLink="/lab/support" routerLinkActive="bg-primary/10 text-primary" class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-bold text-text-secondary hover:bg-background hover:text-secondary transition duration-200">
+          <div class="flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.75.75 0 1 0 .75.75.75.75 0 0 0-.75-.75Zm6.75 0a.75.75 0 1 0 .75.75.75.75 0 0 0-.75-.75ZM12 2.25c-5.385 0-9.75 4.365-9.75 9.75 0 1.33.33 2.588.92 3.71.56 1.07 1.38 1.96 2.4 2.57l.72 3.39 3.15-1.58a11.8 11.8 0 0 0 2.56 0l3.15 1.58-.72-3.39c1.02-.61 1.84-1.5 2.4-2.57.59-1.122.92-2.38.92-3.71 0-5.385-4.365-9.75-9.75-9.75Z" />
+            </svg>
+            <span>الدعم</span>
+          </div>
+          @if (unreadSupportCount() > 0) {
+            <span class="px-2 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full">
+              {{ unreadSupportCount() }}
+            </span>
+          }
+        </a>
+      </nav>
+    </div>
+
+    <!-- Anonymized User Profile Section -->
+    <div class="flex flex-col gap-4 border-t border-border pt-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full brand-gradient text-white flex items-center justify-center font-bold text-sm shadow-md">
+          DT
+        </div>
+        <div class="flex flex-col overflow-hidden">
+          <!-- Masked designer code -->
+          <span class="text-xs font-bold text-secondary">{{ designerCode() }}</span>
+          <span class="text-[10px] text-text-secondary">مستوى {{ authService.userProfile()?.designerProfile?.level || 1 }}</span>
+        </div>
+      </div>
+      <button (click)="logout()" class="flex items-center gap-2 text-xs font-bold text-red-500 hover:bg-red-50 p-2 rounded-xl transition duration-200">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+        </svg>
+        {{ 'auth.logout' | translate }}
+      </button>
+    </div>
+  </aside>
+
+  <!-- Mobile Sidebar Menu overlay -->
+  @if (isSidebarOpen()) {
+    <div class="fixed inset-0 bg-secondary/30 backdrop-blur-sm z-40 md:hidden" (click)="toggleSidebar()"></div>
+    <aside class="fixed top-0 bottom-0 right-0 w-64 bg-surface border-l border-border p-6 flex flex-col justify-between z-50 md:hidden animate-slide-in">
+      <div class="flex flex-col gap-8">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl brand-gradient flex items-center justify-center shadow-md">
+              <span class="text-white font-black text-sm">B</span>
+            </div>
+            <span class="text-base font-bold text-secondary">BKR CAD</span>
+          </div>
+          <button (click)="toggleSidebar()" class="p-1 rounded-lg hover:bg-background">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <nav class="flex flex-col gap-1.5" (click)="toggleSidebar()">
+          <a routerLink="/lab/dashboard" routerLinkActive="bg-primary/10 text-primary" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-text-secondary">
+            {{ 'nav.dashboard' | translate }}
+          </a>
+          <a routerLink="/lab/cases" routerLinkActive="bg-primary/10 text-primary" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-text-secondary">
+            الحالات المسندة
+          </a>
+          <a routerLink="/lab/financials" routerLinkActive="bg-primary/10 text-primary" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-text-secondary">
+            الأرباح والمالية
+          </a>
+          <a routerLink="/lab/meetings" routerLinkActive="bg-primary/10 text-primary" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-text-secondary">
+            الاجتماعات
+          </a>
+          <a routerLink="/lab/profile" routerLinkActive="bg-primary/10 text-primary" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-text-secondary">
+            الملف الشخصي
+          </a>
+          <a routerLink="/lab/support" routerLinkActive="bg-primary/10 text-primary" class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-bold text-text-secondary">
+            <span>الدعم</span>
+            @if (unreadSupportCount() > 0) {
+              <span class="px-2 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full">
+                {{ unreadSupportCount() }}
+              </span>
+            }
+          </a>
+        </nav>
+      </div>
+
+      <div class="flex flex-col gap-4 border-t border-border pt-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full brand-gradient text-white flex items-center justify-center font-bold text-sm shadow-md">
+            DT
+          </div>
+          <div class="flex flex-col overflow-hidden">
+            <span class="text-xs font-bold text-secondary">{{ designerCode() }}</span>
+          </div>
+        </div>
+        <button (click)="logout()" class="flex items-center gap-2 text-xs font-bold text-red-500 hover:bg-red-50 p-2 rounded-xl transition duration-200">
+          {{ 'auth.logout' | translate }}
+        </button>
+      </div>
+    </aside>
+  }
+
+  <!-- Viewport Area -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- Top Header -->
+    <header class="h-16 bg-surface border-b border-border px-6 flex items-center justify-between z-20 flex-shrink-0">
+      <div class="flex items-center gap-4">
+        <button (click)="toggleSidebar()" class="md:hidden p-2 rounded-xl hover:bg-background text-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+        <span class="text-sm font-bold text-secondary hidden md:inline">{{ 'portal.lab' | translate }}</span>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <!-- Availability Toggle Switch Widget -->
+        <div class="flex items-center gap-2.5">
+          <span class="text-xs font-bold text-text-secondary">الحالة:</span>
+          <button
+            type="button"
+            (click)="toggleAvailability()"
+            [class.bg-green-500]="isAvailable()"
+            [class.bg-slate-300]="!isAvailable()"
+            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+          >
+            <span
+              [class.translate-x-5]="isAvailable() && !translationService.isRtl()"
+              [class.-translate-x-5]="isAvailable() && translationService.isRtl()"
+              [class.translate-x-0]="!isAvailable()"
+              class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+            ></span>
+          </button>
+          <span [class.text-green-600]="isAvailable()" [class.text-text-secondary]="!isAvailable()" class="text-xs font-bold">
+            {{ isAvailable() ? 'متاح للعمل' : 'غير نشط' }}
+          </span>
+        </div>
+
+        <!-- Language Selector -->
+        <button (click)="translationService.toggleLanguage()" class="text-xs font-bold text-primary hover:bg-primary/10 p-2 rounded-xl transition duration-200">
+          {{ translationService.currentLang() === 'ar' ? 'English' : 'عربي' }}
+        </button>
+
+        <!-- Notification Dropdown -->
+        <div class="relative">
+          <button (click)="toggleNotifications()" class="relative p-2 rounded-xl hover:bg-background text-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+            </svg>
+            @if (notificationService.unreadCount() > 0) {
+              <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+            }
+          </button>
+
+          <!-- Notification Menu -->
+          @if (isNotificationOpen()) {
+            <div class="fixed inset-0 z-40" (click)="toggleNotifications()"></div>
+            <div class="absolute left-0 mt-2 w-80 bg-surface border border-border rounded-2xl shadow-card overflow-hidden z-50 animate-slide-in">
+              <div class="px-4 py-3 bg-background border-b border-border">
+                <span class="text-xs font-bold text-secondary">الإشعارات ({{ notificationService.unreadCount() }})</span>
+              </div>
+              <div class="max-h-72 overflow-y-auto">
+                @if (notificationService.notifications().length === 0) {
+                  <div class="px-4 py-8 text-center text-xs text-text-secondary">لا توجد إشعارات جديدة</div>
+                }
+                @for (n of notificationService.notifications(); track n.id) {
+                  <div
+                    (click)="openNotification(n)"
+                    [class.bg-primary/5]="!n.isRead"
+                    class="px-4 py-3 border-b border-border/60 flex flex-col gap-1 text-right cursor-pointer hover:bg-background/60 transition"
+                  >
+                    <span class="text-xs font-bold text-secondary">{{ translationService.currentLang() === 'ar' ? n.titleAr : n.titleEn }}</span>
+                    <p class="text-[11px] text-text-secondary leading-relaxed">{{ translationService.currentLang() === 'ar' ? n.bodyAr : n.bodyEn }}</p>
+                    <div class="flex justify-between items-center mt-1">
+                      <span class="text-[9px] text-text-secondary/70">{{ n.createdAt | date:'short' }}</span>
+                      @if (!n.isRead) {
+                        <button (click)="onMarkReadClick($event, n.id)" class="text-[9px] font-bold text-primary hover:underline">تمت القراءة</button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- Main View Content -->
+    <main class="flex-1 overflow-y-auto p-4 pb-24 md:pb-6 sm:p-6 lg:p-8">
+      <app-email-verification-banner></app-email-verification-banner>
+      <router-outlet></router-outlet>
+    </main>
+
+    <!-- ════ MOBILE BOTTOM NAV ════ -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 bg-secondary/95 backdrop-blur-xl border-t border-white/10 shadow-2xl" [dir]="translationService.isRtl() ? 'rtl' : 'ltr'">
+      <div class="grid grid-cols-4 h-16">
+
+        <!-- Dashboard -->
+        <a routerLink="/lab/dashboard"
+           routerLinkActive="text-primary"
+           [routerLinkActiveOptions]="{exact:true}"
+           class="flex flex-col items-center justify-center gap-1 text-white/50 hover:text-white transition-all duration-200 active:scale-90">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+          <span class="text-[9px] font-bold">الرئيسية</span>
+        </a>
+
+        <!-- Cases -->
+        <a routerLink="/lab/cases"
+           routerLinkActive="text-primary"
+           class="flex flex-col items-center justify-center gap-1 text-white/50 hover:text-white transition-all duration-200 active:scale-90">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.43 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+          <span class="text-[9px] font-bold">حالاتي</span>
+        </a>
+
+        <!-- Meetings -->
+        <a routerLink="/lab/meetings"
+           routerLinkActive="text-primary"
+           class="flex flex-col items-center justify-center gap-1 text-white/50 hover:text-white transition-all duration-200 active:scale-90">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+          <span class="text-[9px] font-bold">الاجتماعات</span>
+        </a>
+
+        <!-- Profile -->
+        <a routerLink="/lab/profile"
+           routerLinkActive="text-primary"
+           class="flex flex-col items-center justify-center gap-1 text-white/50 hover:text-white transition-all duration-200 active:scale-90">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+          <span class="text-[9px] font-bold">حسابي</span>
+        </a>
+
+      </div>
+    </nav>
+  </div>
+</div>

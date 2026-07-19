@@ -1,0 +1,97 @@
+<div class="relative w-full h-[500px] bg-background border border-border rounded-2xl overflow-hidden shadow-card">
+  <!-- WebGL Canvas Container -->
+  <div #canvasContainer class="w-full h-full"></div>
+
+  <!-- Loading State Indicator Overlay -->
+  @if (isLoading()) {
+    <div class="absolute inset-0 bg-surface/85 backdrop-blur-sm flex flex-col justify-center items-center gap-3 z-10">
+      <div class="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+      <p class="text-sm font-bold text-secondary">جاري تحميل التصميم ثلاثي الأبعاد...</p>
+      <div class="w-48 bg-border h-2 rounded-full overflow-hidden">
+        <div class="bg-primary h-full transition-all duration-300" [style.width.%]="loadProgress()"></div>
+      </div>
+      <span class="text-xs text-text-secondary">{{ loadProgress() }}%</span>
+    </div>
+  }
+
+  <!-- Measurement Result Overlay -->
+  @if (isMeasuring() && measurementResult()) {
+    <div class="absolute top-4 left-4 bg-surface/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-md border border-border flex items-center gap-2 z-20">
+      <span class="text-xs text-text-secondary">المسافة:</span>
+      <span class="text-sm font-extrabold text-secondary">{{ measurementResult() }}</span>
+    </div>
+  }
+
+  <!-- CAD Control Buttons Overlay Panel -->
+  <div class="absolute bottom-4 right-4 flex gap-2 z-20">
+    <!-- Measurement Mode Button -->
+    <button
+      type="button"
+      (click)="toggleMeasuring()"
+      [class.bg-rose-500]="isMeasuring()"
+      [class.text-white]="isMeasuring()"
+      [class.bg-surface]="!isMeasuring()"
+      [class.text-secondary]="!isMeasuring()"
+      class="p-2.5 rounded-xl shadow-md border border-border hover:shadow-lg transition-all duration-200"
+      title="قياس المسافات"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75v4.5m0-4.5h-4.5m4.5 0L15 9m5.25 11.25v-4.5m0 4.5h-4.5m4.5 0L15 15" />
+      </svg>
+    </button>
+
+    <!-- Wireframe Mode Button -->
+    <button
+      type="button"
+      (click)="toggleWireframe()"
+      [class.bg-primary]="isWireframe()"
+      [class.text-white]="isWireframe()"
+      [class.bg-surface]="!isWireframe()"
+      [class.text-secondary]="!isWireframe()"
+      class="p-2.5 rounded-xl shadow-md border border-border hover:shadow-lg transition-all duration-200"
+      title="عرض شبكي (Wireframe)"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+      </svg>
+    </button>
+
+    <!-- Reset Camera Button -->
+    <button
+      type="button"
+      (click)="resetCamera()"
+      class="bg-surface text-secondary p-2.5 rounded-xl shadow-md border border-border hover:shadow-lg transition-all duration-200"
+      title="إعادة ضبط الكاميرا"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+      </svg>
+    </button>
+
+    <!-- Download File Button -->
+    @if (fileUrl) {
+      <button
+        type="button"
+        (click)="downloadFile()"
+        class="bg-surface text-secondary p-2.5 rounded-xl shadow-md border border-border hover:shadow-lg transition-all duration-200"
+        title="تنزيل الملف ثلاثي الأبعاد"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        </svg>
+      </button>
+    }
+
+    <!-- Fullscreen Button -->
+    <button
+      type="button"
+      (click)="toggleFullscreen()"
+      class="bg-surface text-secondary p-2.5 rounded-xl shadow-md border border-border hover:shadow-lg transition-all duration-200"
+      title="ملء الشاشة"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75v4.5m0-4.5h-4.5m4.5 0L15 9m5.25 11.25v-4.5m0 4.5h-4.5m4.5 0L15 15" />
+      </svg>
+    </button>
+  </div>
+</div>

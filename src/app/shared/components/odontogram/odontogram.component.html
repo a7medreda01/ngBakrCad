@@ -1,0 +1,192 @@
+<div class="bg-surface rounded-2xl border border-border p-6 shadow-card w-full" dir="rtl">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div>
+      <h3 class="text-lg font-bold text-secondary flex items-center gap-2">
+        <span>🦷</span>
+        رسم بياني للأسنان (Odontogram)
+      </h3>
+      <p class="text-sm text-text-secondary mt-1">FDI / ISO-3950 Numbering System</p>
+    </div>
+
+    @if (!readOnly()) {
+      <div class="flex gap-2 flex-wrap">
+        <button 
+          type="button" 
+          (click)="selectUpperArch()" 
+          class="text-xs px-4 py-2 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition duration-200 font-semibold"
+          title="تحديد جميع أسنان الفك العلوي"
+        >
+          <span>👆 تحديد الفك العلوي</span>
+        </button>
+        <button 
+          type="button" 
+          (click)="selectLowerArch()" 
+          class="text-xs px-4 py-2 rounded-lg bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 transition duration-200 font-semibold"
+          title="تحديد جميع أسنان الفك السفلي"
+        >
+          <span>👇 تحديد الفك السفلي</span>
+        </button>
+        <button 
+          type="button" 
+          (click)="clearAll()" 
+          class="text-xs px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition duration-200 font-semibold"
+          title="إلغاء جميع التحديدات"
+        >
+          <span>✕ مسح التحديد</span>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Tooth Count Info -->
+  <div class="mb-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+    <p class="text-sm font-semibold text-secondary">
+      @if (readOnly()) {
+        {{ selectedTeeth().length === 0 ? '🔍 لا توجد أسنان محددة في هذا الطلب' : '🦷 الأسنان المختارة: ' + selectedTeeth().join(', ') }}
+      } @else {
+        {{ selectedTeeth().length === 0 ? '🔍 اختر سن أو أكثر من الرسم البياني' : '✓ تم تحديد ' + selectedTeeth().length + ' سن: ' + selectedTeeth().join(', ') }}
+      }
+    </p>
+  </div>
+
+  <div class="odontogram-chart">
+    <svg viewBox="0 0 600 700" xmlns="http://www.w3.org/2000/svg" class="odontogram-svg">
+      <!-- Defs for gradients and shadows -->
+      <defs>
+        <filter id="tooth-shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.2" />
+        </filter>
+        <filter id="tooth-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" />
+        </filter>
+        <linearGradient id="toothGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#F8FAFC;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#E2E8F0;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="toothSelectedGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+
+      <!-- Side labels -->
+      <text x="18" y="28" class="side-label text-sm font-bold fill-text-secondary">يمين</text>
+      <text x="582" y="28" class="side-label text-sm font-bold fill-text-secondary" text-anchor="end">يسار</text>
+      
+      <!-- Midline separators with gradient -->
+      <line x1="300" y1="50" x2="300" y2="80" class="midline" stroke-width="2" />
+      <line x1="300" y1="620" x2="300" y2="650" class="midline" stroke-width="2" />
+      
+      <!-- Arch reference lines (subtle) -->
+      <ellipse cx="300" cy="350" rx="190" ry="260" fill="none" stroke="#E2E8F0" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.3" />
+
+      <!-- Teeth rendering -->
+      @for (tooth of teeth(); track trackByNum($index, tooth)) {
+        <g class="tooth-group"
+           [class.selected]="isToothSelected(tooth.num)"
+           [class.read-only]="readOnly()"
+           [attr.data-tooth]="tooth.num"
+           [attr.data-jaw]="tooth.jaw"
+           (click)="readOnly() ? null : toggleTooth(tooth.num)"
+           role="button"
+           [attr.tabindex]="0"
+           [attr.aria-label]="'سن رقم ' + tooth.num + ' (' + tooth.type + ')'">
+
+          <!-- Tooth container with transform -->
+          <g [attr.transform]="'translate(' + tooth.x + ',' + tooth.y + ') rotate(' + tooth.rotation + ') scale(' + tooth.scale + ')'" 
+             filter="url(#tooth-shadow)"
+             class="tooth-container">
+            
+            <!-- Crown with gradient fill -->
+            <path class="tooth-crown" 
+                  [attr.d]="toothPaths[tooth.type].crown"
+                  [attr.fill]="isToothSelected(tooth.num) ? 'url(#toothSelectedGradient)' : 'url(#toothGradient)'"
+                  class="transition-all duration-300">
+            </path>
+
+            <!-- Root shadow (subtle gray) -->
+            <path class="tooth-root"
+                  [attr.d]="toothPaths[tooth.type].crown"
+                  fill="none"
+                  stroke="rgba(148, 163, 184, 0.1)"
+                  stroke-width="1.5"
+                  opacity="0.5">
+            </path>
+
+            <!-- Dental groove for realism -->
+            <path class="tooth-groove" 
+                  [attr.d]="toothPaths[tooth.type].groove">
+            </path>
+
+            <!-- Shadow effect on selected teeth -->
+            @if (isToothSelected(tooth.num)) {
+              <path class="tooth-shadow-detail"
+                    [attr.d]="toothPaths[tooth.type].shadow"
+                    fill="none"
+                    stroke="rgba(30, 64, 175, 0.3)"
+                    stroke-width="1"
+                    stroke-linecap="round">
+              </path>
+            }
+          </g>
+
+          <!-- Number label (not rotated, always readable) -->
+          <text class="tooth-label" 
+                [attr.x]="tooth.labelX" 
+                [attr.y]="tooth.labelY" 
+                text-anchor="middle" 
+                dominant-baseline="middle"
+                [attr.font-weight]="isToothSelected(tooth.num) ? '800' : '700'"
+                [attr.font-size]="isToothSelected(tooth.num) ? '14' : '12'"
+                [attr.fill]="isToothSelected(tooth.num) ? '#1E40AF' : '#64748B'"
+                class="transition-all duration-200 pointer-events-none select-none">
+            {{ tooth.num }}
+          </text>
+
+          <!-- Selection indicator ring (shows on hover/select) -->
+          @if (isToothSelected(tooth.num)) {
+            <circle [attr.cx]="tooth.x" 
+                    [attr.cy]="tooth.y" 
+                    r="28" 
+                    fill="none" 
+                    stroke="#3B82F6" 
+                    stroke-width="1.5"
+                    stroke-dasharray="4,3"
+                    opacity="0.5"
+                    class="animate-pulse">
+            </circle>
+          }
+        </g>
+      }
+
+      <!-- Center midline marker (decorative) -->
+      <circle cx="300" cy="350" r="3" fill="#94A3B8" opacity="0.3" />
+    </svg>
+  </div>
+
+  <!-- Legend -->
+  <div class="flex flex-col gap-3 mt-6 pt-4 border-t border-border">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5">
+          <span class="legend-dot legend-dot--default"></span>
+          <span class="text-xs text-text-secondary font-semibold">غير محدد</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5">
+          <span class="legend-dot legend-dot--selected"></span>
+          <span class="text-xs text-text-secondary font-semibold">محدد</span>
+        </div>
+      </div>
+      <div class="text-xs text-text-secondary">
+        <span class="font-semibold">ترقيم FDI:</span> 18-11 | 21-28 (علوي) — 48-41 | 31-38 (سفلي)
+      </div>
+      @if (selectedTeeth().length > 0) {
+        <div class="text-xs font-bold text-primary">
+          {{ selectedTeeth().length }} سن محدد
+        </div>
+      }
+    </div>
+  </div>
+</div>

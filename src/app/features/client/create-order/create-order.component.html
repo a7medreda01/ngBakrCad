@@ -1,0 +1,465 @@
+<div class="flex flex-col gap-6" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
+  <!-- Header -->
+  <div class="border-b border-border pb-4">
+    <h1 class="text-xl font-extrabold text-secondary">{{ t('nav.createOrder') }}</h1>
+    <p class="text-xs text-text-secondary mt-1">إنشاء طلب تصميم جديد خطوة بخطوة</p>
+  </div>
+
+  <!-- Step Indicator -->
+  <div class="flex justify-between items-center gap-2">
+    @for (step of [1, 2, 3, 4, 5, 6]; track step) {
+      <div class="flex flex-col items-center gap-2 flex-1">
+        <button
+          type="button"
+          (click)="goToStep(step)"
+          [disabled]="step > currentStep() + 1"
+          [class.bg-primary]="step === currentStep()"
+          [class.bg-primary/30]="step < currentStep()"
+          [class.bg-border]="step > currentStep()"
+          class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold disabled:cursor-not-allowed transition"
+          [ngClass]="step === currentStep() ? 'text-white' : step < currentStep() ? 'text-primary' : 'text-text-secondary'"
+        >
+          {{ step }}
+        </button>
+        <span class="text-[10px] text-text-secondary text-center font-bold">
+          @switch (step) {
+            @case (1) { بيانات المريض }
+            @case (2) { اختيار الخدمات }
+            @case (3) { تحديد الأسنان }
+            @case (4) { رفع الملفات }
+            @case (5) { إضافات الطلب }
+            @case (6) { التأكيد النهائي }
+          }
+        </span>
+      </div>
+
+      @if (step < 6) {
+        <div
+          [class.bg-primary]="step < currentStep()"
+          [class.bg-border]="step >= currentStep()"
+          class="flex-1 h-1 rounded-full transition"
+        ></div>
+      }
+    }
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+    <!-- STEP 1: Patient Information -->
+    @if (currentStep() === 1) {
+      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
+        <h2 class="text-base font-black text-secondary">الخطوة 1: معلومات المريض الأساسية</h2>
+        <p class="text-xs text-text-secondary">أدخل البيانات الأساسية للمريض</p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Patient Name -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">اسم المريض *</label>
+            <input
+              type="text"
+              formControlName="patientName"
+              placeholder="مثال: سالم الدوسري"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+            @if (form.get('patientName')?.invalid && form.get('patientName')?.touched) {
+              <span class="text-[10px] text-red-500">حقل مطلوب (3 أحرف على الأقل)</span>
+            }
+          </div>
+
+          <!-- Age -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">عمر المريض *</label>
+            <input
+              type="number"
+              formControlName="patientAge"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+            @if (form.get('patientAge')?.invalid && form.get('patientAge')?.touched) {
+              <span class="text-[10px] text-red-500">عمر صحيح مطلوب</span>
+            }
+          </div>
+
+          <!-- Gender -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">الجنس *</label>
+            <select
+              formControlName="patientGender"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            >
+              <option value="Male">ذكر</option>
+              <option value="Female">أنثى</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+          <!-- Delivery Date -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">تاريخ التسليم المطلوب *</label>
+            <input
+              type="datetime-local"
+              formControlName="requiredDeliveryDate"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+            @if (form.get('requiredDeliveryDate')?.invalid && form.get('requiredDeliveryDate')?.touched) {
+              <span class="text-[10px] text-red-500">اختر تاريخ التسليم</span>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 2: Services Selection -->
+    @if (currentStep() === 2) {
+      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
+        <h2 class="text-base font-black text-secondary">الخطوة 2: نوع الخدمات والتركيبات المطلوبة</h2>
+        <p class="text-xs text-text-secondary">اختر الخدمات والتركيبات المطلوبة للحالة</p>
+        
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+  @for (s of services(); track s.id) {
+    <button
+      type="button"
+      (click)="toggleServiceSelection(s.id)"
+      [class.border-primary]="form.get('serviceIds')?.value?.includes(s.id)"
+      [class.bg-primary/5]="form.get('serviceIds')?.value?.includes(s.id)"
+      class="flex justify-between items-center p-3 rounded-xl border border-border hover:border-primary/50 text-right transition relative"
+    >
+      @if (s.hasCustomPrice) {
+        <span class="absolute -top-2 right-3 bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+          سعرك الخاص
+        </span>
+      }
+
+      <div class="flex flex-col">
+        <span class="text-xs font-bold text-secondary">{{ i18n.currentLang() === 'ar' ? s.nameAr : s.nameEn }}</span>
+        <span class="text-[10px] text-text-secondary">{{ s.serviceCode }}</span>
+      </div>
+
+      <div class="flex flex-col items-end">
+        @if (s.hasCustomPrice && s.originalPrice) {
+          <span class="text-[10px] text-text-secondary line-through decoration-rose-400">
+            {{ s.originalPrice }} SAR
+          </span>
+          <span class="text-xs font-black text-emerald-600">{{ s.price }} SAR</span>
+        } @else {
+          <span class="text-xs font-black text-primary">{{ s.price }} SAR</span>
+        }
+      </div>
+    </button>
+  }
+</div>
+
+        @if (form.get('serviceIds')?.invalid && form.get('serviceIds')?.touched) {
+          <div class="p-3 rounded-xl bg-red-50 border border-red-200">
+            <span class="text-[10px] text-red-700">يرجى اختيار خدمة واحدة على الأقل</span>
+          </div>
+        }
+
+        @if (hasPerHoleService()) {
+          <div class="flex flex-col gap-1.5 mt-4 p-4 rounded-xl bg-background border border-border">
+            <label class="text-xs font-bold text-secondary">عدد الثقوب / الغرسات المطلوبة للتعويض (أدلة جراحية) *</label>
+            <input
+              type="number"
+              formControlName="implantHolesCount"
+              class="w-32 px-3 py-2 rounded-xl border border-border bg-surface text-xs focus:outline-none focus:border-primary transition"
+            />
+            <p class="text-[10px] text-text-secondary mt-1">ملاحظة: يتم زيادة السعر بنسبة +50% في حال اختيار 4 ثقوب أو أكثر.</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- STEP 3: Odontogram -->
+    @if (currentStep() === 3) {
+      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
+        <h2 class="text-base font-black text-secondary">الخطوة 3: تحديد الأسنان المراد تصميمها</h2>
+        <p class="text-xs text-text-secondary">اختر الأسنان التي تحتاج إلى تصميم من مخطط الأسنان</p>
+        
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-text-secondary font-bold font-sans">
+            الأسنان المحددة: {{ selectedTeeth().length === 0 ? 'لا يوجد' : selectedTeeth().join(', ') }}
+          </span>
+        </div>
+        
+        <div class="bg-background rounded-xl p-4">
+          <app-odontogram
+            [selectedTeeth]="selectedTeeth()"
+            (selectedTeethChange)="selectedTeeth.set($event)"
+          ></app-odontogram>
+        </div>
+
+        @if (selectedTeeth().length === 0) {
+          <div class="p-3 rounded-xl bg-red-50 border border-red-200">
+            <span class="text-[10px] text-red-700">يرجى تحديد سن واحد على الأقل</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- STEP 4: File Upload -->
+    @if (currentStep() === 4) {
+      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
+        <h2 class="text-base font-black text-secondary">الخطوة 4: رفع ملفات الحالة</h2>
+        <p class="text-xs text-text-secondary">رفع ملفات STL أو CBCT للحالة</p>
+        
+        <app-file-uploader
+          [multiple]="true"
+          (filesSelected)="onFilesSelected($event)"
+        ></app-file-uploader>
+
+        @if (selectedFiles().length > 0) {
+          <div class="p-3 rounded-xl bg-primary/10 border border-primary/30">
+            <p class="text-xs font-bold text-primary">
+              ✓ تم رفع {{ selectedFiles().length }} ملف بنجاح
+            </p>
+          </div>
+        } @else {
+          <div class="p-3 rounded-xl bg-red-50 border border-red-200">
+            <span class="text-[10px] text-red-700">يرجى رفع ملف واحد على الأقل</span>
+          </div>
+        }
+
+        <div class="flex flex-col gap-4">
+          <h3 class="text-sm font-black text-secondary mt-2">ملاحظات إضافية للمصمم</h3>
+          <textarea
+            formControlName="notes"
+            rows="3"
+            placeholder="اكتب أي تعليمات سريرية دقيقة هنا..."
+            class="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+          ></textarea>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 5: Additional Options -->
+    @if (currentStep() === 5) {
+      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
+        <h2 class="text-base font-black text-secondary">الخطوة 5: إضافات وتفضيلات الطلب</h2>
+        <p class="text-xs text-text-secondary">اختر الخيارات الإضافية المطلوبة</p>
+
+        <!-- Express Option -->
+        <label class="flex items-start gap-3 cursor-pointer p-3 hover:bg-background rounded-xl transition border border-border">
+          <input
+            type="checkbox"
+            formControlName="expressChecked"
+            class="mt-1 rounded text-primary focus:ring-primary"
+          />
+          <div class="flex flex-col">
+            <span class="text-xs font-bold text-secondary">شحن مستعجل (SLA سريع)</span>
+            <span class="text-[10px] text-text-secondary mt-0.5">تقليص مدة التسليم للنصف مع زيادة التكلفة بنسبة +50%</span>
+          </div>
+        </label>
+
+        <!-- Preview Required Option -->
+        <label class="flex items-start gap-3 cursor-pointer p-3 hover:bg-background rounded-xl transition border border-border">
+          <input
+            type="checkbox"
+            formControlName="previewRequired"
+            class="mt-1 rounded text-primary focus:ring-primary"
+          />
+          <div class="flex flex-col">
+            <span class="text-xs font-bold text-secondary">طلب معاينة 3D قبل الاعتماد</span>
+            <span class="text-[10px] text-text-secondary mt-0.5">مراجعة التصميم إلكترونياً من قبلك قبل تسليم الملف النهائي</span>
+          </div>
+        </label>
+
+        <!-- Pink Esthetics Gum Design Option -->
+        <label class="flex items-start gap-3 cursor-pointer p-3 hover:bg-background rounded-xl transition border border-border">
+          <input
+            type="checkbox"
+            formControlName="gumDesignChecked"
+            class="mt-1 rounded text-primary focus:ring-primary"
+          />
+          <div class="flex flex-col">
+            <span class="text-xs font-bold text-secondary">تصميم اللثة التجميلي (Pink Esthetics)</span>
+            <span class="text-[10px] text-text-secondary mt-0.5">مجاني للتيجان القياسية، ومدفوع لحالات الغرسات و All-on-X</span>
+          </div>
+        </label>
+      </div>
+    }
+
+    <!-- STEP 6: Review & Confirm -->
+    @if (currentStep() === 6) {
+      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
+        <h2 class="text-base font-black text-secondary">الخطوة 6: التأكيد النهائي</h2>
+        <p class="text-xs text-text-secondary">راجع البيانات وأكمل الطلب</p>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Patient Summary -->
+          <div class="p-4 rounded-xl bg-background border border-border">
+            <h4 class="text-xs font-bold text-secondary mb-2">بيانات المريض</h4>
+            <div class="text-[10px] text-text-secondary space-y-1">
+              <p><span class="font-bold">الاسم:</span> {{ form.get('patientName')?.value }}</p>
+              <p><span class="font-bold">العمر:</span> {{ form.get('patientAge')?.value }} سنة</p>
+              <p><span class="font-bold">الجنس:</span> {{ form.get('patientGender')?.value === 'Male' ? 'ذكر' : 'أنثى' }}</p>
+            </div>
+          </div>
+
+<!-- Services Summary -->
+<div class="p-4 rounded-xl bg-background border border-border">
+  <h4 class="text-xs font-bold text-secondary mb-2">الخدمات المختارة</h4>
+  <div class="text-[10px] text-text-secondary space-y-2">
+    @for (id of form.get('serviceIds')?.value || []; track id) {
+      @for (service of services(); track service.id) {
+        @if (service.id === id) {
+          <div class="flex justify-between items-center">
+            <span>{{ i18n.currentLang() === 'ar' ? service.nameAr : service.nameEn }}</span>
+            <div class="flex items-center gap-1.5">
+              @if (service.hasCustomPrice) {
+                <span class="bg-emerald-50 text-emerald-600 text-[8px] font-bold px-1.5 py-0.5 rounded-md">خاص</span>
+                @if (service.originalPrice) {
+                  <span class="line-through text-text-secondary/70">{{ service.originalPrice }}</span>
+                }
+                <span class="font-bold text-emerald-600">{{ service.price }} SAR</span>
+              } @else {
+                <span class="font-bold text-secondary">{{ service.price }} SAR</span>
+              }
+            </div>
+          </div>
+        }
+      }
+    }
+  </div>
+</div>
+
+          <!-- Teeth Summary -->
+          <div class="p-4 rounded-xl bg-background border border-border">
+            <h4 class="text-xs font-bold text-secondary mb-2">الأسنان المحددة</h4>
+            <div class="text-[10px] text-text-secondary">
+              {{ selectedTeeth().length }} سن: {{ selectedTeeth().join(', ') }}
+            </div>
+          </div>
+
+          <!-- Files Summary -->
+          <div class="p-4 rounded-xl bg-background border border-border">
+            <h4 class="text-xs font-bold text-secondary mb-2">الملفات المرفوعة</h4>
+            <div class="text-[10px] text-text-secondary">
+              {{ selectedFiles().length }} ملف تم رفعهم
+            </div>
+          </div>
+        </div>
+
+        <!-- Cost Calculation Summary Panel -->
+        <div class="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-6 border border-primary/20 flex flex-col gap-4">
+          <h3 class="text-sm font-black text-secondary">تفاصيل الفاتورة التقديرية</h3>
+          
+          <div class="flex flex-col gap-2.5 text-xs text-secondary">
+            <div class="flex justify-between py-2 border-b border-border/50">
+              <span class="text-text-secondary">سعر الخدمات الأساسية</span>
+              <span class="font-bold">{{ pricingSummary().basePrice }} SAR</span>
+            </div>
+            @if (pricingSummary().gumFee > 0) {
+              <div class="flex justify-between py-2 border-b border-border/50">
+                <span class="text-text-secondary">رسوم اللثة التجميلية</span>
+                <span class="font-bold text-warning">+ {{ pricingSummary().gumFee }} SAR</span>
+              </div>
+            }
+            @if (pricingSummary().expressFee > 0) {
+              <div class="flex justify-between py-2 border-b border-border/50">
+                <span class="text-text-secondary">رسوم الشحن المستعجل</span>
+                <span class="font-bold text-warning">+ {{ pricingSummary().expressFee }} SAR</span>
+              </div>
+            }
+            <div class="flex justify-between py-3 border-t border-border font-black text-sm text-secondary mt-2">
+              <span>التكلفة الإجمالية</span>
+              <span class="text-lg text-primary">{{ pricingSummary().finalPrice }} SAR</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── Upload Progress Panel (shown during upload on step 6) ── -->
+    @if (isUploading()) {
+      <div class="bg-surface rounded-2xl border border-primary/30 shadow-card p-6 flex flex-col gap-4 animate-in fade-in">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-primary animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-black text-secondary">جاري رفع الملفات...</p>
+<p class="text-[11px] text-text-secondary">{{ completedUploadsCount() }} من {{ uploadStates().length }} ملف مكتمل</p>          </div>
+          <span class="text-lg font-black text-primary">{{ overallProgress() }}%</span>
+        </div>
+
+        <!-- Overall Progress Bar -->
+        <div class="w-full bg-border/40 rounded-full h-2.5 overflow-hidden">
+          <div
+            class="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-300 ease-out"
+            [style.width.%]="overallProgress()">
+          </div>
+        </div>
+
+        <!-- Per-file rows -->
+        <div class="flex flex-col gap-2">
+          @for (state of uploadStates(); track state.file.name) {
+            <div class="flex flex-col gap-1">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-semibold text-secondary truncate max-w-[65%]">{{ state.file.name }}</span>
+                <div class="flex items-center gap-2">
+                  @if (state.status === 'done') {
+                    <svg class="w-4 h-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+                    </svg>
+                  } @else if (state.status === 'error') {
+                    <svg class="w-4 h-4 text-rose-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                    </svg>
+                  } @else {
+                    <span class="text-primary font-bold">{{ state.progress }}%</span>
+                  }
+                </div>
+              </div>
+              <div class="w-full bg-border/40 rounded-full h-1.5 overflow-hidden">
+                <div
+                  class="h-full rounded-full transition-all duration-300 ease-out"
+                  [class.bg-primary]="state.status !== 'done' && state.status !== 'error'"
+                  [class.bg-emerald-500]="state.status === 'done'"
+                  [class.bg-rose-500]="state.status === 'error'"
+                  [style.width.%]="state.progress">
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Navigation Buttons -->
+    @if (!isUploading()) {
+      <div class="flex justify-between gap-4 mt-6">
+        <button
+          type="button"
+          (click)="prevStep()"
+          [disabled]="currentStep() === 1"
+          class="flex-1 px-4 py-3 rounded-xl border border-border text-secondary font-bold text-xs hover:bg-background transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          السابق
+        </button>
+
+        @if (currentStep() < totalSteps) {
+          <button
+            type="button"
+            (click)="nextStep()"
+            class="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-bold text-xs hover:bg-primary-dark transition active:scale-95"
+          >
+            التالي
+          </button>
+        } @else {
+          <button
+            type="submit"
+            [disabled]="isLoading()"
+            class="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-bold text-xs hover:bg-primary-dark transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+            </svg>
+            إرسال طلب التصميم النهائي
+          </button>
+        }
+      </div>
+    }
+  </form>
+</div>

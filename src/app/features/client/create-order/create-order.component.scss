@@ -1,0 +1,35 @@
+:host {
+  display: block;
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation: slideInFromBottom 0.3s ease-out;
+  
+  &.fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  &.slide-in-from-bottom-4 {
+    animation: slideInFromBottom 0.4s ease-out;
+  }
+}

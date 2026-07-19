@@ -1,0 +1,505 @@
+<div class="flex flex-col gap-6" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
+  <!-- Header -->
+  <div class="border-b border-border pb-4">
+    <h1 class="text-xl font-extrabold text-secondary">التسعير المخصص</h1>
+    <p class="text-xs text-text-secondary mt-1">تعيين أسعار مخصصة للأطباء وأرباح مخصصة للمصممين</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-2">
+    <button
+      (click)="switchTab('doctor')"
+      [class]="activeTab() === 'doctor'
+        ? 'px-5 py-2.5 rounded-xl text-xs font-bold bg-primary text-white shadow-md'
+        : 'px-5 py-2.5 rounded-xl text-xs font-bold bg-surface border border-border text-text-secondary hover:bg-background transition'"
+    >
+      أسعار الأطباء
+    </button>
+    <button
+      (click)="switchTab('designer')"
+      [class]="activeTab() === 'designer'
+        ? 'px-5 py-2.5 rounded-xl text-xs font-bold bg-primary text-white shadow-md'
+        : 'px-5 py-2.5 rounded-xl text-xs font-bold bg-surface border border-border text-text-secondary hover:bg-background transition'"
+    >
+      أرباح المصممين
+    </button>
+  </div>
+
+  <!-- ==================== DOCTOR TAB ==================== -->
+  @if (activeTab() === 'doctor') {
+    <!-- Doctor Selection -->
+    <div class="bg-surface rounded-2xl border border-border shadow-card p-6">
+      <div class="flex flex-col gap-4">
+        <label class="text-xs font-bold text-secondary">اختر الطبيب أو المعمل</label>
+        
+        <div class="relative">
+          <input
+            type="text"
+            [value]="searchTerm()"
+            (input)="onDoctorSearch($event.target.value)"
+            (focus)="showDoctorDropdown.set(true)"
+            placeholder="ابحث باسم الطبيب أو البريد الإلكتروني"
+            class="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+          />
+
+          @if (showDoctorDropdown()) {
+            <div class="absolute top-full left-0 right-0 mt-1 bg-surface border border-border rounded-xl shadow-lg z-40 max-h-48 overflow-y-auto">
+              @if (isSearchingDoctors()) {
+                <div class="px-4 py-3 text-xs text-text-secondary text-center">جاري البحث...</div>
+              } @else if (filteredDoctors().length === 0) {
+                <div class="px-4 py-3 text-xs text-text-secondary text-center">لا يوجد أطباء مطابقين</div>
+              } @else {
+                @for (doctor of filteredDoctors(); track doctor.id) {
+                  <button
+                    type="button"
+                    (click)="selectDoctor(doctor)"
+                    class="w-full text-left px-4 py-2 hover:bg-background/50 transition border-b border-border/30 last:border-0 text-xs"
+                  >
+                    <p class="font-bold text-secondary">{{ doctor.fullName }}</p>
+                    <p class="text-[10px] text-text-secondary">{{ doctor.email }}</p>
+                  </button>
+                }
+              }
+            </div>
+          }
+
+          @if (selectedDoctor()) {
+            <div class="mt-2 p-3 bg-primary/10 border border-primary/30 rounded-xl">
+              <p class="text-xs font-bold text-secondary">✓ تم اختيار:</p>
+              <p class="text-xs font-bold text-primary mt-1">{{ selectedDoctor()?.fullName }}</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Custom Prices -->
+    @if (selectedDoctor()) {
+      <div class="bg-surface rounded-2xl border border-border shadow-card overflow-hidden">
+        <div class="px-6 py-4 border-b border-border bg-background/50">
+          <h3 class="text-sm font-black text-secondary">الأسعار المخصصة الحالية</h3>
+        </div>
+
+        @if (isLoading()) {
+          <div class="p-8 flex flex-col gap-3">
+            @for (_ of [1,2,3]; track $index) {
+              <div class="h-10 bg-slate-100 animate-pulse rounded-xl"></div>
+            }
+          </div>
+        } @else if (doctorPricings().length === 0) {
+          <div class="p-8 text-center">
+            <p class="text-xs text-text-secondary">لا توجد أسعار مخصصة محددة حالياً</p>
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-xs text-text-secondary border-b border-border bg-background/30">
+                  <th class="text-right font-bold px-6 py-3">الخدمة</th>
+                  <th class="text-right font-bold px-6 py-3">سعر الكتالوج</th>
+                  <th class="text-right font-bold px-6 py-3">السعر المخصص</th>
+                  <th class="text-right font-bold px-6 py-3">الخصم</th>
+                  <th class="px-6 py-3">الإجراء</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (pricing of doctorPricings(); track pricing.serviceId) {
+                  <tr class="border-b border-border/40 hover:bg-background/40 transition">
+                    <td class="px-6 py-4">
+                      <p class="font-bold text-secondary text-xs">{{ pricing.serviceName }}</p>
+                      <p class="text-[10px] text-text-secondary mt-0.5">{{ pricing.serviceCode }}</p>
+                    </td>
+                    <td class="px-6 py-4 text-xs font-bold text-secondary">{{ pricing.catalogPrice }} SAR</td>
+                    <td class="px-6 py-4 text-xs font-black text-primary">{{ pricing.customPrice }} SAR</td>
+                    <td class="px-6 py-4">
+                      @if (pricing.discount > 0) {
+                        <span class="px-2 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold">
+                          -{{ pricing.discount }}%
+                        </span>
+                      } @else if (pricing.discount < 0) {
+                        <span class="px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-bold">
+                          +{{ Math.abs(pricing.discount) }}%
+                        </span>
+                      } @else {
+                        <span class="px-2 py-1 bg-slate-50 text-slate-600 rounded-lg text-[10px] font-bold">
+                          0%
+                        </span>
+                      }
+                    </td>
+                    <td class="px-6 py-4">
+                      <button
+                        class="text-xs text-primary font-bold hover:underline"
+                        disabled
+                      >
+                        تحديث قريباً
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <!-- All Services - Set Custom Price -->
+      <div class="bg-surface rounded-2xl border border-border shadow-card overflow-hidden">
+        <div class="px-6 py-4 border-b border-border bg-background/50">
+          <h3 class="text-sm font-black text-secondary">تعيين أسعار مخصصة جديدة</h3>
+        </div>
+
+        @if (isLoading()) {
+          <div class="p-8 flex flex-col gap-3">
+            @for (_ of [1,2,3]; track $index) {
+              <div class="h-10 bg-slate-100 animate-pulse rounded-xl"></div>
+            }
+          </div>
+        } @else if (services().length === 0) {
+          <div class="p-8 text-center">
+            <p class="text-xs text-text-secondary">لا توجد خدمات متاحة</p>
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-xs text-text-secondary border-b border-border bg-background/30">
+                  <th class="text-right font-bold px-6 py-3">الخدمة</th>
+                  <th class="text-right font-bold px-6 py-3">السعر الحالي</th>
+                  <th class="text-right font-bold px-6 py-3">طريقة التسعير</th>
+                  <th class="text-right font-bold px-6 py-3">ربح المصمم</th>
+                  <th class="px-6 py-3">الإجراء</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (service of services(); track service.id) {
+                  <tr class="border-b border-border/40 hover:bg-background/40 transition">
+                    <td class="px-6 py-4">
+                      <p class="font-bold text-secondary text-xs">
+                        {{ i18n.currentLang() === 'ar' ? service.nameAr : service.nameEn }}
+                      </p>
+                      <p class="text-[10px] text-text-secondary mt-0.5">{{ service.serviceCode }}</p>
+                    </td>
+                    <td class="px-6 py-4 text-xs font-bold text-secondary">{{ service.price }} SAR</td>
+                    <td class="px-6 py-4 text-xs text-text-secondary">
+                      {{ getPricingMethodLabel(service.pricingMethod) }}
+                    </td>
+                    <td class="px-6 py-4 text-xs text-text-secondary">{{ service.designerProfit }} SAR</td>
+                    <td class="px-6 py-4">
+                      <button
+                        (click)="openSetPriceModal(service)"
+                        class="text-xs text-primary font-bold hover:underline"
+                      >
+                        تعيين السعر
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="bg-surface rounded-2xl border border-border shadow-card p-8 text-center">
+        <p class="text-xs text-text-secondary">اختر طبيباً أو معملاً من الأعلى للبدء في تعيين الأسعار المخصصة</p>
+      </div>
+    }
+  }
+
+  <!-- ==================== DESIGNER TAB ==================== -->
+  @if (activeTab() === 'designer') {
+    <!-- Designer Selection -->
+    <div class="bg-surface rounded-2xl border border-border shadow-card p-6">
+      <div class="flex flex-col gap-4">
+        <label class="text-xs font-bold text-secondary">اختر المصمم</label>
+
+        <div class="relative">
+          <input
+            type="text"
+            [value]="designerSearchTerm()"
+            (input)="onDesignerSearch($event.target.value)"
+            (focus)="showDesignerDropdown.set(true)"
+            placeholder="ابحث باسم المصمم أو البريد الإلكتروني"
+            class="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+          />
+
+          @if (showDesignerDropdown()) {
+            <div class="absolute top-full left-0 right-0 mt-1 bg-surface border border-border rounded-xl shadow-lg z-40 max-h-48 overflow-y-auto">
+              @if (isSearchingDesigners()) {
+                <div class="px-4 py-3 text-xs text-text-secondary text-center">جاري البحث...</div>
+              } @else if (filteredDesigners().length === 0) {
+                <div class="px-4 py-3 text-xs text-text-secondary text-center">لا يوجد مصممين مطابقين</div>
+              } @else {
+                @for (designer of filteredDesigners(); track designer.id) {
+                  <button
+                    type="button"
+                    (click)="selectDesigner(designer)"
+                    class="w-full text-left px-4 py-2 hover:bg-background/50 transition border-b border-border/30 last:border-0 text-xs"
+                  >
+                    <p class="font-bold text-secondary">{{ designer.fullName }}</p>
+                    <p class="text-[10px] text-text-secondary">{{ designer.email }}</p>
+                  </button>
+                }
+              }
+            </div>
+          }
+
+          @if (selectedDesigner()) {
+            <div class="mt-2 p-3 bg-primary/10 border border-primary/30 rounded-xl">
+              <p class="text-xs font-bold text-secondary">✓ تم اختيار:</p>
+              <p class="text-xs font-bold text-primary mt-1">{{ selectedDesigner()?.fullName }}</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (selectedDesigner()) {
+      <!-- Current Custom Profits -->
+      <div class="bg-surface rounded-2xl border border-border shadow-card overflow-hidden">
+        <div class="px-6 py-4 border-b border-border bg-background/50">
+          <h3 class="text-sm font-black text-secondary">أرباح المصمم المخصصة الحالية</h3>
+        </div>
+
+        @if (isLoading()) {
+          <div class="p-8 flex flex-col gap-3">
+            @for (_ of [1,2,3]; track $index) {
+              <div class="h-10 bg-slate-100 animate-pulse rounded-xl"></div>
+            }
+          </div>
+        } @else if (designerPricings().length === 0) {
+          <div class="p-8 text-center">
+            <p class="text-xs text-text-secondary">لا توجد أرباح مخصصة محددة حالياً</p>
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-xs text-text-secondary border-b border-border bg-background/30">
+                  <th class="text-right font-bold px-6 py-3">الخدمة</th>
+                  <th class="text-right font-bold px-6 py-3">الربح الافتراضي</th>
+                  <th class="text-right font-bold px-6 py-3">الربح المخصص</th>
+                  <th class="text-right font-bold px-6 py-3">الفرق</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (pricing of designerPricings(); track pricing.serviceId) {
+                  <tr class="border-b border-border/40 hover:bg-background/40 transition">
+                    <td class="px-6 py-4">
+                      <p class="font-bold text-secondary text-xs">{{ pricing.serviceName }}</p>
+                      <p class="text-[10px] text-text-secondary mt-0.5">{{ pricing.serviceCode }}</p>
+                    </td>
+                    <td class="px-6 py-4 text-xs font-bold text-secondary">{{ pricing.catalogProfit }} SAR</td>
+                    <td class="px-6 py-4 text-xs font-black text-primary">{{ pricing.customProfit }} SAR</td>
+                    <td class="px-6 py-4">
+                      @if (pricing.customProfit > pricing.catalogProfit) {
+                        <span class="px-2 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold">
+                          +{{ pricing.customProfit - pricing.catalogProfit }} SAR
+                        </span>
+                      } @else if (pricing.customProfit < pricing.catalogProfit) {
+                        <span class="px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-bold">
+                          {{ pricing.customProfit - pricing.catalogProfit }} SAR
+                        </span>
+                      } @else {
+                        <span class="px-2 py-1 bg-slate-50 text-slate-600 rounded-lg text-[10px] font-bold">
+                          0 SAR
+                        </span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <!-- All Services - Set Custom Profit -->
+      <div class="bg-surface rounded-2xl border border-border shadow-card overflow-hidden">
+        <div class="px-6 py-4 border-b border-border bg-background/50">
+          <h3 class="text-sm font-black text-secondary">تعيين أرباح مخصصة جديدة</h3>
+        </div>
+
+        @if (isLoading()) {
+          <div class="p-8 flex flex-col gap-3">
+            @for (_ of [1,2,3]; track $index) {
+              <div class="h-10 bg-slate-100 animate-pulse rounded-xl"></div>
+            }
+          </div>
+        } @else if (services().length === 0) {
+          <div class="p-8 text-center">
+            <p class="text-xs text-text-secondary">لا توجد خدمات متاحة</p>
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-xs text-text-secondary border-b border-border bg-background/30">
+                  <th class="text-right font-bold px-6 py-3">الخدمة</th>
+                  <th class="text-right font-bold px-6 py-3">الربح الافتراضي</th>
+                  <th class="text-right font-bold px-6 py-3">طريقة التسعير</th>
+                  <th class="px-6 py-3">الإجراء</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (service of services(); track service.id) {
+                  <tr class="border-b border-border/40 hover:bg-background/40 transition">
+                    <td class="px-6 py-4">
+                      <p class="font-bold text-secondary text-xs">
+                        {{ i18n.currentLang() === 'ar' ? service.nameAr : service.nameEn }}
+                      </p>
+                      <p class="text-[10px] text-text-secondary mt-0.5">{{ service.serviceCode }}</p>
+                    </td>
+                    <td class="px-6 py-4 text-xs font-bold text-secondary">{{ service.designerProfit }} SAR</td>
+                    <td class="px-6 py-4 text-xs text-text-secondary">
+                      {{ getPricingMethodLabel(service.pricingMethod) }}
+                    </td>
+                    <td class="px-6 py-4">
+                      <button
+                        (click)="openSetProfitModal(service)"
+                        class="text-xs text-primary font-bold hover:underline"
+                      >
+                        تعيين الربح
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="bg-surface rounded-2xl border border-border shadow-card p-8 text-center">
+        <p class="text-xs text-text-secondary">اختر مصمماً من الأعلى للبدء في تعيين الأرباح المخصصة</p>
+      </div>
+    }
+  }
+
+  <!-- Set Price Modal (Doctor) -->
+  @if (showModal() && selectedService()) {
+    <div class="fixed inset-0 bg-secondary/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-surface border border-border rounded-2xl p-6 w-full max-w-sm shadow-2xl flex flex-col gap-4">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-black text-secondary">تعيين السعر المخصص</h3>
+          <button
+            (click)="closeModal()"
+            class="text-text-secondary hover:text-secondary text-lg font-bold"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="bg-background/50 border border-border rounded-lg p-3">
+          <p class="text-xs text-text-secondary">الخدمة:</p>
+          <p class="text-xs font-bold text-secondary mt-1">
+            {{ i18n.currentLang() === 'ar' ? selectedService()?.nameAr : selectedService()?.nameEn }}
+          </p>
+          <p class="text-[10px] text-text-secondary mt-1">السعر الحالي: {{ selectedService()?.price }} SAR</p>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submitCustomPrice()" class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">السعر المخصص (SAR) *</label>
+            <input
+              type="number"
+              formControlName="customPrice"
+              step="0.01"
+              min="0"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+            @if (form.get('customPrice')?.hasError('required') && form.get('customPrice')?.touched) {
+              <p class="text-[10px] text-rose-600">الحقل مطلوب</p>
+            }
+          </div>
+
+          @if (form.value.customPrice && selectedService()) {
+            <div class="bg-primary/10 border border-primary/30 rounded-lg p-3">
+              <p class="text-[10px] text-text-secondary">الخصم المتوقع:</p>
+              <p class="text-xs font-black text-primary mt-1">
+                {{ calculateDiscount(form.value.customPrice || 0, selectedService()?.price || 0) }}%
+              </p>
+            </div>
+          }
+
+          <div class="flex justify-end gap-2.5 pt-4 border-t border-border">
+            <button
+              type="button"
+              (click)="closeModal()"
+              [disabled]="isSubmitting()"
+              class="px-4 py-2 bg-background hover:bg-border rounded-xl text-xs font-bold text-secondary transition disabled:opacity-50"
+            >
+              إلغاء
+            </button>
+            <button
+              type="submit"
+              [disabled]="isSubmitting() || form.invalid"
+              class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold transition disabled:opacity-50"
+            >
+              {{ isSubmitting() ? 'جاري التعيين...' : 'تعيين السعر' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Set Profit Modal (Designer) -->
+  @if (showProfitModal() && selectedProfitService()) {
+    <div class="fixed inset-0 bg-secondary/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-surface border border-border rounded-2xl p-6 w-full max-w-sm shadow-2xl flex flex-col gap-4">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-black text-secondary">تعيين ربح المصمم</h3>
+          <button
+            (click)="closeProfitModal()"
+            class="text-text-secondary hover:text-secondary text-lg font-bold"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="bg-background/50 border border-border rounded-lg p-3">
+          <p class="text-xs text-text-secondary">الخدمة:</p>
+          <p class="text-xs font-bold text-secondary mt-1">
+            {{ i18n.currentLang() === 'ar' ? selectedProfitService()?.nameAr : selectedProfitService()?.nameEn }}
+          </p>
+          <p class="text-[10px] text-text-secondary mt-1">الربح الافتراضي: {{ selectedProfitService()?.designerProfit }} SAR</p>
+        </div>
+
+        <form [formGroup]="profitForm" (ngSubmit)="submitCustomProfit()" class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">الربح المخصص (SAR) *</label>
+            <input
+              type="number"
+              formControlName="customProfit"
+              step="0.01"
+              min="0"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+            @if (profitForm.get('customProfit')?.hasError('required') && profitForm.get('customProfit')?.touched) {
+              <p class="text-[10px] text-rose-600">الحقل مطلوب</p>
+            }
+          </div>
+
+          <div class="flex justify-end gap-2.5 pt-4 border-t border-border">
+            <button
+              type="button"
+              (click)="closeProfitModal()"
+              [disabled]="isSubmitting()"
+              class="px-4 py-2 bg-background hover:bg-border rounded-xl text-xs font-bold text-secondary transition disabled:opacity-50"
+            >
+              إلغاء
+            </button>
+            <button
+              type="submit"
+              [disabled]="isSubmitting() || profitForm.invalid"
+              class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold transition disabled:opacity-50"
+            >
+              {{ isSubmitting() ? 'جاري التعيين...' : 'تعيين الربح' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

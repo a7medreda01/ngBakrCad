@@ -1,0 +1,366 @@
+<div class="min-h-screen bg-background font-sans">
+
+  <!-- ═══════════════════ HERO ═══════════════════ -->
+  <section class="relative overflow-hidden brand-gradient text-text-onDark">
+    <div class="absolute inset-0 bg-hero-mesh pointer-events-none"></div>
+    <div class="absolute inset-0 bg-navy-deep/20 pointer-events-none"></div>
+
+    <!-- Header -->
+    <header class="relative z-10 section-container py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 animate-fade-in">
+      <a routerLink="/" class="flex items-center gap-3">
+        <img src="/logo.png" alt="BKR CAD" class="h-12 sm:h-16 w-auto object-contain" />
+      </a>
+      <nav class="flex items-center gap-3">
+        @if (!isLoggedIn) {
+          <a routerLink="/auth/login" class="btn-ghost btn-md text-text-onDark/80 hover:text-white hover:bg-white/10">
+            تسجيل دخول
+          </a>
+          <a routerLink="/auth/register" class="btn btn-md bg-white/10 border border-white/25 text-white hover:bg-white/20 backdrop-blur-sm">
+            انضم إلينا
+          </a>
+        } @else {
+          <a [routerLink]="dashboardLink" class="btn-ghost btn-md text-text-onDark/80 hover:text-white hover:bg-white/10">
+            لوحة التحكم
+          </a>
+          <button (click)="logout()" class="btn btn-md bg-white/10 border border-white/25 text-white hover:bg-rose-500/80 hover:border-rose-500 backdrop-blur-sm transition">
+            تسجيل خروج
+          </button>
+        }
+      </nav>
+    </header>
+
+    <!-- Hero Content -->
+    <div class="relative z-10 section-container pb-10 pt-4 sm:pb-20 sm:pt-8 lg:pt-12">
+      <div class="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+
+        <!-- Text -->
+        <div class="animate-stagger text-center lg:text-start">
+          <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent-light bg-white/10 border border-white/15 rounded-full px-4 py-1.5 mb-4 sm:mb-6">
+            <span class="w-2 h-2 rounded-full bg-accent animate-pulse-soft"></span>
+            منصة متكاملة لتصميم التركيبات السنية
+          </span>
+
+          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6 text-white">
+            منصة
+            <span class="text-gradient"> BKR CAD </span>
+            لتصميم الأسنان الرقمي
+          </h1>
+
+          <p class="text-base sm:text-xl text-text-onDark/80 leading-relaxed mb-6 sm:mb-8 max-w-xl mx-auto lg:mx-0">
+            تربط العيادات والأطباء بمصممي CAD المحترفين ومعامل التصنيع — لإدارة الحالات ومتابعة التصاميم وتسليم ملفات STL بدقة عالية.
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-8 sm:mb-12">
+            @if (!isLoggedIn) {
+              <a routerLink="/auth/register" class="btn-primary btn-lg shadow-primary">
+                <i class="bi bi-plus-lg"></i>
+                ابدأ حالة جديدة
+              </a>
+              <a routerLink="/auth/login" class="btn btn-lg bg-white/10 border border-white/25 text-white hover:bg-white/20 backdrop-blur-sm">
+                <i class="bi bi-play-circle"></i>
+                شاهد كيف تعمل
+              </a>
+            } @else {
+              <a [routerLink]="dashboardLink" class="btn-primary btn-lg shadow-primary">
+                <i class="bi bi-grid-fill"></i>
+                لوحة التحكم
+              </a>
+            }
+          </div>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+            @for (stat of stats; track stat.label) {
+              <div class="rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm p-3 sm:p-4 text-center hover:bg-white/15 transition-colors">
+                <p class="text-lg sm:text-2xl font-bold text-white">{{ stat.value }}</p>
+                <p class="text-xs text-text-onDark/70 mt-1">{{ stat.label }}</p>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Hero Visual (desktop only) -->
+        <div class="animate-slide-in-right hidden lg:block">
+          <div class="relative">
+            <div class="absolute -inset-4 bg-accent/10 rounded-4xl blur-2xl"></div>
+            <div class="relative card-glass p-8 text-white">
+              <p class="text-xs font-bold uppercase tracking-widest text-accent-light mb-2">خدماتنا الأبرز</p>
+              <h2 class="text-2xl font-bold text-white mb-6">حلول تصميم كاملة بتركيز احترافي</h2>
+
+              <div class="space-y-4">
+                <div class="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                  <div class="w-10 h-10 rounded-xl bg-primary/30 flex items-center justify-center shrink-0">
+                    <i class="bi bi-shield-check text-accent-light"></i>
+                  </div>
+                  <div>
+                    <p class="font-bold text-sm">إدارة الجودة والإشراف</p>
+                    <p class="text-xs text-text-onDark/70 mt-1">فريق مراقبة يضمن دقة كل STL قبل التصنيع</p>
+                  </div>
+                </div>
+                <div class="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                  <div class="w-10 h-10 rounded-xl bg-primary/30 flex items-center justify-center shrink-0">
+                    <i class="bi bi-pencil-square text-accent-light"></i>
+                  </div>
+                  <div>
+                    <p class="font-bold text-sm">مصممو CAD للأسنان</p>
+                    <p class="text-xs text-text-onDark/70 mt-1">مصممون معتمدون بخبرة واسعة في التراكيب</p>
+                  </div>
+                </div>
+                <div class="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                  <div class="w-10 h-10 rounded-xl bg-primary/30 flex items-center justify-center shrink-0">
+                    <i class="bi bi-diagram-3-fill text-accent-light"></i>
+                  </div>
+                  <div>
+                    <p class="font-bold text-sm">ربط العيادات والمعامل</p>
+                    <p class="text-xs text-text-onDark/70 mt-1">تدفق عمل موحد بين جميع الأطراف</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wave divider -->
+    <div class="absolute bottom-0 inset-x-0">
+      <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full">
+        <path d="M0 40C240 80 480 0 720 40C960 80 1200 0 1440 40V80H0V40Z" fill="#F5F7FA"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ FEATURES ═══════════════════ -->
+  <section class="py-12 lg:py-28">
+    <div class="section-container">
+      <div class="text-center mb-8 lg:mb-14">
+        <span class="eyebrow mb-4">المميزات</span>
+        <h2 class="section-heading mt-4 mb-3 lg:mb-4">منصة واحدة لجميع أطراف سلسلة التصميم</h2>
+        <p class="section-subheading mx-auto">
+          أدوات متخصصة لكل دور — من رفع الحالة في العيادة إلى تسليم ملف STL جاهز للتصنيع.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-5 lg:gap-8">
+        @for (feature of features; track feature.title) {
+          <article class="card-interactive group flex flex-col">
+            <div class="w-12 h-12 rounded-xl border flex items-center justify-center text-xl mb-4 lg:mb-5 transition-transform group-hover:scale-110"
+                 [class]="feature.color">
+              <i [class]="'bi ' + feature.icon"></i>
+            </div>
+            <h3 class="text-xl font-bold text-text-primary mb-2 lg:mb-3">{{ feature.title }}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed mb-4 lg:mb-5 flex-1">{{ feature.description }}</p>
+            <ul class="space-y-2 mb-5 lg:mb-6">
+              @for (item of feature.items; track item) {
+                <li class="flex items-center gap-2 text-sm text-text-secondary">
+                  <i class="bi bi-check-circle-fill text-success shrink-0"></i>
+                  {{ item }}
+                </li>
+              }
+            </ul>
+            <!-- <a [routerLink]="feature.link" class="btn-outline btn-md w-full mt-auto">
+              {{ feature.cta }}
+              <i class="bi bi-arrow-left"></i>
+            </a> -->
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ WORKFLOW ═══════════════════ -->
+  <section class="py-12 lg:py-28 bg-surface border-y border-border">
+    <div class="section-container">
+      <div class="text-center mb-8 lg:mb-14">
+        <span class="eyebrow mb-4">رحلة العمل</span>
+        <h2 class="section-heading mt-4 mb-3 lg:mb-4">من الحالة إلى ملف STL في 5 خطوات</h2>
+        <p class="section-subheading mx-auto">
+          تدفق عمل واضح يربط العيادة بالمصمم وفريق الجودة — بشفافية كاملة في كل مرحلة.
+        </p>
+      </div>
+
+      <div class="relative">
+        <!-- Connection line (desktop) -->
+        <div class="hidden lg:block absolute top-16 inset-x-0 h-0.5 bg-gradient-to-l from-primary/20 via-primary to-primary/20"></div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-5 lg:gap-6">
+          @for (step of workflow; track step.step) {
+            <div class="relative text-center group">
+              <div class="relative z-10 w-14 h-14 lg:w-16 lg:h-16 mx-auto rounded-2xl brand-gradient flex items-center justify-center text-white text-xl shadow-primary mb-3 lg:mb-4 group-hover:scale-105 transition-transform">
+                <i [class]="'bi ' + step.icon"></i>
+              </div>
+              <span class="text-xs font-bold text-primary bg-primary-50 border border-primary-100 rounded-full px-2.5 py-0.5">
+                {{ step.step }}
+              </span>
+              <h3 class="text-base font-bold text-text-primary mt-2.5 lg:mt-3 mb-1.5 lg:mb-2">{{ step.title }}</h3>
+              <p class="text-sm text-text-secondary leading-relaxed">{{ step.description }}</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ VALUE PROPS ═══════════════════ -->
+  <section class="py-12 lg:py-28">
+    <div class="section-container">
+      <div class="grid lg:grid-cols-2 gap-8 lg:gap-20 items-center">
+        <div>
+          <span class="eyebrow mb-4">لماذا BKR CAD؟</span>
+          <h2 class="section-heading mt-4 mb-4 lg:mb-6">أدوات ذكية لإدارة التصميم والتواصل وجودة النتائج</h2>
+          <p class="text-text-secondary leading-relaxed mb-6 lg:mb-8">
+            منصة BKR CAD توفر تدفق عمل موحد بين العيادة والمصمم ومعمل التصنيع، مع أدوات شفافة لتسليم حالات STL وإنشاء تصميمات دقيقة مطابقة للمعايير الطبية.
+          </p>
+          <a routerLink="/auth/register" class="btn-primary btn-lg">
+            <i class="bi bi-rocket-takeoff"></i>
+            ابدأ مجاناً
+          </a>
+        </div>
+
+        <div class="space-y-3 lg:space-y-4">
+          <div class="card flex gap-4 items-start hover:shadow-card-hover transition-shadow">
+            <div class="w-11 h-11 rounded-xl bg-primary-50 text-primary flex items-center justify-center shrink-0">
+              <i class="bi bi-cpu-fill"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-text-primary mb-1">توجيه ذكي للحالات</h4>
+              <p class="text-sm text-text-secondary">نظام توجيه يقلل الأخطاء ويوجه الحالة إلى القسم المناسب بسرعة.</p>
+            </div>
+          </div>
+          <div class="card flex gap-4 items-start hover:shadow-card-hover transition-shadow">
+            <div class="w-11 h-11 rounded-xl bg-success-light text-success-dark flex items-center justify-center shrink-0">
+              <i class="bi bi-shield-lock-fill"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-text-primary mb-1">خصوصية وأمان</h4>
+              <p class="text-sm text-text-secondary">تشفير بيانات المرضى والملفات طوال دورة العمل لحماية المعلومات الطبية.</p>
+            </div>
+          </div>
+          <div class="card flex gap-4 items-start hover:shadow-card-hover transition-shadow">
+            <div class="w-11 h-11 rounded-xl bg-info-light text-info-dark flex items-center justify-center shrink-0">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-text-primary mb-1">تواصل فوري</h4>
+              <p class="text-sm text-text-secondary">اجتماعات ومراجعات في الوقت الحقيقي مع الفريق الطبي لتأكيد التفاصيل.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ TESTIMONIALS ═══════════════════ -->
+  <section class="py-12 lg:py-28 bg-secondary text-white">
+    <div class="section-container">
+      <div class="text-center mb-8 lg:mb-14">
+        <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent-light bg-white/10 border border-white/15 rounded-full px-4 py-1.5 mb-4">
+          آراء العملاء
+        </span>
+        <h2 class="text-2xl sm:text-4xl font-bold text-white mt-4 mb-3 lg:mb-4">يثق بنا محترفون في مجال الأسنان</h2>
+        <p class="text-base lg:text-lg text-white/70 max-w-2xl mx-auto">تجارب حقيقية من عيادات ومصممين يستخدمون المنصة يومياً.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-5 lg:gap-6">
+        @for (t of testimonials; track t.name) {
+          <blockquote class="rounded-2xl bg-white/5 border border-white/10 p-5 lg:p-6 hover:bg-white/10 transition-colors flex flex-col">
+            <div class="flex gap-1 text-accent mb-3 lg:mb-4">
+              @for (star of [1,2,3,4,5]; track star) {
+                <i class="bi bi-star-fill text-sm"></i>
+              }
+            </div>
+            <p class="text-sm text-white/85 leading-relaxed flex-1 mb-5 lg:mb-6">"{{ t.quote }}"</p>
+            <div class="flex items-center gap-3 pt-3 lg:pt-4 border-t border-white/10">
+              <div class="w-10 h-10 rounded-full brand-gradient flex items-center justify-center font-bold text-sm">
+                {{ t.avatar }}
+              </div>
+              <div>
+                <p class="font-bold text-sm text-white">{{ t.name }}</p>
+                <p class="text-xs text-white/60">{{ t.role }}</p>
+              </div>
+            </div>
+          </blockquote>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ CTA ═══════════════════ -->
+  <section class="py-12 lg:py-28">
+    <div class="section-container">
+      <div class="relative overflow-hidden rounded-3xl brand-gradient p-7 sm:p-10 lg:p-14 text-center text-white">
+        <div class="absolute inset-0 bg-hero-mesh pointer-events-none"></div>
+        <div class="relative z-10 max-w-2xl mx-auto">
+          <h2 class="text-2xl sm:text-4xl font-bold mb-3 lg:mb-4">جاهز لتحويل سير عملك؟</h2>
+          <p class="text-base lg:text-lg text-white/80 mb-6 lg:mb-8">
+            انضم إلى مئات العيادات والمصممين الذين يعتمدون على BKR CAD لإدارة تصاميمهم الرقمية.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            @if (!isLoggedIn) {
+              <a routerLink="/auth/register" class="btn btn-xl bg-white text-secondary hover:bg-white/90 shadow-elevated">
+                <i class="bi bi-person-plus"></i>
+                إنشاء حساب مجاني
+              </a>
+              <a routerLink="/auth/login" class="btn btn-xl bg-white/10 border border-white/25 text-white hover:bg-white/20">
+                تسجيل الدخول
+              </a>
+            } @else {
+              <a [routerLink]="dashboardLink" class="btn btn-xl bg-white text-secondary hover:bg-white/90 shadow-elevated">
+                <i class="bi bi-grid-fill"></i>
+                الذهاب للوحة التحكم
+              </a>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ FOOTER ═══════════════════ -->
+  <footer class="bg-navy-deep text-text-onDark pt-10 pb-6 lg:pt-16 lg:pb-8">
+    <div class="section-container">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 mb-8 lg:mb-12">
+
+        <div class="sm:col-span-2 lg:col-span-1">
+          <img src="/logo.png" alt="BKR CAD" class="h-12 w-auto mb-4" />
+          <p class="text-sm text-text-onDark/60 leading-relaxed mb-5">
+            منصة رقمية تربط العيادات والمعامل بفريق مصممي CAD المحترفين لإدارة حالات تركيبات الأسنان بدقة وسرعة.
+          </p>
+          <div class="flex gap-3">
+            @for (social of ['instagram', 'linkedin', 'twitter-x', 'whatsapp']; track social) {
+              <a href="#" class="btn-icon text-text-onDark/60 hover:text-accent-light hover:bg-white/5" [attr.aria-label]="social">
+                <i [class]="'bi bi-' + social"></i>
+              </a>
+            }
+          </div>
+        </div>
+
+        <div>
+          <p class="text-sm font-bold text-white mb-4">روابط سريعة</p>
+          <ul class="space-y-2.5">
+            @for (link of [{l:'الرئيسية',r:'/'},{l:'من نحن',r:'/'},{l:'خدماتنا',r:'/'},{l:'انضم إلينا',r:'/auth/register'}]; track link.l) {
+              <li><a [routerLink]="link.r" class="text-sm text-text-onDark/60 hover:text-accent-light transition-colors">{{ link.l }}</a></li>
+            }
+          </ul>
+        </div>
+
+        <div>
+          <p class="text-sm font-bold text-white mb-4">تواصل معنا</p>
+          <ul class="space-y-3 text-sm text-text-onDark/60">
+            <li class="flex items-center gap-2"><i class="bi bi-envelope-fill text-accent"></i> support&#64;bkrcad.com</li>
+            <li class="flex items-center gap-2"><i class="bi bi-telephone-fill text-accent"></i> +966 00 000 0000</li>
+            <li class="flex items-center gap-2"><i class="bi bi-geo-alt-fill text-accent"></i> الرياض، المملكة العربية السعودية</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-white/10 pt-5 lg:pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 lg:gap-4">
+        <p class="text-xs text-text-onDark/50">© 2026 BKR CAD. جميع الحقوق محفوظة.</p>
+        <div class="flex gap-5">
+          <a routerLink="/" class="text-xs text-text-onDark/50 hover:text-accent-light transition-colors">سياسة الخصوصية</a>
+          <a routerLink="/" class="text-xs text-text-onDark/50 hover:text-accent-light transition-colors">الشروط والأحكام</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>

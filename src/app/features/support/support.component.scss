@@ -1,0 +1,76 @@
+:host { display: block; }
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+/* ─── Chat Scroll Container ─────────────────────────────── */
+.support-chat-scroll {
+  max-height: min(460px, 58vh);
+  overflow-y: auto;
+  padding: 0.5rem 0.25rem;
+  scroll-behavior: smooth;
+}
+
+.support-chat-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.support-chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.support-chat-scroll::-webkit-scrollbar-thumb {
+  background: rgba(20, 184, 166, 0.3);
+  border-radius: 999px;
+}
+.support-chat-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(20, 184, 166, 0.55);
+}
+
+/* ─── Chat Bubble Base ───────────────────────────────────── */
+.chat-bubble {
+  padding: 0.65rem 0.9rem;
+  border-radius: 1.25rem;
+  line-height: 1.6;
+  word-break: break-word;
+  transition: transform 0.15s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* ─── Sent Bubble (Right / current user) ────────────────── */
+.chat-bubble-sent {
+  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  color: #ffffff;
+  border-bottom-right-radius: 0.35rem;  /* flat tail corner */
+  align-self: flex-end;
+
+  span, p, a {
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  a {
+    color: rgba(255, 255, 255, 0.85);
+    &:hover { color: #ffffff; }
+  }
+}
+
+/* ─── Received Bubble (Left / other user) ───────────────── */
+.chat-bubble-received {
+  background: var(--color-surface, #f8fafc);
+  color: var(--color-secondary, #1e293b);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-bottom-left-radius: 0.35rem;  /* flat tail corner */
+  align-self: flex-start;
+
+  span, p {
+    color: var(--color-secondary, #334155);
+  }
+
+  a {
+    color: var(--color-primary, #0d9488);
+    &:hover { color: #0f766e; }
+  }
+}

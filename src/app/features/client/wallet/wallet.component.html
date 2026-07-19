@@ -1,0 +1,167 @@
+<div class="flex flex-col gap-6" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
+  <!-- Header -->
+  <div class="border-b border-border pb-4">
+    <h1 class="text-lg sm:text-xl font-extrabold text-secondary">{{ t('nav.wallet') }}</h1>
+    <p class="text-xs text-text-secondary mt-1">شحن الرصيد والتحكم في باقات الإيداع ومتابعة المعاملات المالية</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+    <!-- Left Column: Current Balance -->
+    <div class="flex flex-col gap-6">
+      <div class="brand-gradient rounded-2xl p-5 sm:p-6 text-white shadow-primary flex flex-col gap-4">
+        <div class="flex justify-between items-center">
+          <p class="text-xs font-bold opacity-80">{{ t('dashboard.walletBalance') }}</p>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 opacity-60"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18-3a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6m18 0V3.75A1.5 1.5 0 0 0 19.5 2.25h-15A1.5 1.5 0 0 0 3 3.75V6m18 0v3M3 6v3" /></svg>
+        </div>
+        <div>
+          <p class="text-2xl sm:text-3xl font-black break-words">{{ (authService.userProfile()?.clientProfile?.walletBalance ?? 0) | number:'1.2-2' }} SAR</p>
+          <p class="text-xs opacity-75 mt-2">الحد الائتماني المتاح: {{ (authService.userProfile()?.clientProfile?.creditLimit ?? 0) | number:'1.2-2' }} SAR</p>
+        </div>
+        <div class="text-[10px] bg-white/10 p-2.5 rounded-xl border border-white/10 mt-1">
+          <span class="font-bold">حالة الرصيد السالب:</span>
+          {{ authService.userProfile()?.clientProfile?.negativeBalanceAllowed ? 'مسموح' : 'غير مسموح' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Packages & Transactions -->
+    <div class="lg:col-span-2 flex flex-col gap-4 sm:gap-6">
+
+      <!-- Topup Deposit Packages Grid -->
+      <div class="bg-surface rounded-2xl p-4 sm:p-6 border border-border shadow-card flex flex-col gap-4">
+        <h3 class="text-sm font-black text-secondary">باقات الشحن السريع المتاحة</h3>
+
+        @if (isLoading()) {
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+            @for (_ of [1,2,3]; track $index) {
+              <div class="h-32 bg-slate-100 animate-pulse rounded-xl"></div>
+            }
+          </div>
+        } @else if (packages().length === 0) {
+          <div class="py-8 text-center text-text-secondary text-xs">لا توجد باقات شحن متاحة حالياً</div>
+        } @else {
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+            @for (pkg of packages(); track pkg.id) {
+              <div
+                class="relative flex flex-col justify-between p-3 sm:p-4 rounded-xl transition text-center gap-2 sm:gap-3"
+                [ngClass]="getPackageTier(pkg).cardClass"
+              >
+                <!-- Tier badge -->
+                <div class="flex justify-center">
+                  <span
+                    class="text-[9px] font-black px-2 py-0.5 rounded-full"
+                    [ngClass]="getPackageTier(pkg).badgeClass"
+                  >
+                    {{ getPackageTier(pkg).label }}
+                  </span>
+                </div>
+
+                <div>
+                  <h4 class="text-[11px] sm:text-xs font-bold text-secondary">{{ i18n.currentLang() === 'ar' ? pkg.nameAr : pkg.nameEn }}</h4>
+                  <p class="text-[10px] sm:text-xs text-text-secondary mt-1">ادفع: <span class="font-black text-secondary">{{ pkg.paymentAmount | number:'1.0-2' }} SAR</span></p>
+                </div>
+
+                <div class="p-1.5 sm:p-2 rounded-lg bg-primary/10 border border-primary/20 text-[10px] sm:text-xs font-black text-primary">
+                  رصيد محفظة: {{ pkg.walletCreditAmount | number:'1.0-2' }} SAR
+                </div>
+
+                @if (pkg.walletCreditAmount > pkg.paymentAmount) {
+                  <div class="text-[9px] sm:text-[10px] font-bold text-green-600">
+                    + {{ (pkg.walletCreditAmount - pkg.paymentAmount) | number:'1.0-2' }} SAR بونص
+                  </div>
+                }
+
+                <button
+                  (click)="purchasePackage(pkg)"
+                  [disabled]="!!purchasingPackageId()"
+                  class="w-full py-1.5 rounded-lg text-[9px] sm:text-[10px] font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  [ngClass]="getPackageTier(pkg).buttonClass"
+                >
+                  {{ purchasingPackageId() === pkg.id ? 'جاري الشحن...' : 'شحن الباقة' }}
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Transactions Log -->
+      <div class="bg-surface rounded-2xl border border-border shadow-card">
+        <div class="px-4 sm:px-6 py-4 border-b border-border">
+          <h3 class="text-sm font-black text-secondary">{{ t('wallet.transactions') }}</h3>
+        </div>
+
+        @if (isLoadingTransactions()) {
+          <div class="p-4 sm:p-6 flex flex-col gap-2">
+            @for (_ of [1,2,3]; track $index) {
+              <div class="h-14 sm:h-10 bg-slate-100 animate-pulse rounded-lg"></div>
+            }
+          </div>
+        } @else if (transactions().length === 0) {
+          <div class="py-12 text-center text-text-secondary text-xs">لا توجد حركات مالية سابقة</div>
+        } @else {
+
+          <!-- Mobile: card list (visible below md) -->
+          <div class="flex flex-col md:hidden divide-y divide-border/40">
+            @for (tx of transactions(); track tx.id) {
+              <div class="p-4 flex flex-col gap-2">
+                <div class="flex justify-between items-start gap-2">
+                  <div class="flex flex-col gap-0.5">
+                    <p class="text-xs font-bold text-secondary">{{ getTransactionTypeLabel(tx.type) }}</p>
+                    <p class="text-[10px] text-text-secondary">{{ tx.createdAt | date:'yyyy-MM-dd HH:mm' }}</p>
+                  </div>
+                  <span
+                    class="text-xs font-black shrink-0"
+                    [class.text-green-600]="tx.amount > 0"
+                    [class.text-rose-600]="tx.amount < 0"
+                  >
+                    {{ tx.amount > 0 ? '+' : '' }}{{ tx.amount | number:'1.0-2' }} SAR
+                  </span>
+                </div>
+                @if (tx.notes) {
+                  <p class="text-[10px] text-text-secondary bg-background/60 rounded-lg px-2 py-1.5">{{ tx.notes }}</p>
+                }
+                <div class="flex justify-between text-[10px] text-text-secondary bg-background/40 rounded-lg px-2 py-1.5">
+                  <span>قبل: <span class="font-bold text-secondary">{{ tx.beforeBalance | number:'1.0-2' }} SAR</span></span>
+                  <span>بعد: <span class="font-bold text-secondary">{{ tx.afterBalance | number:'1.0-2' }} SAR</span></span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Desktop: table (visible md and up) -->
+          <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-xs text-text-secondary border-b border-border bg-background/50">
+                  <th class="text-right font-bold px-6 py-3">العملية</th>
+                  <th class="text-right font-bold px-6 py-3">المبلغ</th>
+                  <th class="text-right font-bold px-6 py-3">الرصيد قبل</th>
+                  <th class="text-right font-bold px-6 py-3">الرصيد بعد</th>
+                  <th class="text-right font-bold px-6 py-3">التاريخ</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (tx of transactions(); track tx.id) {
+                  <tr class="border-b border-border/40 hover:bg-background/40 transition">
+                    <td class="px-6 py-3 text-xs text-secondary">
+                      <p class="font-bold">{{ getTransactionTypeLabel(tx.type) }}</p>
+                      <p class="text-[10px] text-text-secondary mt-0.5">{{ tx.notes }}</p>
+                    </td>
+                    <td class="px-6 py-3 text-xs font-black" [class.text-green-600]="tx.amount > 0" [class.text-rose-600]="tx.amount < 0">
+                      {{ tx.amount > 0 ? '+' : '' }}{{ tx.amount | number:'1.0-2' }} SAR
+                    </td>
+                    <td class="px-6 py-3 text-xs text-text-secondary">{{ tx.beforeBalance | number:'1.0-2' }} SAR</td>
+                    <td class="px-6 py-3 text-xs text-secondary font-bold">{{ tx.afterBalance | number:'1.0-2' }} SAR</td>
+                    <td class="px-6 py-3 text-xs text-text-secondary">{{ tx.createdAt | date:'yyyy-MM-dd HH:mm' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+    </div>
+  </div>
+</div>

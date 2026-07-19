@@ -1,0 +1,90 @@
+<div class="w-full max-w-md bg-surface p-8 rounded-3xl border border-border shadow-card flex flex-col gap-6" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
+  
+  <!-- Header -->
+  <div class="text-center flex flex-col gap-2">
+    <div class="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center mx-auto text-primary border border-primary/10">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+      </svg>
+    </div>
+    
+    <h1 class="text-2xl font-black text-secondary mt-2">
+      {{ i18n.isRtl() ? 'تأكيد البريد الإلكتروني' : 'Confirm Your Email' }}
+    </h1>
+    
+    <p class="text-xs text-text-secondary leading-relaxed">
+      {{ i18n.isRtl() ? 'أدخل الرمز المكون من 6 أرقام المرسل إلى بريدك الإلكتروني:' : 'Enter the 6-digit verification code sent to your email:' }}
+      <br>
+      <span class="font-extrabold text-primary break-all">{{ email() }}</span>
+    </p>
+  </div>
+
+  <!-- Reward Banner for Doctors -->
+  @if (isDoctor()) {
+    <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 p-4 rounded-2xl flex items-start gap-3">
+      <span class="text-emerald-600 mt-0.5">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+          <path fill-rule="evenodd" d="M9 2.25a.75.75 0 0 1 .4.221l.383.383c.313.313.82.313 1.134 0l.383-.383a.75.75 0 0 1 1.06 0l.383.383c.313.313.82.313 1.134 0l.383-.383a.75.75 0 0 1 1.06 0l.383.383c.313.313.82.313 1.134 0l.383-.383a.75.75 0 0 1 1.06 0l.383.383c.313.313.82.313 1.134 0l.383-.383a.75.75 0 0 1 1.061 0l.383.383c.313.313.82.313 1.134 0l.383-.383a.75.75 0 0 1 1.06 0l.383.383c.313.313.82.313 1.134 0l.383-.383a.75.75 0 0 1 .4-.22M1.5 6.75A1.5 1.5 0 0 1 3 5.25h18a1.5 1.5 0 0 1 1.5 1.5v10.5a1.5 1.5 0 0 1-1.5 1.5H3a1.5 1.5 0 0 1-1.5-1.5V6.75Zm12.75 5.25a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM7.5 14.25a.75.75 0 0 0-.75.75c0 .414.336.75.75.75h9a.75.75 0 0 0 .75-.75c0-.414-.336-.75-.75-.75h-9Z" clip-rule="evenodd" />
+        </svg>
+      </span>
+      <div class="flex flex-col gap-0.5">
+        <span class="text-xs font-black text-emerald-800">
+          {{ i18n.isRtl() ? 'مكافأة تأكيد الحساب' : 'Account Verification Reward' }}
+        </span>
+        <span class="text-[11px] text-emerald-600 leading-normal">
+          {{ i18n.isRtl() ? 'بعد تأكيد بريدك، ستحصل تلقائياً على حد ائتماني بقيمة ' + welcomeBonus() + ' ريال لطلب الحالات والدفع لاحقاً!' : 'Upon email confirmation, you will automatically receive a ' + welcomeBonus() + ' SAR credit limit to order cases!' }}
+        </span>
+      </div>
+    </div>
+  }
+
+  <!-- Form -->
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+    
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-extrabold text-secondary">
+        {{ i18n.isRtl() ? 'رمز التحقق (OTP)' : 'Verification Code (OTP)' }}
+      </label>
+      
+      <div class="relative">
+        <input type="text" 
+               formControlName="code"
+               maxlength="6"
+               placeholder="123456"
+               class="w-full rounded-2xl border border-border bg-background px-4 py-3.5 text-center text-lg font-black tracking-widest text-secondary focus:border-primary focus:outline-none transition" />
+      </div>
+
+      @if (form.controls.code.touched && form.controls.code.errors) {
+        <span class="text-[11px] text-rose-500 font-medium px-1">
+          {{ i18n.isRtl() ? 'يجب إدخال الرمز المكون من 6 أرقام بشكل صحيح' : 'Please enter a valid 6-digit verification code' }}
+        </span>
+      }
+    </div>
+
+    <!-- Actions -->
+    <app-button type="submit" 
+                [isLoading]="isLoading()" 
+                [disabled]="form.invalid || isLoading()" 
+                variant="primary" 
+                class="w-full">
+      {{ i18n.isRtl() ? 'تأكيد الحساب' : 'Verify Account' }}
+    </app-button>
+  </form>
+
+  <!-- Footer Actions -->
+  <div class="flex flex-col gap-2 text-center text-xs mt-2 border-t border-border/50 pt-4">
+    <p class="text-text-secondary">
+      {{ i18n.isRtl() ? 'لم يصلك الرمز؟' : "Didn't receive the code?" }}
+      <button (click)="resendCode()" 
+              [disabled]="isSending()"
+              class="text-primary font-black hover:underline focus:outline-none transition ml-1 disabled:opacity-50">
+        {{ isSending() ? (i18n.isRtl() ? 'جاري الإرسال...' : 'Sending...') : (i18n.isRtl() ? 'إرسال الرمز مرة أخرى' : 'Resend Code') }}
+      </button>
+    </p>
+
+    <a routerLink="/auth/login" class="text-text-secondary hover:text-primary transition font-bold mt-1">
+      {{ i18n.isRtl() ? 'العودة لتسجيل الدخول' : 'Back to Login' }}
+    </a>
+  </div>
+
+</div>

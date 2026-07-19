@@ -1,0 +1,6 @@
+/* Lab Case Detail Component Styles */
+.teeth-grid {
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 0.25rem;
+}

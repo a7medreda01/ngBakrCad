@@ -1,0 +1,247 @@
+:host {
+  display: block;
+}
+
+.odontogram-chart {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+
+.odontogram-svg {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.05));
+}
+
+.side-label {
+  font-size: 13px;
+  font-weight: 700;
+  fill: #94A3B8;
+  font-family: system-ui, sans-serif;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
+.midline {
+  stroke: #E2E8F0;
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+  opacity: 0.6;
+}
+
+.tooth-group {
+  cursor: pointer;
+  user-select: none;
+
+  &.read-only {
+    cursor: default;
+  }
+  
+  &[role="button"] {
+    outline: none;
+
+    &:focus-visible {
+      .tooth-label {
+        text-decoration: underline;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 4px;
+      }
+    }
+
+    &:hover {
+      .tooth-crown {
+        fill: #DBEAFE !important;
+        filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.2));
+      }
+
+      .tooth-label {
+        font-size: 14px;
+        font-weight: 800;
+      }
+    }
+  }
+
+  .tooth-crown {
+    fill: url(#toothGradient);
+    stroke: #CBD5E1;
+    stroke-width: 1.2;
+    transition: all 0.1s ease;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05));
+
+    &:hover {
+      stroke: #94A3B8;
+      stroke-width: 1.4;
+    }
+  }
+
+  .tooth-root {
+    opacity: 0.3;
+    transition: opacity 0.1s ease;
+  }
+
+  .tooth-groove {
+    fill: none;
+    stroke: #CBD5E1;
+    stroke-width: 0.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.1s ease;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  .tooth-shadow-detail {
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+  }
+
+  .tooth-label {
+    font-size: 12px;
+    font-weight: 700;
+    fill: #64748B;
+    font-family: system-ui, -apple-system, sans-serif;
+    pointer-events: none;
+    transition: all 0.1s ease;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    user-select: none;
+  }
+
+  /* Default state: light gray */
+  &:not(.selected) {
+    .tooth-crown {
+      fill: url(#toothGradient);
+      stroke: #94A3B8;
+      stroke-width: 1.2;
+
+      &:hover {
+        filter: drop-shadow(0 3px 6px rgba(59, 130, 246, 0.15));
+      }
+    }
+
+    .tooth-groove {
+      stroke: #CBD5E1;
+      opacity: 0.5;
+    }
+
+    .tooth-label {
+      fill: #64748B;
+      font-weight: 700;
+    }
+  }
+
+  /* Selected state: blue with glow */
+  &.selected {
+    .tooth-crown {
+      fill: url(#toothSelectedGradient);
+      stroke: #1E40AF;
+      stroke-width: 2;
+      filter: drop-shadow(0 4px 12px rgba(30, 64, 175, 0.35));
+    }
+
+    .tooth-groove {
+      stroke: rgba(255, 255, 255, 0.7);
+      stroke-width: 1;
+      opacity: 0.8;
+    }
+
+    .tooth-shadow-detail {
+      opacity: 1;
+    }
+
+    .tooth-label {
+      fill: #1E40AF;
+      font-weight: 800;
+      font-size: 14px;
+      text-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+    }
+
+    .tooth-container {
+      animation: toothPulse 0.2s ease-out;
+    }
+  }
+
+  /* Arch reference colors (subtle) */
+  &[data-jaw="upper"]:hover .tooth-label {
+    fill: #2563EB;
+  }
+
+  &[data-jaw="lower"]:hover .tooth-label {
+    fill: #059669;
+  }
+}
+
+/* Animations */
+@keyframes toothPulse {
+  0% {
+    transform: scale(0.98);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes toothGlow {
+  0%, 100% {
+    filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.1));
+  }
+  50% {
+    filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.3));
+  }
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  transition: all 0.1s ease;
+
+  &--default {
+    background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
+    border: 1.5px solid #94A3B8;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8);
+  }
+
+  &--selected {
+    background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%);
+    border: 1.5px solid #1E40AF;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .odontogram-svg {
+    max-width: 100%;
+  }
+
+  .tooth-group {
+    .tooth-label {
+      font-size: 11px;
+
+      &:hover {
+        font-size: 12px;
+      }
+    }
+
+    &.selected .tooth-label {
+      font-size: 13px;
+    }
+  }
+}
+
+/* Accessibility improvements */
+.tooth-group:focus-visible {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+  border-radius: 2px;
+}

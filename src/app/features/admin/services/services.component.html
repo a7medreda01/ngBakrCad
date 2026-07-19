@@ -1,0 +1,416 @@
+<div class="flex flex-col gap-6" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
+  <!-- Header with Create Button -->
+  <div class="border-b border-border pb-4 flex justify-between items-start">
+    <div>
+      <h1 class="text-xl font-extrabold text-secondary">دليل الخدمات والتسعير</h1>
+      <p class="text-xs text-text-secondary mt-1">ضبط الأسعار القياسية ونسب أرباح المعامل المصممة للتركيبات الرقمية</p>
+    </div>
+    <div class="flex gap-2">
+      <button
+        (click)="openCreateModal()"
+        class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold transition"
+      >
+        + إضافة خدمة جديدة
+      </button>
+      <button
+        routerLink="/admin/custom-pricing"
+        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition"
+      >
+        💰 التسعير المخصص
+      </button>
+    </div>
+  </div>
+
+  <!-- Services Table -->
+  <div class="bg-surface rounded-2xl border border-border shadow-card overflow-hidden">
+    <div class="overflow-x-auto">
+      @if (isLoading()) {
+        <div class="p-8 flex flex-col gap-3">
+          @for (_ of [1,2,3]; track $index) {
+            <div class="h-10 bg-slate-100 animate-pulse rounded-xl"></div>
+          }
+        </div>
+      } @else if (services().length === 0) {
+        <div class="p-8 text-center">
+          <p class="text-xs text-text-secondary">لا توجد خدمات متاحة</p>
+        </div>
+      } @else {
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-xs text-text-secondary border-b border-border bg-background/50">
+              <th class="text-right font-bold px-6 py-4">الخدمة</th>
+              <th class="text-right font-bold px-6 py-4">سعر الوحدة</th>
+              <th class="text-right font-bold px-6 py-4">طريقة التسعير</th>
+              <th class="text-right font-bold px-6 py-4">ربح المصمم</th>
+              <th class="text-right font-bold px-6 py-4">الحد الأدنى للتسليم</th>
+              <th class="text-right font-bold px-6 py-4">الحالة</th>
+              <th class="px-6 py-4">الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of services(); track s.id) {
+              <tr class="border-b border-border/40 hover:bg-background/40 transition">
+                <td class="px-6 py-4">
+                  <p class="font-bold text-secondary text-xs">{{ i18n.currentLang() === 'ar' ? s.nameAr : s.nameEn }}</p>
+                  <p class="text-[10px] text-text-secondary mt-0.5">{{ s.serviceCode }}</p>
+                </td>
+                <td class="px-6 py-4 text-xs font-black text-secondary">{{ s.price }} SAR</td>
+                <td class="px-6 py-4 text-xs text-text-secondary">{{ getPricingMethodLabel(s.pricingMethod) }}</td>
+                <td class="px-6 py-4 text-xs text-text-secondary">{{ s.designerProfit }} SAR</td>
+                <td class="px-6 py-4 text-xs text-text-secondary">{{ s.minimumDeliveryHours }} ساعة</td>
+                <td class="px-6 py-4">
+                  <span
+                    [class.bg-green-50]="s.isActive"
+                    [class.text-green-600]="s.isActive"
+                    [class.bg-rose-50]="!s.isActive"
+                    [class.text-rose-600]="!s.isActive"
+                    class="px-2 py-0.5 rounded-lg text-[10px] font-bold border border-current"
+                  >
+                    {{ s.isActive ? 'مفعلة' : 'ملغاة' }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 flex gap-2">
+                  <button
+                    (click)="openEditModal(s)"
+                    class="text-xs text-primary font-bold hover:underline"
+                  >
+                    تعديل
+                  </button>
+                  <button
+                    (click)="openDeleteConfirm(s)"
+                    class="text-xs text-rose-600 font-bold hover:underline"
+                  >
+                    حذف
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </div>
+
+  <!-- CREATE SERVICE Modal -->
+  @if (showCreateModal()) {
+    <div class="fixed inset-0 bg-secondary/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-surface border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-black text-secondary">إضافة خدمة جديدة</h3>
+          <button
+            (click)="closeModals()"
+            class="text-text-secondary hover:text-secondary text-lg font-bold"
+          >
+            ✕
+          </button>
+        </div>
+        
+        <form [formGroup]="form" (ngSubmit)="submitCreate()" class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">كود الخدمة *</label>
+            <input
+              type="text"
+              formControlName="serviceCode"
+              placeholder="مثال: CROWN-ZIRCON"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition uppercase"
+            />
+            @if (form.get('serviceCode')?.hasError('required') && form.get('serviceCode')?.touched) {
+              <p class="text-[10px] text-rose-600">الحقل مطلوب</p>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">اسم الخدمة (عربي) *</label>
+            <input
+              type="text"
+              formControlName="nameAr"
+              placeholder="التاج الزيركون"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+            @if (form.get('nameAr')?.hasError('required') && form.get('nameAr')?.touched) {
+              <p class="text-[10px] text-rose-600">الحقل مطلوب</p>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">اسم الخدمة (English) *</label>
+            <input
+              type="text"
+              formControlName="nameEn"
+              placeholder="Zirconium Crown"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+            @if (form.get('nameEn')?.hasError('required') && form.get('nameEn')?.touched) {
+              <p class="text-[10px] text-rose-600">الحقل مطلوب</p>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">الوصف (عربي)</label>
+            <textarea
+              formControlName="descriptionAr"
+              placeholder="وصف الخدمة بالعربية"
+              rows="2"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition resize-none"
+            ></textarea>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">الوصف (English)</label>
+            <textarea
+              formControlName="descriptionEn"
+              placeholder="Service description in English"
+              rows="2"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition resize-none"
+            ></textarea>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">طريقة التسعير *</label>
+            <select
+              formControlName="pricingMethod"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            >
+              @for (method of pricingMethods; track method.value) {
+                <option [value]="method.value">{{ method.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-secondary">سعر الوحدة (SAR) *</label>
+              <input
+                type="number"
+                formControlName="price"
+                step="0.01"
+                min="0"
+                class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+              />
+              @if (form.get('price')?.hasError('required') && form.get('price')?.touched) {
+                <p class="text-[10px] text-rose-600">الحقل مطلوب</p>
+              }
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-secondary">ربح المصمم (SAR) *</label>
+              <input
+                type="number"
+                formControlName="designerProfit"
+                min="0"
+                class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+              />
+              @if (form.get('designerProfit')?.hasError('required') && form.get('designerProfit')?.touched) {
+                <p class="text-[10px] text-rose-600">الحقل مطلوب</p>
+              }
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">الحد الأدنى للتسليم (بالساعات) *</label>
+            <input
+              type="number"
+              formControlName="minimumDeliveryHours"
+              min="1"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+            @if (form.get('minimumDeliveryHours')?.hasError('required') && form.get('minimumDeliveryHours')?.touched) {
+              <p class="text-[10px] text-rose-600">الحقل مطلوب</p>
+            }
+          </div>
+
+          <div class="flex justify-end gap-2.5 mt-4 pt-4 border-t border-border">
+            <button
+              type="button"
+              (click)="closeModals()"
+              [disabled]="isSubmitting()"
+              class="px-4 py-2 bg-background hover:bg-border rounded-xl text-xs font-bold text-secondary transition disabled:opacity-50"
+            >
+              إلغاء
+            </button>
+            <button
+              type="submit"
+              [disabled]="isSubmitting() || form.invalid"
+              class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold transition disabled:opacity-50"
+            >
+              {{ isSubmitting() ? 'جاري الإنشاء...' : 'إنشاء الخدمة' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- EDIT SERVICE Modal -->
+  @if (showEditModal()) {
+    <div class="fixed inset-0 bg-secondary/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-surface border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-black text-secondary">تعديل الخدمة</h3>
+          <button
+            (click)="closeModals()"
+            class="text-text-secondary hover:text-secondary text-lg font-bold"
+          >
+            ✕
+          </button>
+        </div>
+        
+        <form [formGroup]="form" (ngSubmit)="submitUpdate()" class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1.5 opacity-60">
+            <label class="text-xs font-bold text-secondary">كود الخدمة (غير قابل للتعديل)</label>
+            <input
+              type="text"
+              [value]="selectedService()?.serviceCode"
+              disabled
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none opacity-50"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">اسم الخدمة (عربي) *</label>
+            <input
+              type="text"
+              formControlName="nameAr"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+            @if (form.get('nameAr')?.hasError('required') && form.get('nameAr')?.touched) {
+              <p class="text-[10px] text-rose-600">الحقل مطلوب</p>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">اسم الخدمة (English) *</label>
+            <input
+              type="text"
+              formControlName="nameEn"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+            @if (form.get('nameEn')?.hasError('required') && form.get('nameEn')?.touched) {
+              <p class="text-[10px] text-rose-600">الحقل مطلوب</p>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">الوصف (عربي)</label>
+            <textarea
+              formControlName="descriptionAr"
+              rows="2"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition resize-none"
+            ></textarea>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">الوصف (English)</label>
+            <textarea
+              formControlName="descriptionEn"
+              rows="2"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition resize-none"
+            ></textarea>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">طريقة التسعير *</label>
+            <select
+              formControlName="pricingMethod"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            >
+              @for (method of pricingMethods; track method.value) {
+                <option [value]="method.value">{{ method.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-secondary">سعر الوحدة (SAR) *</label>
+              <input
+                type="number"
+                formControlName="price"
+                step="0.01"
+                min="0"
+                class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+              />
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-secondary">ربح المصمم (SAR) *</label>
+              <input
+                type="number"
+                formControlName="designerProfit"
+                min="0"
+                class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+              />
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">الحد الأدنى للتسليم (بالساعات) *</label>
+            <input
+              type="number"
+              formControlName="minimumDeliveryHours"
+              min="1"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+          </div>
+
+          <div class="flex justify-end gap-2.5 mt-4 pt-4 border-t border-border">
+            <button
+              type="button"
+              (click)="closeModals()"
+              [disabled]="isSubmitting()"
+              class="px-4 py-2 bg-background hover:bg-border rounded-xl text-xs font-bold text-secondary transition disabled:opacity-50"
+            >
+              إلغاء
+            </button>
+            <button
+              type="submit"
+              [disabled]="isSubmitting() || form.invalid"
+              class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold transition disabled:opacity-50"
+            >
+              {{ isSubmitting() ? 'جاري الحفظ...' : 'حفظ التعديلات' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- DELETE CONFIRMATION Modal -->
+  @if (showDeleteConfirm()) {
+    <div class="fixed inset-0 bg-secondary/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-surface border border-border rounded-2xl p-6 w-full max-w-sm shadow-2xl flex flex-col gap-4">
+        <h3 class="text-sm font-black text-secondary">تأكيد حذف الخدمة</h3>
+        
+        <div class="flex flex-col gap-2">
+          <p class="text-xs text-text-secondary">هل تريد فعلاً حذف هذه الخدمة؟</p>
+          <div class="bg-background/50 border border-border rounded-lg p-3">
+            <p class="text-xs font-bold text-secondary">
+              {{ i18n.currentLang() === 'ar' ? selectedService()?.nameAr : selectedService()?.nameEn }}
+            </p>
+            <p class="text-[10px] text-text-secondary mt-1">{{ selectedService()?.serviceCode }}</p>
+          </div>
+          <p class="text-[10px] text-rose-600 font-bold">⚠️ لا يمكن التراجع عن هذا الإجراء</p>
+        </div>
+
+        <div class="flex justify-end gap-2.5 pt-4 border-t border-border">
+          <button
+            type="button"
+            (click)="closeModals()"
+            [disabled]="isSubmitting()"
+            class="px-4 py-2 bg-background hover:bg-border rounded-xl text-xs font-bold text-secondary transition disabled:opacity-50"
+          >
+            إلغاء
+          </button>
+          <button
+            type="button"
+            (click)="confirmDelete()"
+            [disabled]="isSubmitting()"
+            class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50"
+          >
+            {{ isSubmitting() ? 'جاري الحذف...' : 'تأكيد الحذف' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,121 @@
+<div class="flex flex-col gap-8" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
+  <!-- Header -->
+  <div class="border-b border-border pb-4">
+    <h1 class="text-xl font-extrabold text-secondary flex items-center gap-2">
+      <i class="bi bi-gear-wide-connected text-primary"></i>
+      إعدادات النظام
+    </h1>
+    <p class="text-xs text-text-secondary mt-1">
+      التحكم في المتغيرات المالية والتشغيلية للمنصة — تُطبَّق التغييرات فوراً
+    </p>
+  </div>
+
+  <!-- Financial Variables -->
+  <div class="flex flex-col gap-4">
+    <h2 class="text-sm font-black text-secondary flex items-center gap-2">
+      <i class="bi bi-cash-coin text-emerald-500"></i>
+      الإعدادات المالية
+    </h2>
+
+    @if (isLoading()) {
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        @for (_ of [1,2]; track $index) {
+          <div class="bg-surface rounded-2xl border border-border p-6 animate-pulse flex flex-col gap-3">
+            <div class="h-4 w-32 bg-slate-200 rounded-lg"></div>
+            <div class="h-3 w-48 bg-slate-100 rounded-lg"></div>
+            <div class="h-10 w-full bg-slate-100 rounded-xl mt-2"></div>
+          </div>
+        }
+      </div>
+    } @else if (settings().length === 0) {
+      <div class="bg-surface rounded-2xl border border-border p-8 flex flex-col items-center gap-3 text-center">
+        <i class="bi bi-exclamation-triangle text-4xl text-amber-400"></i>
+        <p class="text-sm font-bold text-secondary">لا توجد إعدادات محملة</p>
+        <p class="text-xs text-text-secondary">تحقق من اتصال الخادم أو صلاحيات الوصول</p>
+        <button (click)="loadSettings()" class="mt-2 bg-primary text-white text-xs font-bold px-4 py-2 rounded-xl transition hover:bg-primary-dark">
+          إعادة المحاولة
+        </button>
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        @for (setting of settings(); track setting.key) {
+          <div class="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-4 hover:shadow-lg transition duration-200">
+            <!-- Icon + Label -->
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <i [class]="settingLabels[setting.key]?.icon || 'bi bi-sliders'" class="text-primary text-lg"></i>
+              </div>
+              <div>
+                <p class="text-sm font-black text-secondary">
+                  {{ settingLabels[setting.key]?.label || setting.key }}
+                </p>
+                <p class="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
+                  {{ settingLabels[setting.key]?.description || '' }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Current value badge -->
+            <div class="flex items-center gap-2 text-[11px]">
+              <span class="text-text-secondary">القيمة الحالية:</span>
+              <span class="bg-emerald-50 text-emerald-700 font-bold px-2.5 py-0.5 rounded-full">
+                {{ setting.value }} ريال
+              </span>
+            </div>
+
+            <!-- Input + Save -->
+            <div class="flex gap-2">
+              <input
+                type="text"
+                inputmode="decimal"
+                min="1"
+                [(ngModel)]="editValues[setting.key]"
+                [id]="'setting-' + setting.key"
+                placeholder="القيمة الجديدة"
+                class="flex-1 bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-secondary font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 transition"
+              />
+              <button
+                (click)="saveSetting(setting.key)"
+                [disabled]="isSaving() === setting.key"
+                class="bg-primary text-white text-xs font-black px-4 py-2.5 rounded-xl transition hover:bg-primary-dark active:scale-95 disabled:opacity-60 flex items-center gap-1.5"
+              >
+                @if (isSaving() === setting.key) {
+                  <svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>
+                  جاري...
+                } @else {
+                  <i class="bi bi-check2"></i>
+                  حفظ
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Integration Settings (static UI) -->
+  <div class="flex flex-col gap-4">
+    <h2 class="text-sm font-black text-secondary flex items-center gap-2">
+      <i class="bi bi-plug text-blue-500"></i>
+      تكاملات الخدمات الخارجية
+    </h2>
+    <div class="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-4 text-xs text-secondary max-w-xl">
+      <label class="flex items-center gap-3 cursor-pointer">
+        <input type="checkbox" checked class="rounded text-primary focus:ring-primary" />
+        <span class="font-bold">تفعيل بوابة الدفع الإلكتروني (Stripe)</span>
+      </label>
+      <label class="flex items-center gap-3 cursor-pointer">
+        <input type="checkbox" checked class="rounded text-primary focus:ring-primary" />
+        <span class="font-bold">تفعيل إشعارات SMS (SLA والاجتماعات)</span>
+      </label>
+      <label class="flex items-center gap-3 cursor-pointer">
+        <input type="checkbox" class="rounded text-primary focus:ring-primary" />
+        <span class="font-bold">وضع Sandbox (بيئة الاختبار)</span>
+      </label>
+    </div>
+  </div>
+</div>

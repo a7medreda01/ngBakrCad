@@ -1,0 +1,277 @@
+<div class="flex flex-col gap-6">
+  <!-- Header -->
+  <div class="border-b border-border pb-4">
+    <h1 class="text-xl font-extrabold text-secondary flex items-center gap-2">
+      <i class="bi bi-cash-stack text-primary"></i>
+      الإدارة المالية للمصممين
+    </h1>
+    <p class="text-xs text-text-secondary mt-1">
+      إدارة طلبات السحب والموافقة على أرباح المصممين المعلقة
+    </p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-1 bg-background p-1 rounded-2xl w-fit border border-border">
+    <button
+      id="tab-withdrawals"
+      (click)="activeTab.set('withdrawals')"
+      [class.bg-surface]="activeTab() === 'withdrawals'"
+      [class.text-primary]="activeTab() === 'withdrawals'"
+      [class.shadow-card]="activeTab() === 'withdrawals'"
+      [class.text-text-secondary]="activeTab() !== 'withdrawals'"
+      class="px-5 py-2 rounded-xl text-xs font-black transition duration-200 flex items-center gap-2"
+    >
+      <i class="bi bi-send-check"></i>
+      طلبات السحب
+      @if (withdrawals().length > 0) {
+        <span class="bg-primary text-white rounded-full text-[9px] font-black px-1.5 py-0.5">
+          {{ withdrawals().length }}
+        </span>
+      }
+    </button>
+    <button
+      id="tab-pending-earnings"
+      (click)="activeTab.set('pending-earnings')"
+      [class.bg-surface]="activeTab() === 'pending-earnings'"
+      [class.text-primary]="activeTab() === 'pending-earnings'"
+      [class.shadow-card]="activeTab() === 'pending-earnings'"
+      [class.text-text-secondary]="activeTab() !== 'pending-earnings'"
+      class="px-5 py-2 rounded-xl text-xs font-black transition duration-200 flex items-center gap-2"
+    >
+      <i class="bi bi-hourglass-split"></i>
+      الأرباح المعلقة
+      @if (pendingEarnings().length > 0) {
+        <span class="bg-amber-500 text-white rounded-full text-[9px] font-black px-1.5 py-0.5">
+          {{ pendingEarnings().length }}
+        </span>
+      }
+    </button>
+  </div>
+
+  <!-- ═══ TAB: Withdrawal Requests ═══ -->
+  @if (activeTab() === 'withdrawals') {
+    <div class="flex flex-col gap-4">
+      <div class="flex justify-between items-center">
+        <h2 class="text-sm font-black text-secondary">
+          طلبات السحب من المصممين
+        </h2>
+        <button
+          (click)="loadWithdrawals()"
+          class="text-xs font-bold text-primary flex items-center gap-1 hover:underline"
+        >
+          <i class="bi bi-arrow-clockwise"></i>
+          تحديث
+        </button>
+      </div>
+
+      @if (isLoadingWithdrawals()) {
+        <div class="bg-surface rounded-2xl border border-border p-6 flex flex-col gap-3">
+          @for (_ of [1,2,3]; track $index) {
+            <div class="h-20 bg-slate-100 rounded-xl animate-pulse"></div>
+          }
+        </div>
+      } @else if (withdrawals().length === 0) {
+        <div class="bg-surface rounded-2xl border border-border p-10 flex flex-col items-center gap-3 text-center">
+          <i class="bi bi-inbox text-5xl text-slate-300"></i>
+          <p class="text-sm font-bold text-secondary">لا توجد طلبات سحب حالياً</p>
+          <p class="text-xs text-text-secondary">ستظهر هنا عند تقديم المصممين لطلبات جديدة</p>
+        </div>
+      } @else {
+        <div class="flex flex-col gap-4">
+          @for (req of withdrawals(); track req.publicId) {
+            <div class="bg-surface rounded-2xl border border-border shadow-card p-5 flex flex-col gap-4">
+              <!-- Row 1: info -->
+              <div class="flex flex-wrap justify-between items-start gap-3">
+                <div class="flex flex-col gap-1">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <i class="bi bi-person text-primary text-sm"></i>
+                    </div>
+                    <div>
+                      <p class="text-xs font-black text-secondary">{{ req.designerName || 'مصمم' }}</p>
+                      <p class="text-[10px] text-text-secondary">{{ req.designerEmail || '' }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <span class="text-xl font-black text-green-600">{{ req.amount }} SAR</span>
+                  <span
+                    [class]="statusLabel(req.status).css"
+                    class="text-[10px] font-black px-2.5 py-1 rounded-full"
+                  >
+                    {{ statusLabel(req.status).label }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Row 2: payment details -->
+              <div class="grid grid-cols-2 gap-3 text-xs text-secondary bg-background rounded-xl p-3">
+                <div>
+                  <span class="text-text-secondary">وسيلة الدفع: </span>
+                  <span class="font-bold">{{ paymentMethodLabel(req.paymentMethod) }}</span>
+                </div>
+                <div>
+                  <span class="text-text-secondary">التفاصيل: </span>
+                  <span class="font-bold">{{ req.paymentDetails }}</span>
+                </div>
+                <div>
+                  <span class="text-text-secondary">تاريخ الطلب: </span>
+                  <span class="font-bold">{{ req.createdAt | date:'medium' }}</span>
+                </div>
+                @if (req.adminNotes) {
+                  <div class="col-span-2">
+                    <span class="text-text-secondary">ملاحظة الأدمن: </span>
+                    <span class="font-bold text-amber-700">{{ req.adminNotes }}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Row 3: admin actions (only for pending) -->
+              @if (req.status === 'Pending') {
+                <div class="flex flex-col gap-2">
+                  <input
+                    type="text"
+                    [(ngModel)]="adminNotes[req.publicId]"
+                    [id]="'notes-' + req.publicId"
+                    placeholder="ملاحظة اختيارية (رقم حوالة، مرجع الدفع...)"
+                    class="bg-background border border-border rounded-xl px-3 py-2 text-xs text-secondary font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 transition"
+                  />
+                  <div class="flex gap-2">
+                    <button
+                      (click)="approveWithdrawal(req.publicId)"
+                      [disabled]="processingId() === req.publicId || processingId() === req.publicId + '-reject'"
+                      [id]="'approve-withdrawal-' + req.publicId"
+                      class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-black py-2.5 rounded-xl transition active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2"
+                    >
+                      @if (processingId() === req.publicId) {
+                        <svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                        </svg>
+                        جاري التحويل...
+                      } @else {
+                        <i class="bi bi-check-circle"></i>
+                        موافقة وتحويل المبلغ
+                      }
+                    </button>
+                    <button
+                      (click)="rejectWithdrawal(req.publicId)"
+                      [disabled]="processingId() === req.publicId || processingId() === req.publicId + '-reject'"
+                      [id]="'reject-withdrawal-' + req.publicId"
+                      class="flex-1 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-black py-2.5 rounded-xl transition active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2"
+                    >
+                      @if (processingId() === req.publicId + '-reject') {
+                        <svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                        </svg>
+                      } @else {
+                        <i class="bi bi-x-circle"></i>
+                        رفض وإعادة الرصيد
+                      }
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══ TAB: Pending Earnings ═══ -->
+  @if (activeTab() === 'pending-earnings') {
+    <div class="flex flex-col gap-4">
+      <div class="flex justify-between items-center">
+        <h2 class="text-sm font-black text-secondary">
+          أرباح المصممين المعلقة — في انتظار سداد العميل
+        </h2>
+        <button (click)="loadPendingEarnings()" class="text-xs font-bold text-primary flex items-center gap-1 hover:underline">
+          <i class="bi bi-arrow-clockwise"></i>
+          تحديث
+        </button>
+      </div>
+
+      <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800 flex items-start gap-2">
+        <i class="bi bi-info-circle shrink-0 mt-0.5"></i>
+        <span>
+          الأرباح المعلقة هي أرباح المصممين على طلبات اكتملت لكن العميل كان رصيده سالباً. تُسدَّد تلقائياً عند شحن العميل لمحفظته، أو يمكنك إثباتها يدوياً هنا.
+        </span>
+      </div>
+
+      @if (isLoadingEarnings()) {
+        <div class="bg-surface rounded-2xl border border-border p-6 flex flex-col gap-3">
+          @for (_ of [1,2,3]; track $index) {
+            <div class="h-16 bg-slate-100 rounded-xl animate-pulse"></div>
+          }
+        </div>
+      } @else if (pendingEarnings().length === 0) {
+        <div class="bg-surface rounded-2xl border border-border p-10 flex flex-col items-center gap-3 text-center">
+          <i class="bi bi-check-circle text-5xl text-green-300"></i>
+          <p class="text-sm font-bold text-secondary">لا توجد أرباح معلقة</p>
+          <p class="text-xs text-text-secondary">جميع أرباح المصممين تمت تسويتها بنجاح</p>
+        </div>
+      } @else {
+        <div class="bg-surface rounded-2xl border border-border shadow-card overflow-hidden">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-background text-secondary font-black border-b border-border">
+              <tr>
+                <th class="px-5 py-3">المصمم</th>
+                <th class="px-5 py-3">الطلب</th>
+                <th class="px-5 py-3">مبلغ الربح</th>
+                <th class="px-5 py-3">تاريخ اكتمال الطلب</th>
+                <th class="px-5 py-3">الحالة</th>
+                <th class="px-5 py-3 text-left">إجراء</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border/60">
+              @for (earning of pendingEarnings(); track earning.publicId) {
+                <tr class="hover:bg-background/50 transition duration-150">
+                  <td class="px-5 py-4">
+                    <p class="font-bold text-secondary">{{ earning.designerName || 'مصمم بكر كاد' }}</p>
+                    <p class="text-[10px] text-text-secondary">{{ earning.designerEmail }}</p>
+                  </td>
+                  <td class="px-5 py-4 font-bold text-secondary">{{ earning.orderCode || earning.orderPublicId }}</td>
+                  <td class="px-5 py-4">
+                    <span class="text-amber-600 font-black">{{ earning.amountEarned }} SAR</span>
+                  </td>
+                  <td class="px-5 py-4 text-text-secondary">{{ earning.createdAt | date:'mediumDate' }}</td>
+                  <td class="px-5 py-4">
+                    <span [class]="earningStatusLabel(earning.payoutStatus).css"
+                          class="px-2 py-0.5 rounded-full text-[10px] font-black">
+                      {{ earningStatusLabel(earning.payoutStatus).label }}
+                    </span>
+                  </td>
+                  <td class="px-5 py-4 text-left">
+                    @if (earning.payoutStatus === 'Pending' || earning.payoutStatus === 'Deferred') {
+                      <button
+                        (click)="approveEarning(earning.publicId)"
+                        [disabled]="processingEarningId() === earning.publicId"
+                        [id]="'approve-earning-' + earning.publicId"
+                        class="bg-green-600 hover:bg-green-700 text-white font-black text-[10px] px-3 py-1.5 rounded-lg transition active:scale-95 disabled:opacity-60 flex items-center gap-1"
+                      >
+                        @if (processingEarningId() === earning.publicId) {
+                          <svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                          </svg>
+                        } @else {
+                          <i class="bi bi-check2"></i>
+                          إثبات الربح
+                        }
+                      </button>
+                    } @else {
+                      <span class="text-text-secondary text-[10px]">—</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>

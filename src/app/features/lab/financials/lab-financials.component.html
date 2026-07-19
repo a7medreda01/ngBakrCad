@@ -1,0 +1,335 @@
+<div class="flex flex-col gap-8">
+  <!-- Welcome Header -->
+  <div class="border-b border-border pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-secondary flex items-center gap-2">
+        <i class="bi bi-wallet2 text-primary"></i>
+        المحفظة والأرباح المالية
+      </h1>
+      <p class="text-sm text-text-secondary mt-1">
+        إدارة رصيدك المالي، تقديم طلبات السحب، ومتابعة أداء عملك بالمنصة
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button
+        [disabled]="isLoading() || withdrawableAmount() < minWithdrawalLimit()"
+        (click)="openWithdrawalModal()"
+        class="inline-flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-xl text-xs font-black shadow-primary hover:bg-primary-dark transition duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <i class="bi bi-cash-stack"></i>
+        طلب سحب الأرباح المتاحة
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+    <!-- Withdrawable Balance -->
+    <div class="bg-surface rounded-2xl border border-border p-6 shadow-card hover:shadow-lg transition duration-300 flex flex-col justify-between gap-4">
+      <div class="flex justify-between items-start">
+        <div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+          <i class="bi bi-cash text-green-600 text-lg"></i>
+        </div>
+        <span class="text-[10px] bg-green-50 text-green-700 px-2.5 py-0.5 rounded-full font-bold">جاهز للسحب</span>
+      </div>
+      <div>
+        <p class="text-2xl font-black text-secondary">{{ withdrawableAmount() }} <span class="text-xs text-text-secondary">SAR</span></p>
+        <p class="text-xs font-bold text-text-secondary mt-1">الرصيد المتاح للسحب</p>
+      </div>
+    </div>
+
+    <!-- Pending Balance -->
+    <div class="bg-surface rounded-2xl border border-border p-6 shadow-card hover:shadow-lg transition duration-300 flex flex-col justify-between gap-4">
+      <div class="flex justify-between items-start">
+        <div class="w-10 h-10 rounded-xl bg-slate-500/10 flex items-center justify-center">
+          <i class="bi bi-hourglass-split text-slate-600 text-lg"></i>
+        </div>
+        <span class="text-[10px] bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full font-bold">معلق (تحت الإنجاز)</span>
+      </div>
+      <div>
+        <p class="text-2xl font-black text-secondary">{{ pendingAmount() }} <span class="text-xs text-text-secondary">SAR</span></p>
+        <p class="text-xs font-bold text-text-secondary mt-1">الرصيد المعلق (قيد الانتظار)</p>
+      </div>
+    </div>
+
+    <!-- Deferred Balance -->
+    <div class="bg-surface rounded-2xl border border-border p-6 shadow-card hover:shadow-lg transition duration-300 flex flex-col justify-between gap-4">
+      <div class="flex justify-between items-start">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+          <i class="bi bi-shield-exclamation text-amber-600 text-lg"></i>
+        </div>
+        <span class="text-[10px] bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-full font-bold">قيد التدقيق الدوري</span>
+      </div>
+      <div>
+        <p class="text-2xl font-black text-secondary">{{ deferredAmount() }} <span class="text-xs text-text-secondary">SAR</span></p>
+        <p class="text-xs font-bold text-text-secondary mt-1">رصيد قيد التدقيق الدوري القياسي</p>
+      </div>
+    </div>
+
+    <!-- Total Earned (All time paid) -->
+    <div class="bg-surface rounded-2xl border border-border p-6 shadow-card hover:shadow-lg transition duration-300 flex flex-col justify-between gap-4">
+      <div class="flex justify-between items-start">
+        <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+          <i class="bi bi-wallet2 text-blue-600 text-lg"></i>
+        </div>
+        <span class="text-[10px] bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-bold">إجمالي الأرباح</span>
+      </div>
+      <div>
+        <p class="text-2xl font-black text-secondary">{{ totalEarned() }} <span class="text-xs text-text-secondary">SAR</span></p>
+        <p class="text-xs font-bold text-text-secondary mt-1">إجمالي الأرباح المسحوبة</p>
+      </div>
+    </div>
+
+    <!-- Completed Cases -->
+    <div class="bg-surface rounded-2xl border border-border p-6 shadow-card hover:shadow-lg transition duration-300 flex flex-col justify-between gap-4">
+      <div class="flex justify-between items-start">
+        <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+          <i class="bi bi-check-circle text-purple-600 text-lg"></i>
+        </div>
+        <span class="text-[10px] bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full font-bold">مكتمل</span>
+      </div>
+      <div>
+        <p class="text-2xl font-black text-secondary">{{ completedCount() }}</p>
+        <p class="text-xs font-bold text-text-secondary mt-1">عدد الحالات المكتملة</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Progress Widget -->
+  <div class="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-6">
+    <div>
+      <h3 class="text-sm font-black text-secondary flex items-center gap-2">
+        <i class="bi bi-graph-up-arrow text-primary"></i>
+        مؤشر تقدم أداء وجودة العمل المالي
+      </h3>
+      <p class="text-xs text-text-secondary mt-1">
+        نسبة إنجاز الحالات وتأثيرها على الرصيد المستلم
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+      <!-- Left: Progress metrics -->
+      <div class="flex flex-col gap-4">
+        <div>
+          <div class="flex justify-between text-xs font-bold mb-1">
+            <span class="text-secondary">معدل إنجاز الحالات الكلي</span>
+            <span class="text-primary font-black">{{ completionRatePercent() }}%</span>
+          </div>
+          <div class="w-full bg-background rounded-full h-3.5 overflow-hidden border border-border p-0.5">
+            <div
+              class="brand-gradient h-full rounded-full transition-all duration-500"
+              [style.width.%]="completionRatePercent()"
+            ></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 text-xs">
+          <div class="bg-background rounded-xl p-3 flex flex-col gap-1 border border-border">
+            <span class="text-text-secondary">الحالات النشطة حالياً:</span>
+            <span class="font-extrabold text-secondary">{{ activeCount() }}</span>
+          </div>
+          <div class="bg-background rounded-xl p-3 flex flex-col gap-1 border border-border">
+            <span class="text-text-secondary">مستوى المصمم الحالي:</span>
+            <span class="font-extrabold text-primary">مستوى {{ dashboardData()?.level || 1 }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: SLA Guidelines / Welcome Limit Info -->
+      <div class="bg-background rounded-xl p-4 border border-border text-xs text-secondary flex flex-col gap-2">
+        <p class="font-bold flex items-center gap-1 text-primary">
+          <i class="bi bi-info-circle-fill"></i>
+          دليل الأرباح والحدود المالية
+        </p>
+        <ul class="list-disc list-inside space-y-1.5 text-text-secondary leading-relaxed text-[11px] pr-2">
+          <li>يتم تسجيل الأرباح فور إقرار اكتمال الحالة في النظام.</li>
+          <li>إذا كان رصيد العميل سالباً (ائتمان)، تُسجل أرباحك كحالة <b>معلقة</b> وتتحول تلقائياً إلى <b>جاهزة للسحب</b> بمجرد شحن العميل لمحفظته.</li>
+          <li>الحد الأدنى المطلوب لطلب السحب في المرة الواحدة هو <b>{{ minWithdrawalLimit() }} ريال سعودي</b>.</li>
+          <li>تتم مراجعة طلب السحب من قبل الإدارة المالية وتحويل المبلغ لحسابك خلال أيام العمل الرسمية.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Earnings and Withdrawals History Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Earnings per Case -->
+    <div class="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-border pb-3">
+        <h3 class="text-sm font-black text-secondary flex items-center gap-2">
+          <i class="bi bi-currency-dollar text-emerald-500"></i>
+          سجل الأرباح حسب الحالات
+        </h3>
+        <span class="text-[10px] text-text-secondary">آخر 100 حالة</span>
+      </div>
+
+      @if (earnings().length === 0) {
+        <p class="text-xs text-text-secondary text-center py-6">لا توجد سجلات أرباح حالياً.</p>
+      } @else {
+        <div class="overflow-y-auto max-h-[350px]">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-background text-secondary font-black border-b border-border sticky top-0">
+              <tr>
+                <th class="px-3 py-2">كود الحالة</th>
+                <th class="px-3 py-2">تاريخ الاكتمال</th>
+                <th class="px-3 py-2">مبلغ الربح</th>
+                <th class="px-3 py-2">حالة المستحقات</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border/60">
+              @for (e of earnings(); track e.publicId) {
+                <tr class="hover:bg-background/20 transition duration-150">
+                  <td class="px-3 py-3 font-bold text-secondary">{{ e.orderCode }}</td>
+                  <td class="px-3 py-3 text-text-secondary">{{ e.createdAt | date:'mediumDate' }}</td>
+                  <td class="px-3 py-3 font-black text-emerald-600">{{ e.amountEarned }} SAR</td>
+                  <td class="px-3 py-3">
+                    <span [class]="earningStatusLabel(e.payoutStatus).css" class="px-2 py-0.5 rounded-full text-[9px] font-bold">
+                      {{ earningStatusLabel(e.payoutStatus).label }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <!-- Payout Request History -->
+    <div class="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-border pb-3">
+        <h3 class="text-sm font-black text-secondary flex items-center gap-2">
+          <i class="bi bi-clock-history text-primary"></i>
+          طلبات السحب السابقة وحالاتها
+        </h3>
+        <button (click)="loadWithdrawalHistory()" class="text-xs font-bold text-primary hover:underline">
+          تحديث
+        </button>
+      </div>
+
+      @if (withdrawalHistory().length === 0) {
+        <p class="text-xs text-text-secondary text-center py-6">لا توجد طلبات سحب سابقة.</p>
+      } @else {
+        <div class="overflow-y-auto max-h-[350px]">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-background text-secondary font-black border-b border-border sticky top-0">
+              <tr>
+                <th class="px-3 py-2">المبلغ</th>
+                <th class="px-3 py-2">طريقة الدفع</th>
+                <th class="px-3 py-2">تاريخ الطلب</th>
+                <th class="px-3 py-2">ملاحظة الأدمن</th>
+                <th class="px-3 py-2">الحالة</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border/60">
+              @for (w of withdrawalHistory(); track w.id) {
+                <tr class="hover:bg-background/20 transition duration-150">
+                  <td class="px-3 py-3 font-bold text-secondary">{{ w.amount }} SAR</td>
+                  <td class="px-3 py-3 text-text-secondary">{{ paymentMethodLabel(w.paymentMethod) }}</td>
+                  <td class="px-3 py-3 text-text-secondary">{{ w.createdAt | date:'mediumDate' }}</td>
+                  <td class="px-3 py-3 text-amber-700 font-bold max-w-[120px] truncate" [title]="w.adminNotes || ''">{{ w.adminNotes || '—' }}</td>
+                  <td class="px-3 py-3">
+                    <span [class]="withdrawalStatusLabel(w.status).css" class="px-2 py-0.5 rounded-full text-[9px] font-bold">
+                      {{ withdrawalStatusLabel(w.status).label }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Interactive Withdrawal Modal Dialog -->
+  @if (isWithdrawalModalOpen()) {
+    <div class="fixed inset-0 bg-secondary/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-surface border border-border rounded-2xl w-full max-w-md p-6 shadow-card flex flex-col gap-5 text-right">
+        <!-- Header -->
+        <div class="flex justify-between items-center border-b border-border pb-3">
+          <h3 class="text-sm font-black text-secondary">تقديم طلب سحب جديد</h3>
+          <button (click)="closeWithdrawalModal()" class="text-text-secondary hover:text-secondary">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <!-- Body Form -->
+        <div class="flex flex-col gap-4 text-xs text-secondary">
+          <!-- Withdrawable Info -->
+          <div class="bg-background rounded-xl p-3 flex justify-between items-center">
+            <span>الرصيد المتاح حالياً:</span>
+            <span class="font-black text-green-600">{{ withdrawableAmount() }} SAR</span>
+          </div>
+
+          <!-- Amount -->
+          <div class="flex flex-col gap-1.5">
+            <label for="withdrawalAmountInput" class="font-bold">المبلغ المراد سحبه (ريال سعودي):</label>
+            <input
+              type="number"
+              id="withdrawalAmountInput"
+              [(ngModel)]="withdrawalAmountInput"
+              min="1"
+              max="{{ withdrawableAmount() }}"
+              class="bg-background border border-border rounded-xl px-3 py-2.5 font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 text-secondary"
+            />
+            <span class="text-[10px] text-text-secondary">
+              * الحد الأدنى للسحب هو {{ minWithdrawalLimit() }} ريال سعودي
+            </span>
+          </div>
+
+          <!-- Payment Method -->
+          <div class="flex flex-col gap-1.5">
+            <label for="payoutMethod" class="font-bold">وسيلة استلام الأرباح:</label>
+            <select
+              id="payoutMethod"
+              [(ngModel)]="paymentMethod"
+              class="bg-background border border-border rounded-xl px-3 py-2.5 font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 text-secondary"
+            >
+              <option value="STCPay">STC Pay</option>
+              <option value="BankTransfer">تحويل بنكي (حساب مصرفي سعودي)</option>
+              <option value="PayPal">PayPal</option>
+            </select>
+          </div>
+
+          <!-- Payment Details -->
+          <div class="flex flex-col gap-1.5">
+            <label for="payoutDetails" class="font-bold">بيانات الحساب / الاستلام:</label>
+            <textarea
+              id="payoutDetails"
+              [(ngModel)]="paymentDetails"
+              rows="3"
+              placeholder="لطريقة STC Pay: اكتب رقم الجوال المرتبط بالمحفظة.&#10;للتحويل البنكي: اكتب اسم البنك، الاسم الثلاثي لصاحب الحساب، ورقم الآيبان (IBAN) يبدأ بـ SA."
+              class="bg-background border border-border rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 text-secondary"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-2 border-t border-border pt-4">
+          <button
+            (click)="submitWithdrawalRequest()"
+            [disabled]="isSubmittingWithdrawal()"
+            class="flex-1 bg-primary text-white py-2.5 rounded-xl text-xs font-black shadow-primary hover:bg-primary-dark transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+          >
+            @if (isSubmittingWithdrawal()) {
+              <svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+              جاري التقديم...
+            } @else {
+              تقديم الطلب
+            }
+          </button>
+          <button
+            (click)="closeWithdrawalModal()"
+            class="flex-1 bg-background border border-border text-secondary py-2.5 rounded-xl text-xs font-black hover:bg-slate-50 transition active:scale-95"
+          >
+            إلغاء
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

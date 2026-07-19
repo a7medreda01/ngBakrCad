@@ -1,0 +1,242 @@
+<div class="flex flex-col gap-6">
+  <!-- Title Header -->
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-xl font-extrabold text-secondary">الحالات المسندة إليك</h1>
+      <p class="text-xs text-text-secondary mt-1">إدارة حالات التصميم، قبولها، مراجعتها، وتسليمها</p>
+    </div>
+  </div>
+
+  <!-- Search and Filters Panel -->
+  <div class="bg-surface rounded-2xl border border-border p-4 shadow-card flex flex-col sm:flex-row gap-4 items-center justify-between">
+    <div class="relative w-full sm:w-80">
+      <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-text-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.602 10.602Z" /></svg>
+      </span>
+      <input
+        type="text"
+        (input)="onSearch($event)"
+        placeholder="بحث بكود الحالة أو المريض..."
+        class="w-full pr-10 pl-4 py-2.5 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition"
+      />
+    </div>
+
+    <div class="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
+      <!-- Status Filter -->
+      <select
+        (change)="onFilterChange($any($event.target).value)"
+        class="bg-background border border-border text-xs rounded-xl px-3 py-2.5 text-secondary focus:outline-none focus:border-primary"
+      >
+        <option value="">كل الحالات</option>
+        <option value="AssignedToLab">مسندة للمراجعة</option>
+        <option value="LabReview">تحت المراجعة</option>
+        <option value="InDesign">قيد التصميم</option>
+        <option value="ReturnedToDesigner">مرجعة للتعديل</option>
+        <option value="QualityReview">قيد فحص الجودة</option>
+        <option value="Completed">مكتملة</option>
+      </select>
+
+      <!-- Sort Filter -->
+      <select
+        (change)="onSortChange($any($event.target).value)"
+        class="bg-background border border-border text-xs rounded-xl px-3 py-2.5 text-secondary focus:outline-none focus:border-primary"
+      >
+        <option value="date_desc">الأحدث أولاً</option>
+        <option value="date_asc">الأقدم أولاً</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="bg-surface rounded-2xl border border-border shadow-card overflow-hidden">
+    <div class="overflow-x-auto">
+      @if (isLoading()) {
+        <div class="p-8 flex flex-col gap-3">
+          <div class="h-10 bg-slate-100 rounded-xl animate-pulse"></div>
+          <div class="h-10 bg-slate-100 rounded-xl animate-pulse"></div>
+          <div class="h-10 bg-slate-100 rounded-xl animate-pulse"></div>
+        </div>
+      } @else if (cases().length === 0) {
+        <div class="p-12 text-center flex flex-col items-center justify-center gap-4">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="currentColor" class="w-16 h-16 text-text-secondary/60"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+          <p class="text-sm font-bold text-text-secondary">لا توجد حالات تطابق خيارات البحث</p>
+        </div>
+      } @else {
+        <div class="flex flex-col md:hidden divide-y divide-border/40 bg-background/50 p-3 rounded-2xl">
+          @for (c of cases(); track c.id) {
+            <div class="bg-surface rounded-2xl border border-border/70 p-4 shadow-sm">
+              <!-- Header with Code and Status/Priority -->
+              <div class="flex items-start justify-between gap-2 mb-3">
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-extrabold text-secondary truncate">{{ c.orderCode }}</p>
+                  <p class="text-[11px] text-text-secondary mt-0.5 truncate">{{ c.patientName }}</p>
+                </div>
+                <div class="flex flex-col gap-1.5 items-end">
+                  @if (c.expressChecked) {
+                    <span class="inline-flex items-center gap-1 text-[10px] font-black text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full whitespace-nowrap">
+                      <i class="bi bi-lightning-charge-fill text-[8px]"></i>
+                      مستعجل
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center gap-1 text-[10px] font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full whitespace-nowrap">
+                      <i class="bi bi-clock text-[8px]"></i>
+                      عادي
+                    </span>
+                  }
+                  <span class="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full text-secondary bg-slate-100">
+                    @switch (c.status) {
+                      @case (OrderStatus.AssignedToLab) { مسندة للمراجعة }
+                      @case (OrderStatus.LabReview) { قيد المراجعة }
+                      @case (OrderStatus.InDesign) { قيد التصميم }
+                      @case (OrderStatus.ReturnedToDesigner) { تعديل مطلوب }
+                      @case (OrderStatus.QualityReview) { مراجعة الجودة }
+                      @case (OrderStatus.LabRejected) { مرفوضة }
+                      @case (OrderStatus.Completed) { مكتملة }
+                      @case (OrderStatus.ReadyForDownload) { جاهزة للتحميل }
+                      @default { حالة أخرى }
+                    }
+                  </span>
+                </div>
+              </div>
+
+              <!-- Info Sections Grid -->
+              <div class="grid grid-cols-3 gap-2 mb-3">
+                <!-- Services -->
+                <div class="bg-background/70 rounded-lg border border-border/50 p-2.5">
+                  <p class="text-[9px] font-bold text-text-secondary mb-1 uppercase">الخدمات</p>
+                  <p class="text-[10px] font-semibold text-secondary line-clamp-2">
+                    @if (c.services.length) {
+                      @for (s of c.services.slice(0, 1); track s.serviceId) {
+                        {{ s.nameAr }}
+                      }
+                      @if (c.services.length > 1) {
+                        <span class="text-[9px] text-text-secondary">+{{ c.services.length - 1 }}</span>
+                      }
+                    } @else {
+                      <span class="text-[9px] text-text-secondary">-</span>
+                    }
+                  </p>
+                </div>
+
+                <!-- Assignment Date -->
+                <div class="bg-background/70 rounded-lg border border-border/50 p-2.5">
+                  <p class="text-[9px] font-bold text-text-secondary mb-1 uppercase">تاريخ الإسناد</p>
+                  <p class="text-[10px] font-bold text-secondary">{{ (c.createdAt || c.slaTracking?.startedAt) | date:'yyyy-MM-dd' }}</p>
+                </div>
+
+                <!-- Delivery Date -->
+                <div class="bg-background/70 rounded-lg border border-border/50 p-2.5">
+                  <p class="text-[9px] font-bold text-text-secondary mb-1 uppercase">الموعد النهائي</p>
+                  <p class="text-[10px] font-bold text-secondary">{{ c.requiredDeliveryDate | date:'yyyy-MM-dd' }}</p>
+                </div>
+              </div>
+
+              <!-- Action Button -->
+              <a [routerLink]="['/lab/cases', c.id]" class="flex items-center justify-center gap-2 w-full rounded-lg bg-primary text-white px-4 py-2.5 text-xs font-bold hover:bg-primary-dark transition">
+                عرض التفاصيل
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+              </a>
+            </div>
+          }
+        </div>
+
+        <table class="w-full text-right text-xs">
+          <thead class="bg-background text-secondary font-black border-b border-border">
+            <tr>
+              <th class="px-6 py-4">كود الحالة</th>
+              <th class="px-6 py-4">المريض</th>
+              <th class="px-6 py-4">الخدمات المطلوبة</th>
+              <th class="px-6 py-4">أولوية SLA</th>
+              <th class="px-6 py-4">الحالة</th>
+              <th class="px-6 py-4">تاريخ الاستلام المطلوب</th>
+              <th class="px-6 py-4 text-left">أكشن</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border/60">
+            @for (c of cases(); track c.id) {
+              <tr class="hover:bg-background/40 transition">
+                <td class="px-6 py-4 font-bold text-secondary">
+                  <a [routerLink]="['/lab/cases', c.id]" class="text-primary hover:underline font-extrabold">{{ c.orderCode }}</a>
+                </td>
+                <td class="px-6 py-4 text-text-secondary">{{ c.patientName }} ({{ c.patientGender === 'Male' ? 'ذكر' : 'أنثى' }})</td>
+                <td class="px-6 py-4 text-text-secondary max-w-xs truncate">
+                  @for (s of c.services; track s.serviceId) {
+                    <span class="inline-block bg-background text-secondary border border-border/80 text-[10px] px-2 py-0.5 rounded-md mr-1">{{ s.nameAr }}</span>
+                  }
+                </td>
+                <td class="px-6 py-4">
+                  @if (c.expressChecked) {
+                    <span class="bg-red-50 text-red-600 border border-red-200 text-[10px] font-black px-2 py-0.5 rounded-md animate-pulse">مستعجل (12 ساعة)</span>
+                  } @else {
+                    <span class="bg-blue-50 text-blue-600 border border-blue-200 text-[10px] font-bold px-2 py-0.5 rounded-md">عادي (24 ساعة)</span>
+                  }
+                </td>
+                <td class="px-6 py-4">
+                  <span
+                     [class.bg-blue-50]="c.status === OrderStatus.InDesign" [class.text-blue-700]="c.status === OrderStatus.InDesign"
+                     [class.bg-amber-50]="c.status === OrderStatus.AssignedToLab || c.status === OrderStatus.LabReview" [class.text-amber-700]="c.status === OrderStatus.AssignedToLab || c.status === OrderStatus.LabReview"
+                     [class.bg-red-50]="c.status === OrderStatus.LabRejected || c.status === OrderStatus.RejectedByQuality" [class.text-red-700]="c.status === OrderStatus.LabRejected || c.status === OrderStatus.RejectedByQuality"
+                     [class.bg-green-50]="c.status === OrderStatus.Completed || c.status === OrderStatus.ReadyForDownload" [class.text-green-700]="c.status === OrderStatus.Completed || c.status === OrderStatus.ReadyForDownload"
+                    class="px-2.5 py-1 rounded-full text-[10px] font-black inline-block"
+                  >
+                    @switch (c.status) {
+                       @case (OrderStatus.Draft) { مسودة }
+                       @case (OrderStatus.WaitingAdminResponse) { انتظار مراجعة الأدمن }
+                       @case (OrderStatus.AssignedToLab) { مسندة للمصمم }
+                       @case (OrderStatus.LabReview) { قيد المراجعة }
+                       @case (OrderStatus.LabRejected) { تم الرفض من قبلك }
+                       @case (OrderStatus.LabAccepted) { تم قبول التكليف }
+                       @case (OrderStatus.InDesign) { قيد التصميم }
+                       @case (OrderStatus.QualityReview) { مراجعة الجودة QA }
+                       @case (OrderStatus.ReturnedToDesigner) { تعديل مطلوب من الجودة }
+                       @case (OrderStatus.RejectedByQuality) { مرفوض من الجودة }
+                       @case (OrderStatus.ApprovedByQuality) { معتمد من الجودة }
+                       @case (OrderStatus.DoctorRevisionRequested) { تعديل مطلوب من الطبيب }
+                       @case (OrderStatus.ReadyForDownload) { جاهزة للتحميل }
+                       @case (OrderStatus.Completed) { مكتملة }
+                       @default { حالة أخرى }
+                    }
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-text-secondary">{{ c.requiredDeliveryDate | date:'mediumDate' }}</td>
+                <td class="px-6 py-4 text-left">
+                  <div class="flex gap-3 justify-end items-center">
+                    <a [routerLink]="['/lab/cases', c.id]" class="text-primary hover:text-primary-dark font-extrabold whitespace-nowrap">تفاصيل الحالة ←</a>
+                    
+                    @if (c.status === OrderStatus.AssignedToLab) {
+                      <button (click)="startReview(c.id)" class="bg-primary text-white text-[10px] px-3 py-1.5 rounded-lg font-bold hover:bg-primary-dark transition active:scale-95">بدء المراجعة</button>
+                    } @else if (c.status === OrderStatus.LabReview) {
+                      <button (click)="acceptOrder(c.id)" class="bg-green-600 text-white text-[10px] px-3 py-1.5 rounded-lg font-bold hover:bg-green-700 transition active:scale-95">قبول</button>
+                      <button (click)="rejectOrder(c.id)" class="bg-red-500 text-white text-[10px] px-3 py-1.5 rounded-lg font-bold hover:bg-red-600 transition active:scale-95">رفض</button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalCount() > pageSize()) {
+      <div class="px-6 py-4 border-t border-border flex justify-between items-center text-xs">
+        <span class="text-text-secondary">عرض {{ cases().length }} من أصل {{ totalCount() }} حالة</span>
+        <div class="flex gap-2">
+          <button
+            [disabled]="pageNumber() === 1"
+            (click)="onPageChange(pageNumber() - 1)"
+            class="bg-background border border-border text-secondary px-3 py-1.5 rounded-lg font-bold hover:bg-surface transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >السابق</button>
+          <button
+            [disabled]="pageNumber() * pageSize() >= totalCount()"
+            (click)="onPageChange(pageNumber() + 1)"
+            class="bg-background border border-border text-secondary px-3 py-1.5 rounded-lg font-bold hover:bg-surface transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >التالي</button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

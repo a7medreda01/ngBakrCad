@@ -1,0 +1,348 @@
+<div class="flex flex-col gap-8">
+  <!-- Welcome Header -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-secondary flex items-center gap-2">
+        مرحباً، {{ dashboardData()?.fullName || 'مصمم بكر كاد' }}
+        <i class="bi bi-person-wave text-primary"></i>
+      </h1>
+      <p class="text-sm text-text-secondary mt-1">
+        بوابة المصمم · {{ dashboardData()?.specialization || 'عام' }}
+      </p>
+    </div>
+    <div class="flex gap-2 items-center text-xs font-bold text-secondary bg-surface border border-border px-4 py-2.5 rounded-xl">
+      <span class="text-amber-500 font-extrabold flex items-center gap-1">
+        <i class="bi bi-star-fill"></i>
+        {{ dashboardData()?.rating || '5.00' }}
+      </span>
+      <span class="text-border">|</span>
+      <span>مستوى {{ dashboardData()?.level || 1 }}</span>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Active Orders -->
+    <div class="bg-surface rounded-2xl border border-border p-5 shadow-card flex flex-col gap-3 hover:shadow-lg transition duration-300">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-primary"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
+      </div>
+      <div>
+        @if (isLoading()) {
+          <div class="h-7 w-12 bg-slate-200 animate-pulse rounded-lg"></div>
+        } @else {
+          <p class="text-2xl font-black text-secondary">{{ dashboardData()?.activeOrders || 0 }}</p>
+        }
+        <p class="text-xs font-bold text-text-secondary mt-1">الحالات النشطة</p>
+      </div>
+    </div>
+
+    <!-- Pending Review -->
+    <div class="bg-surface rounded-2xl border border-border p-5 shadow-card flex flex-col gap-3 hover:shadow-lg transition duration-300">
+      <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-amber-500"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+      </div>
+      <div>
+        @if (isLoading()) {
+          <div class="h-7 w-12 bg-slate-200 animate-pulse rounded-lg"></div>
+        } @else {
+          <p class="text-2xl font-black text-secondary">{{ dashboardData()?.pendingReviewOrders || 0 }}</p>
+        }
+        <p class="text-xs font-bold text-text-secondary mt-1">انتظار المراجعة والـ QA</p>
+      </div>
+    </div>
+
+    <!-- Completed -->
+    <div class="bg-surface rounded-2xl border border-border p-5 shadow-card flex flex-col gap-3 hover:shadow-lg transition duration-300">
+      <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-500"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+      </div>
+      <div>
+        @if (isLoading()) {
+          <div class="h-7 w-12 bg-slate-200 animate-pulse rounded-lg"></div>
+        } @else {
+          <p class="text-2xl font-black text-secondary">{{ dashboardData()?.totalCompletedOrders || 0 }}</p>
+        }
+        <p class="text-xs font-bold text-text-secondary mt-1">الحالات المكتملة</p>
+      </div>
+    </div>
+
+    <!-- Total Earned (All time paid) -->
+    <div class="bg-surface rounded-2xl border border-border p-5 shadow-card flex flex-col gap-3 hover:shadow-lg transition duration-300">
+      <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-500"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125H3.75m16.5 0h.008v.008h-.008v-.008Zm-3-10.5h.008v.008h-.008V6Z" /></svg>
+      </div>
+      <div>
+        @if (isLoading()) {
+          <div class="h-7 w-12 bg-slate-200 animate-pulse rounded-lg"></div>
+        } @else {
+          <p class="text-2xl font-black text-secondary">{{ dashboardData()?.totalEarned || '0.00' }} <span class="text-xs text-text-secondary">SAR</span></p>
+        }
+        <p class="text-xs font-bold text-text-secondary mt-1">إجمالي الأرباح المسحوبة</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wallet/Billing and Recent Orders Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Earnings / Withdrawal Card -->
+    <div class="lg:col-span-1 bg-surface border border-border rounded-2xl p-6 shadow-card flex flex-col gap-5 justify-between">
+      <div class="flex flex-col gap-4">
+        <div class="flex justify-between items-center border-b border-border pb-3">
+          <h3 class="text-sm font-black text-secondary">رصيد الأرباح والمحفظة</h3>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-text-secondary"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18-3a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6m18 0V3.75A1.5 1.5 0 0 0 19.5 2.25h-15A1.5 1.5 0 0 0 3 3.75V6m18 0v3M3 6v3" /></svg>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <div class="bg-background rounded-xl p-4 flex justify-between items-center">
+            <div>
+              <p class="text-xs text-text-secondary">الرصيد المتاح للسحب</p>
+              <p class="text-xl font-black text-green-600 mt-1">{{ dashboardData()?.withdrawableBalance || '0.00' }} SAR</p>
+            </div>
+            <span class="text-[10px] bg-green-50 text-green-700 px-2.5 py-1 rounded-full font-bold">جاهز</span>
+          </div>
+
+          <div class="bg-background rounded-xl p-4 flex justify-between items-center">
+            <div>
+              <p class="text-xs text-text-secondary">الرصيد المعلق (قيد الانتظار)</p>
+              <p class="text-xl font-black text-amber-500 mt-1">{{ dashboardData()?.pendingBalance || '0.00' }} SAR</p>
+            </div>
+            <span class="text-[10px] bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full font-bold">معلق</span>
+          </div>
+
+          <div class="bg-background rounded-xl p-4 flex justify-between items-center">
+            <div>
+              <p class="text-xs text-text-secondary">رصيد قيد التدقيق الدوري القياسي</p>
+              <p class="text-xl font-black text-blue-600 mt-1">{{ dashboardData()?.deferredBalance || '0.00' }} SAR</p>
+            </div>
+            <span class="text-[10px] bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-bold">تدقيق</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-border pt-4 flex flex-col gap-3">
+        <div class="text-[11px] text-text-secondary leading-relaxed">
+          * الحد الأدنى لطلب السحب هو <b>{{ minWithdrawalLimit() }} ريال سعودي</b>. الأرباح المعلقة يتم إثباتها فور سداد العميل للطلب.
+        </div>
+        <button
+          [disabled]="isLoading() || withdrawableAmount() < minWithdrawalLimit()"
+          (click)="openWithdrawalModal()"
+          class="w-full inline-flex justify-center items-center gap-2 bg-primary text-white py-3 rounded-xl text-xs font-black shadow-primary hover:bg-primary-dark transition duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          طلب سحب الرصيد المتاح
+        </button>
+      </div>
+    </div>
+
+    <!-- Recent Assigned Cases -->
+    <div class="lg:col-span-2 bg-surface rounded-2xl border border-border shadow-card flex flex-col">
+      <div class="flex justify-between items-center px-6 py-4 border-b border-border">
+        <h3 class="text-sm font-black text-secondary">آخر الحالات المسندة إليك</h3>
+        <a routerLink="/lab/cases" class="text-xs font-bold text-primary hover:underline">عرض جميع الحالات</a>
+      </div>
+      
+      <div class="flex-1 overflow-x-auto">
+        @if (isLoading()) {
+          <div class="p-6 flex flex-col gap-3">
+            <div class="h-10 bg-slate-100 rounded-xl animate-pulse"></div>
+            <div class="h-10 bg-slate-100 rounded-xl animate-pulse"></div>
+            <div class="h-10 bg-slate-100 rounded-xl animate-pulse"></div>
+          </div>
+        } @else if (recentCases().length === 0) {
+          <div class="p-8 text-center flex flex-col items-center justify-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-12 h-12 text-text-secondary"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
+            <p class="text-xs font-bold text-text-secondary">لا توجد حالات مسندة إليك حالياً</p>
+          </div>
+        } @else {
+          <table class="w-full text-right text-xs">
+            <thead class="bg-background text-secondary uppercase font-black border-b border-border">
+              <tr>
+                <th class="px-6 py-3">كود الحالة</th>
+                <th class="px-6 py-3">المريض</th>
+                <th class="px-6 py-3">الحالة</th>
+                <th class="px-6 py-3">تاريخ التسليم المطلوبة</th>
+                <th class="px-6 py-3 text-left">أكشن</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border/60">
+              @for (c of recentCases(); track c.id) {
+                <tr class="hover:bg-background/40 transition duration-150">
+                  <td class="px-6 py-4 font-bold text-secondary">{{ c.orderCode }}</td>
+                  <td class="px-6 py-4 text-text-secondary">{{ c.patientName }}</td>
+                  <td class="px-6 py-4">
+                    <span
+                      [class.bg-blue-50]="c.status === OrderStatus.InDesign" [class.text-blue-700]="c.status === OrderStatus.InDesign"
+                      [class.bg-amber-50]="c.status === OrderStatus.AssignedToLab || c.status === OrderStatus.LabReview" [class.text-amber-700]="c.status === OrderStatus.AssignedToLab || c.status === OrderStatus.LabReview"
+                      [class.bg-red-50]="c.status === OrderStatus.LabRejected || c.status === OrderStatus.RejectedByQuality" [class.text-red-700]="c.status === OrderStatus.LabRejected || c.status === OrderStatus.RejectedByQuality"
+                      [class.bg-green-50]="c.status === OrderStatus.Completed || c.status === OrderStatus.ReadyForDownload" [class.text-green-700]="c.status === OrderStatus.Completed || c.status === OrderStatus.ReadyForDownload"
+                      class="px-2.5 py-1 rounded-full text-[10px] font-black inline-block"
+                    >
+                      @switch (c.status) {
+                        @case (OrderStatus.Draft) { مسودة }
+                        @case (OrderStatus.WaitingAdminResponse) { انتظار مراجعة الأدمن }
+                        @case (OrderStatus.AssignedToLab) { مسندة للمصمم }
+                        @case (OrderStatus.LabReview) { قيد المراجعة }
+                        @case (OrderStatus.LabRejected) { تم الرفض من قبلك }
+                        @case (OrderStatus.LabAccepted) { تم قبول التكليف }
+                        @case (OrderStatus.InDesign) { قيد التصميم }
+                        @case (OrderStatus.QualityReview) { مراجعة الجودة QA }
+                        @case (OrderStatus.ReturnedToDesigner) { تعديل مطلوب من الجودة }
+                        @case (OrderStatus.RejectedByQuality) { مرفوض من الجودة }
+                        @case (OrderStatus.ApprovedByQuality) { معتمد من الجودة }
+                        @case (OrderStatus.DoctorRevisionRequested) { تعديل مطلوب من الطبيب }
+                        @case (OrderStatus.ReadyForDownload) { جاهزة للتحميل }
+                        @case (OrderStatus.Completed) { مكتملة }
+                        @default { حالة أخرى }
+                      }
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-text-secondary">{{ c.requiredDeliveryDate | date:'mediumDate' }}</td>
+                  <td class="px-6 py-4 text-left">
+                    <a [routerLink]="['/lab/cases', c.id]" class="text-primary font-bold hover:underline">
+                      التفاصيل ←
+                    </a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Withdrawal History Panel -->
+  <div class="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-4 mt-6">
+    <h3 class="text-sm font-black text-secondary flex items-center gap-2">
+      <i class="bi bi-clock-history text-primary"></i>
+      سجل طلبات السحب الأخيرة
+    </h3>
+
+    @if (withdrawalHistory().length === 0) {
+      <p class="text-xs text-text-secondary">لا توجد طلبات سحب سابقة.</p>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-right text-xs">
+          <thead class="bg-background text-secondary uppercase font-black border-b border-border">
+            <tr>
+              <th class="px-4 py-2">المبلغ المطلوب</th>
+              <th class="px-4 py-2">طريقة الدفع</th>
+              <th class="px-4 py-2">التفاصيل</th>
+              <th class="px-4 py-2">تاريخ الطلب</th>
+              <th class="px-4 py-2">ملاحظة الإدارة</th>
+              <th class="px-4 py-2">الحالة</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border/60">
+            @for (w of withdrawalHistory(); track w.id) {
+              <tr class="hover:bg-background/20 transition duration-150">
+                <td class="px-4 py-3 font-bold text-secondary">{{ w.amount }} SAR</td>
+                <td class="px-4 py-3 text-text-secondary">{{ paymentMethodLabel(w.paymentMethod) }}</td>
+                <td class="px-4 py-3 text-text-secondary font-medium">{{ w.paymentDetails }}</td>
+                <td class="px-4 py-3 text-text-secondary">{{ w.createdAt | date:'mediumDate' }}</td>
+                <td class="px-4 py-3 text-amber-700 font-bold">{{ w.adminNotes || '—' }}</td>
+                <td class="px-4 py-3">
+                  <span [class]="statusLabel(w.status).css" class="px-2 py-0.5 rounded-full text-[10px] font-bold">
+                    {{ statusLabel(w.status).label }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- Interactive Withdrawal Modal Dialog -->
+  @if (isWithdrawalModalOpen()) {
+    <div class="fixed inset-0 bg-secondary/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-surface border border-border rounded-2xl w-full max-w-md p-6 shadow-card flex flex-col gap-5 text-right">
+        <!-- Header -->
+        <div class="flex justify-between items-center border-b border-border pb-3">
+          <h3 class="text-sm font-black text-secondary">تقديم طلب سحب جديد</h3>
+          <button (click)="closeWithdrawalModal()" class="text-text-secondary hover:text-secondary">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <!-- Body Form -->
+        <div class="flex flex-col gap-4 text-xs text-secondary">
+          <!-- Withdrawable Info -->
+          <div class="bg-background rounded-xl p-3 flex justify-between items-center">
+            <span>الرصيد المتاح حالياً:</span>
+            <span class="font-black text-green-600">{{ withdrawableAmount() }} SAR</span>
+          </div>
+
+          <!-- Amount -->
+          <div class="flex flex-col gap-1.5">
+            <label for="withdrawalAmount" class="font-bold">المبلغ المراد سحبه (ريال سعودي):</label>
+            <input
+              type="number"
+              id="withdrawalAmount"
+              [(ngModel)]="withdrawalAmountInput"
+              min="1"
+              max="{{ withdrawableAmount() }}"
+              class="bg-background border border-border rounded-xl px-3 py-2.5 font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 text-secondary"
+            />
+            <span class="text-[10px] text-text-secondary">
+              * الحد الأدنى للسحب هو {{ minWithdrawalLimit() }} ريال سعودي
+            </span>
+          </div>
+
+          <!-- Payment Method -->
+          <div class="flex flex-col gap-1.5">
+            <label for="paymentMethod" class="font-bold">وسيلة استلام الأرباح:</label>
+            <select
+              id="paymentMethod"
+              [(ngModel)]="paymentMethod"
+              class="bg-background border border-border rounded-xl px-3 py-2.5 font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 text-secondary"
+            >
+              <option value="STCPay">STC Pay</option>
+              <option value="BankTransfer">تحويل بنكي (حساب مصرفي سعودي)</option>
+              <option value="PayPal">PayPal</option>
+            </select>
+          </div>
+
+          <!-- Payment Details -->
+          <div class="flex flex-col gap-1.5">
+            <label for="paymentDetails" class="font-bold">بيانات الحساب / الاستلام:</label>
+            <textarea
+              id="paymentDetails"
+              [(ngModel)]="paymentDetails"
+              rows="3"
+              placeholder="لطريقة STC Pay: اكتب رقم الجوال المرتبط بالمحفظة.&#10;للتحويل البنكي: اكتب اسم البنك، الاسم الثلاثي لصاحب الحساب، ورقم الآيبان (IBAN) يبدأ بـ SA."
+              class="bg-background border border-border rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 text-secondary"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-2 border-t border-border pt-4">
+          <button
+            (click)="submitWithdrawalRequest()"
+            [disabled]="isSubmittingWithdrawal()"
+            class="flex-1 bg-primary text-white py-2.5 rounded-xl text-xs font-black shadow-primary hover:bg-primary-dark transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+          >
+            @if (isSubmittingWithdrawal()) {
+              <svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+              جاري التقديم...
+            } @else {
+              تقديم الطلب
+            }
+          </button>
+          <button
+            (click)="closeWithdrawalModal()"
+            class="flex-1 bg-background border border-border text-secondary py-2.5 rounded-xl text-xs font-black hover:bg-slate-50 transition active:scale-95"
+          >
+            إلغاء
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+

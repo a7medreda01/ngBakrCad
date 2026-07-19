@@ -1,0 +1,248 @@
+<div class="flex flex-col gap-6" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 border-b border-border pb-4">
+    <div>
+      <h1 class="text-lg sm:text-xl font-extrabold text-secondary">إدارة ومتابعة طلبات التصميم</h1>
+      <p class="text-xs text-text-secondary mt-1">متابعة كافة حالات طلبات الأسنان الرقمية النشطة بالنظام وإسنادها للمصممين</p>
+    </div>
+    <div class="text-xs font-bold text-text-secondary bg-background rounded-xl px-3 py-2 w-fit">
+      إجمالي الطلبات: <span class="text-secondary">{{ totalCount() }}</span>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="flex flex-col sm:flex-row gap-3">
+    <input
+      type="text"
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+      placeholder="بحث برقم الطلب أو اسم المريض..."
+      class="flex-1 px-4 py-2.5 rounded-xl border border-border bg-surface text-xs focus:outline-none focus:border-primary transition"
+    />
+
+    <select
+      [ngModel]="statusFilter()"
+      (ngModelChange)="onStatusFilterChange($event)"
+      class="px-4 py-2.5 rounded-xl border border-border bg-surface text-xs focus:outline-none focus:border-primary transition sm:min-w-[160px]"
+    >
+      @for (opt of statusOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+
+    <select
+      [ngModel]="sortBy()"
+      (ngModelChange)="onSortChange($event)"
+      class="px-4 py-2.5 rounded-xl border border-border bg-surface text-xs focus:outline-none focus:border-primary transition sm:min-w-[150px]"
+    >
+      <option value="date_desc">الأحدث أولاً</option>
+      <option value="date_asc">الأقدم أولاً</option>
+      <option value="price_desc">السعر: من الأعلى</option>
+      <option value="price_asc">السعر: من الأقل</option>
+    </select>
+  </div>
+
+  <!-- Orders List -->
+  <div class="bg-surface rounded-2xl border border-border shadow-card overflow-hidden">
+
+    @if (isLoading()) {
+      <div class="p-4 sm:p-8 flex flex-col gap-3">
+        @for (_ of [1,2,3,4,5]; track $index) {
+          <div class="h-16 sm:h-10 bg-slate-100 animate-pulse rounded-xl"></div>
+        }
+      </div>
+    } @else if (!filteredOrders().length) {
+      <div class="p-12 text-center text-xs text-text-secondary">
+        لا توجد طلبات مطابقة لهذا البحث أو الفلتر.
+      </div>
+    } @else {
+
+      <!-- Mobile: card list (below md) -->
+      <div class="flex flex-col md:hidden divide-y divide-border/40">
+        @for (order of filteredOrders(); track order.id) {
+          <div class="p-4 flex flex-col gap-3">
+
+            <!-- Row 1: order code + status -->
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-xs font-bold text-secondary truncate">{{ order.orderCode }}</span>
+                @if (order.expressChecked) {
+                  <span class="text-[9px] font-bold text-orange-600 bg-orange-50 rounded-md px-1.5 py-0.5 flex-shrink-0">إكسبريس</span>
+                }
+              </div>
+              <span class="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 flex-shrink-0" [class]="statusMeta(order.status).badge">
+                <span class="w-1 h-1 rounded-full" [class]="statusMeta(order.status).dot"></span>
+                {{ statusLabel(order.status) }}
+              </span>
+            </div>
+
+            <!-- Row 2: patient + price -->
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="text-text-secondary">{{ order.patientName }} ({{ order.patientAge }} سنة)</span>
+              <span class="font-black text-secondary">{{ order.finalPrice }} SAR</span>
+            </div>
+
+            <!-- Row 3: designer -->
+            <div class="flex items-center gap-2">
+              @if (hasAssignedDesigner(order)) {
+                <div class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-[10px] flex-shrink-0">
+                  {{ getDesignerDisplay(order).charAt(0) }}
+                </div>
+                <span class="text-[11px] font-bold text-secondary truncate">{{ getDesignerDisplay(order) }}</span>
+                @if (order.designerId) {
+                  <span class="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-600 bg-amber-50 rounded-md px-1 py-0.5 flex-shrink-0">
+                    <i class="bi bi-star-fill text-[8px]"></i>
+                    {{ getDesignerRating(order) ?? 0 }}
+                  </span>
+                }
+              } @else {
+                <span class="text-orange-600 bg-orange-50 rounded-lg px-2 py-1 text-[10px] font-bold">لم يسند بعد</span>
+              }
+            </div>
+
+            <!-- Row 4: open button -->
+            <a
+              [routerLink]="['/admin/orders', order.id]"
+              class="w-full text-center bg-secondary/5 text-secondary text-xs font-bold py-2.5 rounded-xl hover:bg-secondary/10 transition"
+            >
+              فتح الطلب
+            </a>
+          </div>
+        }
+      </div>
+
+      <!-- Desktop: table (md and up) -->
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-xs text-text-secondary border-b border-border bg-background/50">
+              <th class="text-right font-bold px-6 py-4">رقم الطلب</th>
+              <th class="text-right font-bold px-6 py-4">المريض</th>
+              <th class="text-right font-bold px-6 py-4">المصمم المعين</th>
+              <th class="text-right font-bold px-6 py-4">الحالة</th>
+              <th class="text-right font-bold px-6 py-4">SLA</th>
+              <th class="text-right font-bold px-6 py-4">التكلفة</th>
+              <th class="px-6 py-4">الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (order of filteredOrders(); track order.id) {
+              <tr class="border-b border-border/40 hover:bg-background/40 transition">
+                <td class="px-6 py-4 font-bold text-secondary text-xs">
+                  {{ order.orderCode }}
+                  @if (order.expressChecked) {
+                    <span class="ms-1 text-[10px] font-bold text-orange-600 bg-orange-50 rounded-md px-1.5 py-0.5">إكسبريس</span>
+                  }
+                </td>
+                <td class="px-6 py-4 text-xs text-text-secondary">{{ order.patientName }} ({{ order.patientAge }} سنة)</td>
+
+                <!-- Designer Cell: compact professional layout -->
+                <td class="px-6 py-4">
+                  @if (hasAssignedDesigner(order)) {
+                    <div class="flex items-center gap-2">
+                      <div class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-[10px] flex-shrink-0">
+                        {{ getDesignerDisplay(order).charAt(0) }}
+                      </div>
+
+                      <div class="flex flex-col gap-0.5 min-w-0">
+                        <span class="text-xs font-bold text-secondary truncate">{{ getDesignerDisplay(order) }}</span>
+                        <div class="flex items-center gap-1">
+                          @if (order.designerId) {
+                            <span class="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-600 bg-amber-50 rounded px-1 py-[1px]">
+                              <i class="bi bi-star-fill text-[8px]"></i>
+                              {{ getDesignerRating(order) ?? 0 }}
+                            </span>
+                          }
+                          @if (getDesignerLevel(order) !== null) {
+                            <span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 rounded px-1 py-[1px]">
+                              مستوى {{ getDesignerLevel(order) }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="text-orange-600 bg-orange-50 rounded-lg px-2.5 py-1.5 inline-block text-[11px] font-bold">
+                      لم يسند بعد
+                    </div>
+                  }
+                </td>
+
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center gap-1.5 text-[11px] font-bold rounded-full px-2.5 py-1" [class]="statusMeta(order.status).badge">
+                    <span class="w-1.5 h-1.5 rounded-full" [class]="statusMeta(order.status).dot"></span>
+                    {{ statusLabel(order.status) }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-[11px]">
+                  @if (isSlaBreached(order)) {
+                    <span class="font-bold text-red-600">متجاوز الموعد</span>
+                  } @else if (order.slaTracking?.dueAt) {
+                    <span class="text-text-secondary">{{ order.slaTracking?.dueAt | date:'short' }}</span>
+                  } @else {
+                    <span class="text-text-secondary">—</span>
+                  }
+                </td>
+                <td class="px-6 py-4 text-xs font-black text-secondary">{{ order.finalPrice }} SAR</td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3 justify-end flex-wrap">
+                    <a [routerLink]="['/admin/orders', order.id]" class="text-xs text-secondary font-bold hover:underline">
+                      فتح الطلب
+                    </a>
+                    @if (hasAvailableDesigners()) {
+                      <button
+                        (click)="openAssignModal(order)"
+                        [disabled]="isAssigning()"
+                        class="text-xs text-primary font-bold hover:underline disabled:opacity-50"
+                      >
+                        @if (order.designerId) {
+                          إعادة إسناد
+                        } @else {
+                          إسناد مصمم
+                        }
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- Pagination -->
+    @if (!isLoading() && totalPages() > 1) {
+      <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-t border-border text-xs">
+        <span class="text-text-secondary">صفحة {{ pageNumber() }} من {{ totalPages() }}</span>
+        <div class="flex gap-2">
+          <button
+            (click)="goToPage(pageNumber() - 1)"
+            [disabled]="pageNumber() === 1"
+            class="px-3 py-1.5 rounded-lg border border-border disabled:opacity-40 disabled:cursor-not-allowed hover:bg-background transition"
+          >
+            السابق
+          </button>
+          <button
+            (click)="goToPage(pageNumber() + 1)"
+            [disabled]="pageNumber() === totalPages()"
+            class="px-3 py-1.5 rounded-lg border border-border disabled:opacity-40 disabled:cursor-not-allowed hover:bg-background transition"
+          >
+            التالي
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+<app-assign-designer-modal
+  [open]="showAssignModal()"
+  [orderCode]="selectedOrder()?.orderCode ?? ''"
+  [currentDesignerName]="selectedOrder() && hasAssignedDesigner(selectedOrder()!) ? getDesignerDisplay(selectedOrder()!) : null"
+  [currentDesignerId]="selectedOrder()?.designerId ?? null"
+  [designers]="designers()"
+  [submitting]="isAssigning()"
+  (closed)="closeAssignModal()"
+  (assigned)="onAssign($event)"
+/>
+</div>

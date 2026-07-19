@@ -1,0 +1,268 @@
+<div class="min-h-screen flex bg-background font-sans"
+     [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
+
+  <!-- ════════════════════════════════════════
+       SIDEBAR
+  ════════════════════════════════════════ -->
+  <!-- Desktop Sidebar -->
+  <aside class="hidden md:flex flex-col w-64 bg-secondary text-white flex-shrink-0 z-30 shadow-xl">
+    <div class="flex flex-col h-full">
+
+      <!-- Logo -->
+      <div class="flex items-center gap-3 px-6 py-5 border-b border-white/10">
+        <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow">
+          <span class="text-white font-black text-base">B</span>
+        </div>
+        <div>
+          <p class="text-sm font-black text-white leading-tight">BKR CAD</p>
+          <p class="text-[10px] text-white/40 uppercase tracking-widest">{{ portalLabel() }}</p>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 px-3 py-4 flex flex-col gap-0.5 overflow-y-auto">
+
+        <!-- ── Common Links ── -->
+        <a routerLink="/client/dashboard" routerLinkActive="bg-primary/20 text-white !font-extrabold"
+           [routerLinkActiveOptions]="{exact:true}"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+          {{ t('nav.dashboard') }}
+        </a>
+
+        <a routerLink="/client/orders" routerLinkActive="bg-primary/20 text-white !font-extrabold"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg>
+          {{ t('nav.orders') }}
+        </a>
+
+        <!-- ── Doctor-Only Links ── -->
+        @if (!isDesigner()) {
+          <a routerLink="/client/create-order" routerLinkActive="bg-primary/20 text-white !font-extrabold"
+             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            {{ t('nav.createOrder') }}
+          </a>
+
+          <a routerLink="/client/wallet" routerLinkActive="bg-primary/20 text-white !font-extrabold"
+             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18-3a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6m18 0V3.75A1.5 1.5 0 0 0 19.5 2.25h-15A1.5 1.5 0 0 0 3 3.75V6m18 0v3M3 6v3"/></svg>
+            {{ t('nav.wallet') }}
+          </a>
+        }
+
+        <a routerLink="/client/meetings" routerLinkActive="bg-primary/20 text-white !font-extrabold"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+          <span>الاجتماعات</span>
+        </a>
+
+        <!-- Profile (all roles) -->
+        <a routerLink="/client/support" routerLinkActive="bg-primary/20 text-white !font-extrabold"
+           class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.75.75 0 1 0 .75.75.75.75 0 0 0-.75-.75Zm6.75 0a.75.75 0 1 0 .75.75.75.75 0 0 0-.75-.75ZM12 2.25c-5.385 0-9.75 4.365-9.75 9.75 0 1.33.33 2.588.92 3.71.56 1.07 1.38 1.96 2.4 2.57l.72 3.39 3.15-1.58a11.8 11.8 0 0 0 2.56 0l3.15 1.58-.72-3.39c1.02-.61 1.84-1.5 2.4-2.57.59-1.122.92-2.38.92-3.71 0-5.385-4.365-9.75-9.75-9.75Z"/></svg>
+            <span>الدعم</span>
+          </div>
+          @if (unreadSupportCount() > 0) {
+            <span class="px-2 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full">
+              {{ unreadSupportCount() }}
+            </span>
+          }
+        </a>
+
+        <a routerLink="/client/profile" routerLinkActive="bg-primary/20 text-white !font-extrabold"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+          {{ t('nav.settings') }}
+        </a>
+      </nav>
+
+      <!-- User Card -->
+      <div class="px-3 pb-4 border-t border-white/10 pt-3">
+        <div class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/5 mb-2">
+          <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-bold text-xs text-white flex-shrink-0">
+            {{ displayName().charAt(0).toUpperCase() }}
+          </div>
+          <div class="flex flex-col overflow-hidden min-w-0">
+            <span class="text-xs font-bold truncate text-white">{{ displayName() }}</span>
+            <span class="text-[10px] text-white/40 truncate">{{ auth.currentUser()?.roles?.join(', ') }}</span>
+          </div>
+        </div>
+        <button (click)="logout()"
+                class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-red-400 hover:bg-red-500/10 transition duration-200">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"/></svg>
+          {{ t('auth.logout') }}
+        </button>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- Mobile Sidebar Overlay -->
+  @if (isSidebarOpen()) {
+    <div class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden" (click)="closeSidebar()"></div>
+    <aside class="fixed top-0 bottom-0 start-0 w-64 bg-secondary text-white flex flex-col z-50 md:hidden shadow-2xl">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-white/10">
+        <span class="font-black text-sm">BKR CAD</span>
+        <button (click)="closeSidebar()" class="p-1 rounded-lg hover:bg-white/10">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <nav class="flex-1 px-3 py-4 flex flex-col gap-0.5" (click)="closeSidebar()">
+        <a routerLink="/client/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white">{{ t('nav.dashboard') }}</a>
+        <a routerLink="/client/orders"    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white">{{ t('nav.orders') }}</a>
+        @if (!isDesigner()) {
+          <a routerLink="/client/create-order" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white">{{ t('nav.createOrder') }}</a>
+          <a routerLink="/client/wallet"       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white">{{ t('nav.wallet') }}</a>
+        }
+        <a routerLink="/client/meetings"  class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white">الاجتماعات</a>
+        <a routerLink="/client/profile"  class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white">{{ t('nav.settings') }}</a>
+      </nav>
+      <div class="px-3 pb-4">
+        <button (click)="logout()" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-red-400 hover:bg-red-500/10">{{ t('auth.logout') }}</button>
+      </div>
+    </aside>
+  }
+
+  <!-- ════════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════════ -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- Top Header -->
+    <header class="h-14 bg-surface border-b border-border px-4 sm:px-6 flex items-center justify-between z-20 flex-shrink-0 shadow-sm">
+      <!-- Mobile menu toggle -->
+      <div class="flex items-center gap-3">
+        <button (click)="toggleSidebar()" class="md:hidden p-2 rounded-xl hover:bg-background text-secondary transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        </button>
+        <!-- Breadcrumb / portal label (desktop) -->
+        <span class="hidden md:inline text-xs font-bold text-text-secondary">{{ portalLabel() }}</span>
+      </div>
+
+      <!-- Right actions -->
+      <div class="flex items-center gap-2">
+        <!-- Language Toggle -->
+        <button (click)="i18n.toggleLanguage()"
+                class="text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-lg transition">
+          {{ i18n.currentLang() === 'ar' ? 'EN' : 'عربي' }}
+        </button>
+
+        <!-- Notifications Bell -->
+        <div class="relative">
+          <button (click)="toggleNotif()" class="relative p-2 rounded-xl hover:bg-background text-secondary transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
+            @if (unreadCount() > 0) {
+              <span class="absolute -top-0.5 -end-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                {{ unreadCount() > 9 ? '9+' : unreadCount() }}
+              </span>
+            }
+          </button>
+
+          <!-- Notification Dropdown -->
+<!-- Notification Dropdown -->
+@if (isNotifOpen()) {
+  <div class="fixed inset-0 z-40" (click)="toggleNotif()"></div>
+  <div class="absolute top-full end-0 mt-1 w-80 bg-surface border border-border rounded-2xl shadow-2xl z-50 overflow-hidden">
+    <div class="px-4 py-3 border-b border-border flex justify-between items-center">
+      <span class="text-sm font-black text-secondary">{{ t('dashboard.recentNotifications') }}</span>
+      <button (click)="toggleNotif()" class="text-text-secondary hover:text-secondary">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="max-h-72 overflow-y-auto">
+      @for (notif of notifService.notifications(); track notif.id) {
+        <div
+          (click)="openNotification(notif)"
+          class="px-4 py-3 border-b border-border/50 last:border-0 hover:bg-background transition cursor-pointer"
+          [class.bg-primary/5]="!notif.isRead"
+        >
+          <div class="flex items-start gap-2">
+            @if (!notif.isRead) {
+              <span class="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0"></span>
+            }
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-bold text-secondary line-clamp-1">{{ i18n.currentLang() === 'ar' ? notif.titleAr : notif.titleEn }}</p>
+              <p class="text-xs font-semibold text-text-secondary line-clamp-2 mt-0.5">{{ i18n.currentLang() === 'ar' ? notif.bodyAr : notif.bodyEn }}</p>
+              <p class="text-[10px] text-text-secondary/70 mt-1">{{ notif.createdAt | date:'short' }}</p>
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <div class="py-10 text-center text-text-secondary text-xs">لا توجد إشعارات</div>
+      }
+    </div>
+  </div>
+}
+        </div>
+
+        <!-- Avatar -->
+        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">
+          {{ displayName().charAt(0).toUpperCase() }}
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="flex-1 overflow-y-auto p-4 pb-24 md:pb-6 sm:p-6 lg:p-8">
+      <app-email-verification-banner></app-email-verification-banner>
+      <router-outlet></router-outlet>
+    </main>
+
+    <!-- ══════════════════════════════════════════════════════
+         MOBILE BOTTOM NAVIGATION BAR (md:hidden)
+    ══════════════════════════════════════════════════════ -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 bg-secondary/95 backdrop-blur-xl border-t border-white/10 shadow-2xl safe-area-bottom" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
+      <div class="grid gap-0 h-16" [class]="!isDesigner() ? 'grid-cols-5' : 'grid-cols-4'">
+
+        <!-- Dashboard -->
+        <a routerLink="/client/dashboard"
+           routerLinkActive="text-primary"
+           [routerLinkActiveOptions]="{exact:true}"
+           class="flex flex-col items-center justify-center gap-1 text-white/50 hover:text-white transition-all duration-200 active:scale-90">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+          <span class="text-[9px] font-bold">الرئيسية</span>
+        </a>
+
+        <!-- Orders -->
+        <a routerLink="/client/orders"
+           routerLinkActive="text-primary"
+           class="flex flex-col items-center justify-center gap-1 text-white/50 hover:text-white transition-all duration-200 active:scale-90">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg>
+          <span class="text-[9px] font-bold">طلباتي</span>
+        </a>
+
+        <!-- Create Order (Doctor only) -->
+        @if (!isDesigner()) {
+          <a routerLink="/client/create-order"
+             routerLinkActive="text-primary"
+             class="flex flex-col items-center justify-center gap-1 active:scale-90">
+            <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/40 -mt-4">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            </div>
+            <span class="text-[9px] font-bold text-white/50">طلب جديد</span>
+          </a>
+        }
+
+        <!-- Meetings -->
+        <a routerLink="/client/meetings"
+           routerLinkActive="text-primary"
+           class="flex flex-col items-center justify-center gap-1 text-white/50 hover:text-white transition-all duration-200 active:scale-90">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+          <span class="text-[9px] font-bold">الاجتماعات</span>
+        </a>
+
+        <!-- Profile -->
+        <a routerLink="/client/profile"
+           routerLinkActive="text-primary"
+           class="flex flex-col items-center justify-center gap-1 text-white/50 hover:text-white transition-all duration-200 active:scale-90">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+          <span class="text-[9px] font-bold">حسابي</span>
+        </a>
+
+      </div>
+    </nav>
+
+  </div>
+</div>

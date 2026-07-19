@@ -1,0 +1,61 @@
+<div class="flex flex-col gap-6" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
+  <!-- Header -->
+  <div class="border-b border-border pb-4">
+    <h1 class="text-xl font-extrabold text-secondary">سجلات الفواتير والعمليات المالية</h1>
+    <p class="text-xs text-text-secondary mt-1">تتبع كافة فواتير الدفع المالي وسداد المديونيات وحالات الدفع عبر Stripe</p>
+  </div>
+
+  <!-- Invoices Table -->
+  <div class="bg-surface rounded-2xl border border-border shadow-card overflow-hidden">
+    <div class="overflow-x-auto">
+      @if (isLoading()) {
+        <div class="p-8 flex flex-col gap-3">
+          @for (_ of [1,2,3]; track $index) {
+            <div class="h-10 bg-slate-100 animate-pulse rounded-xl"></div>
+          }
+        </div>
+      } @else if (invoices().length === 0) {
+        <div class="py-12 text-center text-text-secondary text-xs">لا توجد فواتير صادرة بالنظام بعد</div>
+      } @else {
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-xs text-text-secondary border-b border-border bg-background/50">
+              <th class="text-right font-bold px-6 py-4">رقم الفاتورة</th>
+              <th class="text-right font-bold px-6 py-4">معرف الطلب المرتبط</th>
+              <th class="text-right font-bold px-6 py-4">المبلغ المستحق</th>
+              <th class="text-right font-bold px-6 py-4">النوع</th>
+              <th class="text-right font-bold px-6 py-4">الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (inv of invoices(); track inv.id) {
+              <tr class="border-b border-border/40 hover:bg-background/40 transition">
+                <td class="px-6 py-4 font-bold text-secondary text-xs">{{ inv.invoiceCode }}</td>
+                <td class="px-6 py-4 text-xs text-text-secondary font-mono">{{ inv.orderId || '-' }}</td>
+                <td class="px-6 py-4 text-xs font-black text-secondary">{{ inv.amount }} SAR</td>
+                <td class="px-6 py-4 text-xs">
+                  @if (inv.isRevisionInvoice) {
+                    <span class="text-rose-500 font-bold">فاتورة تعديل / مراجعة</span>
+                  } @else {
+                    <span class="text-text-secondary">فاتورة طلب قياسية</span>
+                  }
+                </td>
+                <td class="px-6 py-4 text-xs">
+                  <span
+                    [class.bg-green-50]="inv.status === 1"
+                    [class.text-green-600]="inv.status === 1"
+                    [class.bg-amber-50]="inv.status === 0"
+                    [class.text-amber-500]="inv.status === 0"
+                    class="px-2 py-0.5 rounded text-[10px] font-bold border border-current"
+                  >
+                    {{ getInvoiceStatusLabel(inv.status) }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </div>
+</div>

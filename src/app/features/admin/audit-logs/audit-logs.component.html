@@ -1,0 +1,56 @@
+<div class="flex flex-col gap-6" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
+  <!-- Header -->
+  <div class="border-b border-border pb-4">
+    <h1 class="text-xl font-extrabold text-secondary">سجلات تدقيق النظام والعمليات</h1>
+    <p class="text-xs text-text-secondary mt-1">مراقبة التغييرات الأمنية والعمليات الإدارية وقيم التحديثات القديمة والجديدة</p>
+  </div>
+
+  <!-- Logs Table -->
+  <div class="bg-surface rounded-2xl border border-border shadow-card overflow-hidden">
+    <div class="overflow-x-auto">
+      @if (isLoading()) {
+        <div class="p-8 flex flex-col gap-3">
+          @for (_ of [1,2,3]; track $index) {
+            <div class="h-10 bg-slate-100 animate-pulse rounded-xl"></div>
+          }
+        </div>
+      } @else if (logs().length === 0) {
+        <div class="py-12 text-center text-text-secondary text-xs">لا توجد سجلات تدقيق مخزنة بعد</div>
+      } @else {
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-xs text-text-secondary border-b border-border bg-background/50">
+              <th class="text-right font-bold px-6 py-4">الجدول / الكيان</th>
+              <th class="text-right font-bold px-6 py-4">نوع العملية</th>
+              <th class="text-right font-bold px-6 py-4">المسؤول</th>
+              <th class="text-right font-bold px-6 py-4">عنوان IP</th>
+              <th class="text-right font-bold px-6 py-4">التاريخ والوقت</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (log of logs(); track log.id) {
+              <tr class="border-b border-border/40 hover:bg-background/40 transition">
+                <td class="px-6 py-4 font-bold text-secondary text-xs">
+                  <p>{{ log.tableName }}</p>
+                  <p class="text-[10px] text-text-secondary font-mono">معرف الكيان: {{ log.entityId }}</p>
+                </td>
+                <td class="px-6 py-4 text-xs font-semibold">
+                  <span
+                    [class.text-green-600]="log.actionType === 'Insert'"
+                    [class.text-amber-500]="log.actionType === 'Update'"
+                    [class.text-rose-600]="log.actionType === 'Delete'"
+                  >
+                    {{ log.actionType }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-xs text-text-secondary font-mono">{{ log.userId || 'النظام' }}</td>
+                <td class="px-6 py-4 text-xs text-text-secondary font-sans">{{ log.ipAddress }}</td>
+                <td class="px-6 py-4 text-xs text-text-secondary">{{ log.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </div>
+</div>
