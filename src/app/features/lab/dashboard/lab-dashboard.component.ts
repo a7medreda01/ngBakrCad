@@ -7,6 +7,7 @@ import { WalletService } from '../../../core/services/wallet.service';
 import { DesignerDashboardDto } from '../../../core/models';
 import { OrderStatus } from '../../../core/enums';
 import { ToastService } from '../../../core/services/toast.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-lab-dashboard',
@@ -19,6 +20,7 @@ export class LabDashboardComponent implements OnInit {
   private readonly designerService = inject(DesignerService);
   private readonly walletService = inject(WalletService);
   private readonly toast = inject(ToastService);
+  public readonly authService = inject(AuthService);
   public readonly OrderStatus = OrderStatus;
 
   readonly isLoading = signal(false);
@@ -144,5 +146,40 @@ export class LabDashboardComponent implements OnInit {
       PayPal: 'PayPal'
     };
     return map[method] || method;
+  }
+
+  getNextLevelName(currentLevel?: string): string {
+    if (!currentLevel || currentLevel === 'Bronze') return 'الفئة الفضية (Silver)';
+    if (currentLevel === 'Silver') return 'الفئة الذهبية (Gold)';
+    return 'الفئة الذهبية (أعلى فئة)';
+  }
+
+  getLevelProgress(currentLevel?: string, completedCount?: number): number {
+    const count = completedCount || 0;
+    if (!currentLevel || currentLevel === 'Bronze') {
+      return Math.min(Math.round((count / 10) * 100), 100);
+    }
+    if (currentLevel === 'Silver') {
+      const silverCount = Math.max(0, count - 10);
+      return Math.min(Math.round((silverCount / 40) * 100), 100);
+    }
+    return 100;
+  }
+
+  getLevelEncouragement(currentLevel?: string, completedCount?: number): string {
+    const count = completedCount || 0;
+    if (!currentLevel || currentLevel === 'Bronze') {
+      const remaining = Math.max(0, 10 - count);
+      return remaining > 0 
+        ? `أكمل ${remaining} من الحالات الإضافية للترقية إلى الفئة الفضية لزيادة أرباحك بنسبة 5% إضافية لكل حالة!`
+        : `أنت جاهز للترقية للفئة الفضية!`;
+    }
+    if (currentLevel === 'Silver') {
+      const remaining = Math.max(0, 50 - count);
+      return remaining > 0 
+        ? `أكمل ${remaining} من الحالات الإضافية للترقية إلى الفئة الذهبية لزيادة أرباحك بنسبة 10% والحصول على أولوية توزيع الحالات!`
+        : `أنت جاهز للترقية للفئة الذهبية!`;
+    }
+    return 'تهانينا! لقد وصلت إلى أعلى فئة عضوية ذهبية. أنت الآن تستمتع بأعلى نسبة أرباح للمصممين وأولوية كاملة في استلام الحالات!';
   }
 }

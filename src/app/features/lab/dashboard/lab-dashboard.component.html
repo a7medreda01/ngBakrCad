@@ -16,7 +16,15 @@
         {{ dashboardData()?.rating || '5.00' }}
       </span>
       <span class="text-border">|</span>
-      <span>مستوى {{ dashboardData()?.level || 1 }}</span>
+      <div class="px-2 py-0.5 rounded-full text-[10px] font-bold border" 
+           [ngClass]="{
+             'bg-yellow-100 text-yellow-800 border-yellow-200': dashboardData()?.level === 'Gold',
+             'bg-gray-200 text-gray-800 border-gray-300': dashboardData()?.level === 'Silver',
+             'bg-orange-100 text-orange-800 border-orange-200': (!dashboardData()?.level || dashboardData()?.level === 'Bronze')
+           }">
+        <i class="fa-solid fa-medal me-1"></i>
+        {{ dashboardData()?.level || 'Bronze' }} Member
+      </div>
     </div>
   </div>
 
@@ -80,6 +88,67 @@
         }
         <p class="text-xs font-bold text-text-secondary mt-1">إجمالي الأرباح المسحوبة</p>
       </div>
+    </div>
+  </div>
+
+  <!-- Level Progress & Encouragement Card -->
+  <div class="bg-surface rounded-2xl border border-border p-6 shadow-card flex flex-col gap-5 hover:shadow-lg transition-all duration-300">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div class="flex items-center gap-4">
+        <!-- Medal Icon -->
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm"
+             [ngClass]="{
+               'bg-yellow-50 text-yellow-500 border border-yellow-100': authService.userProfile()?.designerProfile?.level === 'Gold',
+               'bg-slate-50 text-slate-400 border border-slate-200': authService.userProfile()?.designerProfile?.level === 'Silver',
+               'bg-orange-50 text-orange-600 border border-orange-100': (!authService.userProfile()?.designerProfile?.level || authService.userProfile()?.designerProfile?.level === 'Bronze')
+             }">
+          <i class="fa-solid fa-medal"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-black text-secondary flex items-center gap-2">
+            مستوى العضوية الحالي: 
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold border"
+                  [ngClass]="{
+                    'bg-yellow-100 text-yellow-800 border-yellow-200': authService.userProfile()?.designerProfile?.level === 'Gold',
+                    'bg-gray-200 text-gray-800 border-gray-300': authService.userProfile()?.designerProfile?.level === 'Silver',
+                    'bg-orange-100 text-orange-800 border-orange-200': (!authService.userProfile()?.designerProfile?.level || authService.userProfile()?.designerProfile?.level === 'Bronze')
+                  }">
+              {{ authService.userProfile()?.designerProfile?.level || 'Bronze' }}
+            </span>
+          </h3>
+          <p class="text-xs text-text-secondary mt-1 max-w-xl">
+            ارفع مستواك كمصمم عبر الحفاظ على دقة التصاميم وتسليمها بالوقت للحصول على عمولات وربح أفضل مع أولوية الحصول على طلبات جديدة!
+          </p>
+        </div>
+      </div>
+      
+      <!-- Stats Display -->
+      <div class="flex items-center gap-4 w-full md:w-auto">
+        <div class="flex-1 md:flex-none text-center bg-background/50 border border-border/60 px-4 py-2 rounded-xl">
+          <span class="text-[10px] font-bold text-text-secondary block">الحالات المكتملة</span>
+          <span class="text-base font-black text-secondary">{{ authService.userProfile()?.designerProfile?.completedCasesCount || 0 }}</span>
+        </div>
+        <div class="flex-1 md:flex-none text-center bg-background/50 border border-border/60 px-4 py-2 rounded-xl">
+          <span class="text-[10px] font-bold text-text-secondary block">معدل الإكمال والنجاح</span>
+          <span class="text-base font-black text-green-600">{{ authService.userProfile()?.designerProfile?.caseCompletionRate || 0 }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="flex flex-col gap-1.5 pt-2 border-t border-border/40">
+      <div class="flex justify-between items-center text-xs font-bold text-text-secondary">
+        <span>التقدم نحو {{ getNextLevelName(authService.userProfile()?.designerProfile?.level) }}</span>
+        <span>{{ getLevelProgress(authService.userProfile()?.designerProfile?.level, authService.userProfile()?.designerProfile?.completedCasesCount) }}%</span>
+      </div>
+      <div class="w-full bg-background rounded-full h-2.5 overflow-hidden border border-border">
+        <div class="bg-primary h-full transition-all duration-500 rounded-full"
+             [style.width.%]="getLevelProgress(authService.userProfile()?.designerProfile?.level, authService.userProfile()?.designerProfile?.completedCasesCount)">
+        </div>
+      </div>
+      <p class="text-[11px] font-semibold text-primary mt-1">
+        💡 {{ getLevelEncouragement(authService.userProfile()?.designerProfile?.level, authService.userProfile()?.designerProfile?.completedCasesCount) }}
+      </p>
     </div>
   </div>
 

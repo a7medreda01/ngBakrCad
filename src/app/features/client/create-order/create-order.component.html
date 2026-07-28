@@ -1,420 +1,663 @@
-<div class="flex flex-col gap-6" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
-  <!-- Header -->
-  <div class="border-b border-border pb-4">
-    <h1 class="text-xl font-extrabold text-secondary">{{ t('nav.createOrder') }}</h1>
-    <p class="text-xs text-text-secondary mt-1">إنشاء طلب تصميم جديد خطوة بخطوة</p>
+<div class="flex flex-col gap-5" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
+
+  <!-- ══════════ HEADER ══════════ -->
+  <div class="border-b border-border pb-4 flex items-start justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-extrabold text-secondary">{{ t('nav.createOrder') }}</h1>
+      <p class="text-xs text-text-secondary mt-1">إنشاء طلب تصميم جديد — خطوة بخطوة</p>
+    </div>
+    @if (hasRestoredDraft()) {
+      <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+        <span class="text-[11px] font-bold text-primary flex items-center gap-1.5">
+          <i class="bi bi-pencil-square"></i> استكمال إنشاء الطلب
+        </span>
+        <button type="button" (click)="clearDraftStorage()"
+          class="text-[10px] font-bold text-red-500 border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition flex items-center gap-1">
+          <i class="bi bi-trash3"></i> مسح المسودة
+        </button>
+      </div>
+    }
   </div>
 
-  <!-- Step Indicator -->
-  <div class="flex justify-between items-center gap-2">
-    @for (step of [1, 2, 3, 4, 5, 6]; track step) {
-      <div class="flex flex-col items-center gap-2 flex-1">
-        <button
-          type="button"
-          (click)="goToStep(step)"
-          [disabled]="step > currentStep() + 1"
-          [class.bg-primary]="step === currentStep()"
-          [class.bg-primary/30]="step < currentStep()"
-          [class.bg-border]="step > currentStep()"
-          class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold disabled:cursor-not-allowed transition"
-          [ngClass]="step === currentStep() ? 'text-white' : step < currentStep() ? 'text-primary' : 'text-text-secondary'"
-        >
-          {{ step }}
+  <!-- ══════════ STEP INDICATOR ══════════ -->
+  <div class="flex items-center gap-2">
+    @for (step of [1, 2, 3, 4]; track step) {
+      <div class="flex flex-col items-center gap-1 flex-1">
+        <button type="button" (click)="goToStep(step)" [disabled]="step > currentStep()"
+          class="w-9 h-9 rounded-full text-xs font-black transition disabled:cursor-not-allowed flex items-center justify-center"
+          [class.bg-primary]="step === currentStep()" [class.text-white]="step === currentStep()" [class.shadow-md]="step === currentStep()"
+          [class.bg-primary/15]="step < currentStep()" [class.text-primary]="step < currentStep()"
+          [class.bg-border]="step > currentStep()" [class.text-text-secondary]="step > currentStep()">
+          @if (step < currentStep()) { <i class="bi bi-check-lg"></i> }
+          @else { {{ step }} }
         </button>
-        <span class="text-[10px] text-text-secondary text-center font-bold">
+        <span class="text-[9px] font-bold text-text-secondary text-center leading-tight hidden sm:block">
           @switch (step) {
-            @case (1) { بيانات المريض }
-            @case (2) { اختيار الخدمات }
-            @case (3) { تحديد الأسنان }
-            @case (4) { رفع الملفات }
-            @case (5) { إضافات الطلب }
-            @case (6) { التأكيد النهائي }
+            @case (1) { الخدمات والأسنان }
+            @case (2) { بيانات المريض }
+            @case (3) { رفع الملفات }
+            @case (4) { التأكيد }
           }
         </span>
       </div>
-
-      @if (step < 6) {
-        <div
-          [class.bg-primary]="step < currentStep()"
-          [class.bg-border]="step >= currentStep()"
-          class="flex-1 h-1 rounded-full transition"
-        ></div>
+      @if (step < 4) {
+        <div class="flex-1 h-0.5 rounded-full transition"
+          [class.bg-primary]="step < currentStep()" [class.bg-border]="step >= currentStep()"></div>
       }
     }
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
-    <!-- STEP 1: Patient Information -->
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         STEP 1 — Services (left) + Odontogram (right) — Professional
+    ═══════════════════════════════════════════════════════════════ -->
     @if (currentStep() === 1) {
-      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
-        <h2 class="text-base font-black text-secondary">الخطوة 1: معلومات المريض الأساسية</h2>
-        <p class="text-xs text-text-secondary">أدخل البيانات الأساسية للمريض</p>
-        
+      <div class="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+
+        <!-- ── Step title ── -->
+        <div class="bg-surface rounded-2xl px-5 py-4 border border-border shadow-sm">
+          <h2 class="text-sm font-black text-secondary flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-black flex-shrink-0">1</span>
+            تحديد الخدمات والأسنان المطلوبة
+          </h2>
+          <p class="text-xs text-text-secondary mt-1 ms-8">اختر نطاق التطبيق، ثم انقر على سن في المخطط، ثم اختر الخدمة المطلوبة</p>
+        </div>
+
+        <!-- ── Two-column: Services LEFT | Odontogram RIGHT ── -->
+        <!-- dir="ltr" ensures physical left=services, right=odontogram regardless of RTL -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" dir="ltr">
+
+          <!-- ─── LEFT on desktop / BOTTOM on mobile: Services catalog ─── -->
+          <div dir="rtl" class="flex flex-col gap-3 order-last lg:order-first">
+            <div class="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden flex flex-col">
+              <!-- Header -->
+              <div class="px-4 py-3 border-b border-border bg-background flex items-center justify-between">
+                <span class="text-xs font-black text-secondary flex items-center gap-1.5">
+                  <i class="bi bi-list-ul text-primary"></i> كتالوج الخدمات
+                </span>
+                @if (isLoading()) {
+                  <div class="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                } @else {
+                  <span class="text-[10px] text-text-secondary font-bold font-sans">{{ services().length }} خدمة متاحة</span>
+                }
+              </div>
+
+              <!-- Top Catalog Filter Pills – full-width equal-size grid -->
+              <div class="p-2 border-b border-border bg-background/80 grid grid-cols-5 gap-1">
+                <button type="button" (click)="setCatalogFilter('all')"
+                  class="py-1.5 rounded-xl text-[10px] font-bold transition border w-full flex items-center justify-center gap-0.5"
+                  [class.bg-secondary]="catalogFilter() === 'all'" [class.text-white]="catalogFilter() === 'all'"
+                  [class.border-secondary]="catalogFilter() === 'all'"
+                  [class.bg-surface]="catalogFilter() !== 'all'" [class.text-text-secondary]="catalogFilter() !== 'all'"
+                  [class.border-border]="catalogFilter() !== 'all'">
+                  <i class="bi bi-asterisk"></i> الكل
+                </button>
+                <button type="button" (click)="setCatalogFilter('tooth')"
+                  class="py-1.5 rounded-xl text-[10px] font-bold transition border w-full flex items-center justify-center gap-0.5"
+                  [class.bg-blue-600]="catalogFilter() === 'tooth'" [class.text-white]="catalogFilter() === 'tooth'"
+                  [class.border-blue-600]="catalogFilter() === 'tooth'"
+                  [class.bg-surface]="catalogFilter() !== 'tooth'" [class.text-text-secondary]="catalogFilter() !== 'tooth'"
+                  [class.border-border]="catalogFilter() !== 'tooth'">
+                  <i class="bi bi-bullseye"></i> سن
+                </button>
+                <button type="button" (click)="setCatalogFilter('arch')"
+                  class="py-1.5 rounded-xl text-[10px] font-bold transition border w-full flex items-center justify-center gap-0.5"
+                  [class.bg-emerald-600]="catalogFilter() === 'arch'" [class.text-white]="catalogFilter() === 'arch'"
+                  [class.border-emerald-600]="catalogFilter() === 'arch'"
+                  [class.bg-surface]="catalogFilter() !== 'arch'" [class.text-text-secondary]="catalogFilter() !== 'arch'"
+                  [class.border-border]="catalogFilter() !== 'arch'">
+                  <i class="bi bi-arrow-up-circle-fill"></i> علوي
+                </button>
+                <button type="button" (click)="setCatalogFilter('arch_lower')"
+                  class="py-1.5 rounded-xl text-[10px] font-bold transition border w-full flex items-center justify-center gap-0.5"
+                  [class.bg-teal-600]="catalogFilter() === 'arch_lower'" [class.text-white]="catalogFilter() === 'arch_lower'"
+                  [class.border-teal-600]="catalogFilter() === 'arch_lower'"
+                  [class.bg-surface]="catalogFilter() !== 'arch_lower'" [class.text-text-secondary]="catalogFilter() !== 'arch_lower'"
+                  [class.border-border]="catalogFilter() !== 'arch_lower'">
+                  <i class="bi bi-arrow-down-circle-fill"></i> سفلي
+                </button>
+                <button type="button" (click)="setCatalogFilter('case')"
+                  class="py-1.5 rounded-xl text-[10px] font-bold transition border w-full flex items-center justify-center gap-0.5"
+                  [class.bg-purple-600]="catalogFilter() === 'case'" [class.text-white]="catalogFilter() === 'case'"
+                  [class.border-purple-600]="catalogFilter() === 'case'"
+                  [class.bg-surface]="catalogFilter() !== 'case'" [class.text-text-secondary]="catalogFilter() !== 'case'"
+                  [class.border-border]="catalogFilter() !== 'case'">
+                  <i class="bi bi-grid-fill"></i> حالة
+                </button>
+              </div>
+
+              <!-- Services list container -->
+<div class="flex flex-col max-h-[800px] h-[300px] sm:h-[320px] lg:h-[800px] overflow-y-auto divide-y divide-border/60">                  @if (!isLoading() && services().length === 0) {
+                  <p class="text-center text-xs text-text-secondary py-12">لا توجد خدمات متاحة</p>
+                }
+                @for (cat of categorizedServices(); track cat.categoryEn) {
+                  @if (categoryHasAvailableServices(cat)) {
+                    <!-- Category row header -->
+                    <div class="px-4 py-2.5 bg-background border-b border-border/80 flex items-center justify-between sticky top-0 z-20 shadow-sm backdrop-blur-md">
+                      <span class="text-xs font-black px-3 py-1 rounded-full shadow-sm bg-gradient-to-l text-white {{ cat.colorClass }}">
+                        {{ categoryLabel(cat) }}
+                      </span>
+                    </div>
+                    @for (s of cat.services; track s.id) {
+                      @if (isServiceAvailableForScope(s)) {
+                        <div class="flex flex-col border-b border-border/40 last:border-0">
+                          <div
+                            (click)="assignServiceToActiveTarget(s)"
+                            class="w-full flex items-center justify-between px-3.5 py-2.5 text-right transition group hover:bg-primary/5 cursor-pointer"
+                          >
+                            <!-- Service info & code -->
+                            <div class="flex flex-col gap-0.5 flex-1 min-w-0">
+                              <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-xs font-bold text-secondary truncate group-hover:text-primary transition">
+                                  {{ serviceName(s) }}
+                                </span>
+                                <i [class]="'bi ' + getPricingBadgeIcon(s) + ' text-[10px]'" [title]="getPricingTermText(s)"></i>
+                              </div>
+                              <span class="text-[9px] text-text-secondary font-sans">{{ s.serviceCode }}</span>
+                            </div>
+
+                            <!-- Right: Price & description toggle -->
+                            <div class="flex-shrink-0 ms-2 flex items-center gap-2">
+                              <div class="text-left flex flex-col items-end">
+                                @if (s.hasCustomPrice && s.originalPrice) {
+                                  <span class="text-[9px] text-text-secondary line-through font-sans">{{ s.originalPrice }}</span>
+                                  <span class="text-xs font-black text-emerald-600 font-sans">{{ s.price }} SAR</span>
+                                } @else if (s.pricingMethod === PricingMethod.Quotation) {
+                                  <span class="text-[10px] font-black text-amber-500 flex items-center gap-0.5">
+                                    <i class="bi bi-tag"></i> بالتسعير
+                                  </span>
+                                } @else {
+                                  <span class="text-xs font-black text-primary font-sans">{{ s.price }} SAR</span>
+                                }
+                              </div>
+
+                              <!-- Info / expand button -->
+                              <button
+                                type="button"
+                                (click)="toggleServiceDescription(s.id, $event)"
+                                class="w-6 h-6 rounded-lg bg-background border border-border hover:border-primary hover:text-primary flex items-center justify-center text-text-secondary transition text-[10px]"
+                                title="عرض التفاصيل والوصف"
+                              >
+                                <i [class]="expandedServiceId() === s.id ? 'bi bi-chevron-up' : 'bi bi-info-circle'"></i>
+                              </button>
+
+                              <!-- Add button -->
+                              <button
+                                type="button"
+                                (click)="$event.stopPropagation(); assignServiceToActiveTarget(s)"
+                                class="w-6 h-6 rounded-full bg-primary/10 hover:bg-primary hover:text-white flex items-center justify-center text-primary transition"
+                              >
+                                <i class="bi bi-plus-lg text-xs"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Expandable description & pricing terms drawer -->
+                          @if (expandedServiceId() === s.id) {
+                            <div class="px-4 py-3 bg-primary/5 border-t border-primary/10 flex flex-col gap-2 animate-in fade-in duration-200">
+                              @if (s.descriptionAr || s.descriptionEn) {
+                                <p class="text-[11px] text-secondary leading-relaxed">
+                                  <i class="bi bi-text-paragraph text-primary me-1"></i>
+                                  {{ i18n.currentLang() === 'ar' ? (s.descriptionAr || s.descriptionEn) : (s.descriptionEn || s.descriptionAr) }}
+                                </p>
+                              }
+                              <div class="flex items-center justify-between pt-1 border-t border-primary/10 flex-wrap gap-2">
+                                <span class="text-[10px] font-bold text-primary flex items-center gap-1">
+                                  <i class="bi bi-shield-check"></i>
+                                  {{ getPricingTermText(s) }}
+                                </span>
+                                <button type="button" (click)="assignServiceToActiveTarget(s)"
+                                  class="px-2.5 py-1 bg-primary text-white text-[10px] font-bold rounded-lg hover:opacity-90 transition flex items-center gap-1">
+                                  <i class="bi bi-plus-circle"></i> إضافة الخدمة
+                                </button>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      }
+                    }
+                  }
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- ─── RIGHT on desktop / TOP on mobile: Odontogram + scope hint ─── -->
+          <div dir="rtl" class="flex flex-col gap-3 order-first lg:order-last">
+            <div class="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+              <!-- Header -->
+              <div class="px-4 py-3 border-b border-border bg-background flex items-center justify-between">
+                <span class="text-xs font-black text-secondary flex items-center gap-1.5">
+                  <i class="bi bi-diagram-3 text-primary"></i> مخطط الأسنان
+                </span>
+                @if (selectedTeeth().length > 0) {
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-primary font-bold font-sans">{{ selectedTeeth().join(', ') }}</span>
+                    <button type="button" (click)="selectedTeeth.set([]); activeTooth.set(null)"
+                      class="text-[10px] text-red-400 hover:text-red-600 transition flex items-center gap-0.5">
+                      <i class="bi bi-x-circle"></i>
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <!-- Active scope / tooth hint -->
+
+              <!-- Odontogram with responsive touch scroll container -->
+              <div class="p-3 bg-background overflow-x-auto">
+                <div class="min-w-[320px]">
+                  <app-odontogram
+                    [selectedTeeth]="selectedTeeth()"
+                    (selectedTeethChange)="onOdontogramChange($event)"
+                  ></app-odontogram>
+                </div>
+              </div>
+            </div>
+
+            <!-- Implant holes (PerHole services) -->
+            @if (hasPerHoleService()) {
+              <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col gap-1.5">
+                <label class="text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                  <i class="bi bi-pin-fill"></i> عدد الثقوب / الغرسات *
+                </label>
+                <input type="number" formControlName="implantHolesCount" min="1"
+                  class="w-28 px-3 py-1.5 rounded-xl border border-amber-300 bg-white text-xs focus:outline-none focus:border-amber-500 transition font-sans"/>
+                <p class="text-[10px] text-amber-700">السعر يرتفع +50% عند اختيار 4 ثقوب أو أكثر</p>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- ── Assignments list (full width below) ── -->
+        @if (assignments().length > 0) {
+          <div class="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div class="px-4 py-3 border-b border-border bg-background flex items-center justify-between">
+              <span class="text-xs font-black text-secondary flex items-center gap-1.5">
+                <i class="bi bi-check2-all text-primary"></i>
+                الخدمات المضافة
+                <span class="bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-full">{{ assignments().length }}</span>
+              </span>
+              <button type="button" (click)="clearAllAssignments()"
+                class="text-[10px] font-bold text-red-400 hover:text-red-600 transition flex items-center gap-1">
+                <i class="bi bi-trash3"></i> مسح الكل
+              </button>
+            </div>
+            <div class="divide-y divide-border">
+              @for (a of assignments(); track a.id) {
+                <div class="flex items-center gap-3 px-4 py-3 hover:bg-background/50 transition group">
+                  <!-- Scope icon -->
+                  <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                    [class.bg-primary/10]="a.targetType==='tooth'"
+                    [class.bg-blue-50]="a.targetType==='upper_arch'"
+                    [class.bg-indigo-50]="a.targetType==='lower_arch'"
+                    [class.bg-purple-50]="a.targetType==='full_case'">
+                    @if (a.targetType === 'tooth') { <i class="bi bi-bullseye text-primary text-sm"></i> }
+                    @else if (a.targetType === 'upper_arch') { <i class="bi bi-arrow-up-circle-fill text-blue-500 text-sm"></i> }
+                    @else if (a.targetType === 'lower_arch') { <i class="bi bi-arrow-down-circle-fill text-indigo-500 text-sm"></i> }
+                    @else { <i class="bi bi-grid-fill text-purple-500 text-sm"></i> }
+                  </div>
+
+                  <!-- Service name + scope -->
+                  <div class="flex flex-col gap-0 flex-1 min-w-0">
+                    <span class="text-xs font-bold text-secondary truncate">{{ serviceName(a.service) }}</span>
+                    <span class="text-[10px] text-text-secondary font-sans">
+                      @if (a.targetType === 'tooth') { الأسنان: {{ a.teeth.join(', ') }} }
+                      @else if (a.targetType === 'upper_arch') { الفك العلوي }
+                      @else if (a.targetType === 'lower_arch') { الفك السفلي }
+                      @else { الحالة كاملة }
+                    </span>
+                  </div>
+
+                  <!-- Price -->
+                  <span class="text-xs font-black flex-shrink-0"
+                    [class.text-primary]="a.service.pricingMethod !== PricingMethod.Quotation"
+                    [class.text-amber-500]="a.service.pricingMethod === PricingMethod.Quotation">
+                    @if (a.service.pricingMethod === PricingMethod.Quotation) { بالتسعير }
+                    @else { {{ getAssignmentItemPrice(a) }} SAR }
+                  </span>
+
+                  <!-- Remove -->
+                  <button type="button" (click)="removeAssignment(a.id)"
+                    class="w-7 h-7 rounded-xl flex items-center justify-center text-text-secondary hover:text-red-500 hover:bg-red-50 transition opacity-0 group-hover:opacity-100">
+                    <i class="bi bi-x-lg text-xs"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="flex flex-col items-center gap-2 py-6 rounded-2xl border border-dashed border-border">
+            <i class="bi bi-inbox text-3xl text-text-secondary/40"></i>
+            <p class="text-xs text-text-secondary">لم تُضف أي خدمات بعد</p>
+            <p class="text-[10px] text-text-secondary/60">حدد سناً ثم انقر على خدمة من القائمة</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         STEP 2 — Patient Info + Custom Date Picker
+    ═══════════════════════════════════════════════════════════════ -->
+    @if (currentStep() === 2) {
+      <div class="bg-surface rounded-2xl border border-border shadow-sm flex flex-col gap-5 p-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div>
+          <h2 class="text-sm font-black text-secondary flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-black flex-shrink-0">2</span>
+            بيانات المريض وموعد التسليم
+          </h2>
+        </div>
+
+        <!-- Patient fields -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <!-- Patient Name -->
           <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-bold text-secondary">اسم المريض *</label>
-            <input
-              type="text"
-              formControlName="patientName"
-              placeholder="مثال: سالم الدوسري"
-              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
-            />
+            <label class="text-xs font-bold text-secondary flex items-center gap-1">
+              <i class="bi bi-person text-primary"></i> اسم المريض *
+            </label>
+            <input type="text" formControlName="patientName" placeholder="مثال: سالم الدوسري"
+              class="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"/>
             @if (form.get('patientName')?.invalid && form.get('patientName')?.touched) {
-              <span class="text-[10px] text-red-500">حقل مطلوب (3 أحرف على الأقل)</span>
+              <span class="text-[10px] text-red-500 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i> حقل مطلوب (3 أحرف على الأقل)</span>
             }
           </div>
 
-          <!-- Age -->
           <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-bold text-secondary">عمر المريض *</label>
-            <input
-              type="number"
-              formControlName="patientAge"
-              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
-            />
+            <label class="text-xs font-bold text-secondary flex items-center gap-1">
+              <i class="bi bi-calendar2 text-primary"></i> عمر المريض *
+            </label>
+            <input type="number" formControlName="patientAge" min="1"
+              class="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"/>
             @if (form.get('patientAge')?.invalid && form.get('patientAge')?.touched) {
-              <span class="text-[10px] text-red-500">عمر صحيح مطلوب</span>
+              <span class="text-[10px] text-red-500 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i> عمر صحيح مطلوب</span>
             }
           </div>
 
-          <!-- Gender -->
           <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-bold text-secondary">الجنس *</label>
-            <select
-              formControlName="patientGender"
-              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
-            >
+            <label class="text-xs font-bold text-secondary flex items-center gap-1">
+              <i class="bi bi-gender-ambiguous text-primary"></i> الجنس *
+            </label>
+            <select formControlName="patientGender"
+              class="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition">
               <option value="Male">ذكر</option>
               <option value="Female">أنثى</option>
             </select>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-          <!-- Delivery Date -->
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-bold text-secondary">تاريخ التسليم المطلوب *</label>
-            <input
-              type="datetime-local"
-              formControlName="requiredDeliveryDate"
-              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
-            />
-            @if (form.get('requiredDeliveryDate')?.invalid && form.get('requiredDeliveryDate')?.touched) {
-              <span class="text-[10px] text-red-500">اختر تاريخ التسليم</span>
-            }
-          </div>
+        <!-- Delivery date — custom picker button -->
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold text-secondary flex items-center gap-1">
+            <i class="bi bi-calendar-event text-primary"></i> تاريخ ووقت التسليم المطلوب *
+          </label>
+
+          <button
+            type="button"
+            id="open-date-picker-btn"
+            (click)="openDatePicker()"
+            class="w-full px-4 py-3 rounded-xl border text-xs flex items-center justify-between transition group"
+            [class.border-primary]="form.get('requiredDeliveryDate')?.value"
+            [class.bg-primary/5]="form.get('requiredDeliveryDate')?.value"
+            [class.border-border]="!form.get('requiredDeliveryDate')?.value"
+            [class.bg-background]="!form.get('requiredDeliveryDate')?.value"
+            [class.hover:border-primary/50]="!form.get('requiredDeliveryDate')?.value"
+          >
+            <span class="flex items-center gap-2"
+              [class.text-text-secondary]="!form.get('requiredDeliveryDate')?.value"
+              [class.text-secondary]="!!form.get('requiredDeliveryDate')?.value">
+              <i class="bi bi-calendar3 text-primary"></i>
+              @if (form.get('requiredDeliveryDate')?.value) {
+                <span class="font-bold">{{ formattedDeliveryDate() }}</span>
+              } @else {
+                اختر تاريخ ووقت التسليم
+              }
+            </span>
+            <div class="flex items-center gap-2">
+              @if (form.get('expressChecked')?.value) {
+                <span class="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                  <i class="bi bi-lightning-charge-fill text-[8px]"></i> مستعجل
+                </span>
+              }
+              <i class="bi bi-chevron-left text-text-secondary text-xs group-hover:text-primary transition"></i>
+            </div>
+          </button>
+
+          <!-- Delivery info hint -->
+          @if (assignments().length > 0) {
+            <p class="text-[10px] text-text-secondary flex items-center gap-1">
+              <i class="bi bi-info-circle text-primary"></i>
+              أدنى مدة إنجاز بدون استعجال: <strong class="text-secondary font-sans">{{ formattedEarliestDate() }}</strong>
+            </p>
+          }
+
+          @if (form.get('requiredDeliveryDate')?.invalid && form.get('requiredDeliveryDate')?.touched) {
+            <span class="text-[10px] text-red-500 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i> اختر تاريخ التسليم</span>
+          }
         </div>
+
+        <!-- Express toggle (manual override) -->
+        <label class="flex items-start gap-3 cursor-pointer p-3 rounded-xl border transition"
+          [class.border-amber-300]="form.get('expressChecked')?.value"
+          [class.bg-amber-50]="form.get('expressChecked')?.value"
+          [class.border-border]="!form.get('expressChecked')?.value"
+          [class.hover:bg-background]="!form.get('expressChecked')?.value">
+          <input type="checkbox" formControlName="expressChecked" class="mt-0.5 rounded text-amber-500 focus:ring-amber-400"/>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs font-bold flex items-center gap-1.5"
+              [class.text-amber-700]="form.get('expressChecked')?.value"
+              [class.text-secondary]="!form.get('expressChecked')?.value">
+              <i class="bi bi-lightning-charge-fill text-amber-500"></i> شحن مستعجل (SLA سريع)
+            </span>
+            <span class="text-[10px] text-text-secondary">تقليص مدة التسليم للنصف مع زيادة التكلفة الإجمالية +50%</span>
+          </div>
+        </label>
+
+        <!-- 3D Preview option -->
+        <label class="flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-border hover:bg-background transition">
+          <input type="checkbox" formControlName="previewRequired" class="mt-0.5 rounded text-primary focus:ring-primary"/>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs font-bold text-secondary flex items-center gap-1.5">
+              <i class="bi bi-box text-primary"></i> طلب معاينة 3D قبل الاعتماد
+            </span>
+            <span class="text-[10px] text-text-secondary">مراجعة التصميم إلكترونياً قبل تسليم الملف النهائي</span>
+          </div>
+        </label>
       </div>
     }
 
-    <!-- STEP 2: Services Selection -->
-    @if (currentStep() === 2) {
-      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
-        <h2 class="text-base font-black text-secondary">الخطوة 2: نوع الخدمات والتركيبات المطلوبة</h2>
-        <p class="text-xs text-text-secondary">اختر الخدمات والتركيبات المطلوبة للحالة</p>
-        
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-  @for (s of services(); track s.id) {
-    <button
-      type="button"
-      (click)="toggleServiceSelection(s.id)"
-      [class.border-primary]="form.get('serviceIds')?.value?.includes(s.id)"
-      [class.bg-primary/5]="form.get('serviceIds')?.value?.includes(s.id)"
-      class="flex justify-between items-center p-3 rounded-xl border border-border hover:border-primary/50 text-right transition relative"
-    >
-      @if (s.hasCustomPrice) {
-        <span class="absolute -top-2 right-3 bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-          سعرك الخاص
-        </span>
-      }
-
-      <div class="flex flex-col">
-        <span class="text-xs font-bold text-secondary">{{ i18n.currentLang() === 'ar' ? s.nameAr : s.nameEn }}</span>
-        <span class="text-[10px] text-text-secondary">{{ s.serviceCode }}</span>
-      </div>
-
-      <div class="flex flex-col items-end">
-        @if (s.hasCustomPrice && s.originalPrice) {
-          <span class="text-[10px] text-text-secondary line-through decoration-rose-400">
-            {{ s.originalPrice }} SAR
-          </span>
-          <span class="text-xs font-black text-emerald-600">{{ s.price }} SAR</span>
-        } @else {
-          <span class="text-xs font-black text-primary">{{ s.price }} SAR</span>
-        }
-      </div>
-    </button>
-  }
-</div>
-
-        @if (form.get('serviceIds')?.invalid && form.get('serviceIds')?.touched) {
-          <div class="p-3 rounded-xl bg-red-50 border border-red-200">
-            <span class="text-[10px] text-red-700">يرجى اختيار خدمة واحدة على الأقل</span>
-          </div>
-        }
-
-        @if (hasPerHoleService()) {
-          <div class="flex flex-col gap-1.5 mt-4 p-4 rounded-xl bg-background border border-border">
-            <label class="text-xs font-bold text-secondary">عدد الثقوب / الغرسات المطلوبة للتعويض (أدلة جراحية) *</label>
-            <input
-              type="number"
-              formControlName="implantHolesCount"
-              class="w-32 px-3 py-2 rounded-xl border border-border bg-surface text-xs focus:outline-none focus:border-primary transition"
-            />
-            <p class="text-[10px] text-text-secondary mt-1">ملاحظة: يتم زيادة السعر بنسبة +50% في حال اختيار 4 ثقوب أو أكثر.</p>
-          </div>
-        }
-      </div>
-    }
-
-    <!-- STEP 3: Odontogram -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         STEP 3 — File Upload
+    ═══════════════════════════════════════════════════════════════ -->
     @if (currentStep() === 3) {
-      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
-        <h2 class="text-base font-black text-secondary">الخطوة 3: تحديد الأسنان المراد تصميمها</h2>
-        <p class="text-xs text-text-secondary">اختر الأسنان التي تحتاج إلى تصميم من مخطط الأسنان</p>
-        
-        <div class="flex justify-between items-center">
-          <span class="text-xs text-text-secondary font-bold font-sans">
-            الأسنان المحددة: {{ selectedTeeth().length === 0 ? 'لا يوجد' : selectedTeeth().join(', ') }}
-          </span>
-        </div>
-        
-        <div class="bg-background rounded-xl p-4">
-          <app-odontogram
-            [selectedTeeth]="selectedTeeth()"
-            (selectedTeethChange)="selectedTeeth.set($event)"
-          ></app-odontogram>
+      <div class="bg-surface rounded-2xl border border-border shadow-sm p-5 flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div>
+          <h2 class="text-sm font-black text-secondary flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-black flex-shrink-0">3</span>
+            رفع ملفات الحالة
+          </h2>
+          <p class="text-xs text-text-secondary mt-1 ms-8">ارفع ملفات STL أو OBJ أو CBCT</p>
         </div>
 
-        @if (selectedTeeth().length === 0) {
-          <div class="p-3 rounded-xl bg-red-50 border border-red-200">
-            <span class="text-[10px] text-red-700">يرجى تحديد سن واحد على الأقل</span>
-          </div>
-        }
-      </div>
-    }
-
-    <!-- STEP 4: File Upload -->
-    @if (currentStep() === 4) {
-      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
-        <h2 class="text-base font-black text-secondary">الخطوة 4: رفع ملفات الحالة</h2>
-        <p class="text-xs text-text-secondary">رفع ملفات STL أو CBCT للحالة</p>
-        
-        <app-file-uploader
-          [multiple]="true"
-          (filesSelected)="onFilesSelected($event)"
-        ></app-file-uploader>
+        <app-file-uploader [multiple]="true" (filesSelected)="onFilesSelected($event)"></app-file-uploader>
 
         @if (selectedFiles().length > 0) {
-          <div class="p-3 rounded-xl bg-primary/10 border border-primary/30">
-            <p class="text-xs font-bold text-primary">
-              ✓ تم رفع {{ selectedFiles().length }} ملف بنجاح
-            </p>
+          <div class="flex flex-col gap-2">
+            <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2">
+              <i class="bi bi-check-circle-fill text-emerald-500"></i>
+              <span class="text-xs font-bold text-emerald-700">{{ selectedFiles().length }} ملف محدد</span>
+            </div>
+            @for (file of selectedFiles(); track file.name; let i = $index) {
+              <div class="flex items-center gap-3 p-3 rounded-xl bg-background border border-border group">
+                <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i class="bi bi-file-earmark-code text-primary text-sm"></i>
+                </div>
+                <div class="flex flex-col flex-1 min-w-0">
+                  <span class="text-xs font-bold text-secondary truncate">{{ file.name }}</span>
+                  <span class="text-[10px] text-text-secondary font-sans">{{ (file.size / 1024 / 1024).toFixed(2) }} MB</span>
+                </div>
+                <button type="button" (click)="removeFile(i)"
+                  class="w-7 h-7 rounded-lg flex items-center justify-center text-text-secondary hover:text-red-500 hover:bg-red-50 transition opacity-0 group-hover:opacity-100">
+                  <i class="bi bi-x-lg text-xs"></i>
+                </button>
+              </div>
+            }
           </div>
         } @else {
-          <div class="p-3 rounded-xl bg-red-50 border border-red-200">
-            <span class="text-[10px] text-red-700">يرجى رفع ملف واحد على الأقل</span>
+          <div class="p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2">
+            <i class="bi bi-exclamation-circle text-red-500"></i>
+            <span class="text-[10px] text-red-700">يرجى رفع ملف واحد على الأقل للمتابعة</span>
           </div>
         }
 
-        <div class="flex flex-col gap-4">
-          <h3 class="text-sm font-black text-secondary mt-2">ملاحظات إضافية للمصمم</h3>
-          <textarea
-            formControlName="notes"
-            rows="3"
-            placeholder="اكتب أي تعليمات سريرية دقيقة هنا..."
-            class="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
-          ></textarea>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-secondary flex items-center gap-1">
+            <i class="bi bi-chat-left-text text-primary"></i> ملاحظات للمصمم (اختياري)
+          </label>
+          <textarea formControlName="notes" rows="3" placeholder="اكتب أي تعليمات سريرية دقيقة هنا..."
+            class="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition resize-none">
+          </textarea>
         </div>
       </div>
     }
 
-    <!-- STEP 5: Additional Options -->
-    @if (currentStep() === 5) {
-      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
-        <h2 class="text-base font-black text-secondary">الخطوة 5: إضافات وتفضيلات الطلب</h2>
-        <p class="text-xs text-text-secondary">اختر الخيارات الإضافية المطلوبة</p>
+    <!-- ═══════════════════════════════════════════════════════════════
+         STEP 4 — Review & Confirm
+    ═══════════════════════════════════════════════════════════════ -->
+    @if (currentStep() === 4) {
+      <div class="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div class="bg-surface rounded-2xl border border-border shadow-sm px-5 py-4">
+          <h2 class="text-sm font-black text-secondary flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-black flex-shrink-0">4</span>
+            مراجعة وتأكيد الطلب
+          </h2>
+        </div>
 
-        <!-- Express Option -->
-        <label class="flex items-start gap-3 cursor-pointer p-3 hover:bg-background rounded-xl transition border border-border">
-          <input
-            type="checkbox"
-            formControlName="expressChecked"
-            class="mt-1 rounded text-primary focus:ring-primary"
-          />
-          <div class="flex flex-col">
-            <span class="text-xs font-bold text-secondary">شحن مستعجل (SLA سريع)</span>
-            <span class="text-[10px] text-text-secondary mt-0.5">تقليص مدة التسليم للنصف مع زيادة التكلفة بنسبة +50%</span>
-          </div>
-        </label>
-
-        <!-- Preview Required Option -->
-        <label class="flex items-start gap-3 cursor-pointer p-3 hover:bg-background rounded-xl transition border border-border">
-          <input
-            type="checkbox"
-            formControlName="previewRequired"
-            class="mt-1 rounded text-primary focus:ring-primary"
-          />
-          <div class="flex flex-col">
-            <span class="text-xs font-bold text-secondary">طلب معاينة 3D قبل الاعتماد</span>
-            <span class="text-[10px] text-text-secondary mt-0.5">مراجعة التصميم إلكترونياً من قبلك قبل تسليم الملف النهائي</span>
-          </div>
-        </label>
-
-        <!-- Pink Esthetics Gum Design Option -->
-        <label class="flex items-start gap-3 cursor-pointer p-3 hover:bg-background rounded-xl transition border border-border">
-          <input
-            type="checkbox"
-            formControlName="gumDesignChecked"
-            class="mt-1 rounded text-primary focus:ring-primary"
-          />
-          <div class="flex flex-col">
-            <span class="text-xs font-bold text-secondary">تصميم اللثة التجميلي (Pink Esthetics)</span>
-            <span class="text-[10px] text-text-secondary mt-0.5">مجاني للتيجان القياسية، ومدفوع لحالات الغرسات و All-on-X</span>
-          </div>
-        </label>
-      </div>
-    }
-
-    <!-- STEP 6: Review & Confirm -->
-    @if (currentStep() === 6) {
-      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
-        <h2 class="text-base font-black text-secondary">الخطوة 6: التأكيد النهائي</h2>
-        <p class="text-xs text-text-secondary">راجع البيانات وأكمل الطلب</p>
-
-        <!-- Summary Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <!-- Patient Summary -->
-          <div class="p-4 rounded-xl bg-background border border-border">
-            <h4 class="text-xs font-bold text-secondary mb-2">بيانات المريض</h4>
-            <div class="text-[10px] text-text-secondary space-y-1">
-              <p><span class="font-bold">الاسم:</span> {{ form.get('patientName')?.value }}</p>
-              <p><span class="font-bold">العمر:</span> {{ form.get('patientAge')?.value }} سنة</p>
-              <p><span class="font-bold">الجنس:</span> {{ form.get('patientGender')?.value === 'Male' ? 'ذكر' : 'أنثى' }}</p>
-            </div>
-          </div>
-
-<!-- Services Summary -->
-<div class="p-4 rounded-xl bg-background border border-border">
-  <h4 class="text-xs font-bold text-secondary mb-2">الخدمات المختارة</h4>
-  <div class="text-[10px] text-text-secondary space-y-2">
-    @for (id of form.get('serviceIds')?.value || []; track id) {
-      @for (service of services(); track service.id) {
-        @if (service.id === id) {
-          <div class="flex justify-between items-center">
-            <span>{{ i18n.currentLang() === 'ar' ? service.nameAr : service.nameEn }}</span>
-            <div class="flex items-center gap-1.5">
-              @if (service.hasCustomPrice) {
-                <span class="bg-emerald-50 text-emerald-600 text-[8px] font-bold px-1.5 py-0.5 rounded-md">خاص</span>
-                @if (service.originalPrice) {
-                  <span class="line-through text-text-secondary/70">{{ service.originalPrice }}</span>
-                }
-                <span class="font-bold text-emerald-600">{{ service.price }} SAR</span>
-              } @else {
-                <span class="font-bold text-secondary">{{ service.price }} SAR</span>
+          <!-- Patient summary -->
+          <div class="p-4 rounded-2xl bg-surface border border-border flex flex-col gap-3">
+            <h4 class="text-xs font-black text-secondary flex items-center gap-1.5">
+              <i class="bi bi-person-badge text-primary"></i> بيانات المريض
+            </h4>
+            <div class="text-[11px] text-text-secondary space-y-1.5">
+              <p><span class="font-bold text-secondary">الاسم: </span>{{ form.get('patientName')?.value }}</p>
+              <p><span class="font-bold text-secondary">العمر: </span>{{ form.get('patientAge')?.value }} سنة</p>
+              <p><span class="font-bold text-secondary">الجنس: </span>{{ form.get('patientGender')?.value === 'Male' ? 'ذكر' : 'أنثى' }}</p>
+              <p class="flex items-center gap-1">
+                <span class="font-bold text-secondary">التسليم: </span>
+                <span class="font-sans">{{ formattedDeliveryDate() }}</span>
+              </p>
+              @if (form.get('expressChecked')?.value) {
+                <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded-full">
+                  <i class="bi bi-lightning-charge-fill text-[8px]"></i> شحن مستعجل
+                </span>
+              }
+              @if (form.get('previewRequired')?.value) {
+                <span class="inline-flex items-center gap-1 bg-primary/10 text-primary text-[9px] font-black px-2 py-0.5 rounded-full">
+                  <i class="bi bi-box text-[8px]"></i> معاينة 3D
+                </span>
               }
             </div>
           </div>
-        }
-      }
-    }
-  </div>
-</div>
 
-          <!-- Teeth Summary -->
-          <div class="p-4 rounded-xl bg-background border border-border">
-            <h4 class="text-xs font-bold text-secondary mb-2">الأسنان المحددة</h4>
-            <div class="text-[10px] text-text-secondary">
-              {{ selectedTeeth().length }} سن: {{ selectedTeeth().join(', ') }}
-            </div>
-          </div>
-
-          <!-- Files Summary -->
-          <div class="p-4 rounded-xl bg-background border border-border">
-            <h4 class="text-xs font-bold text-secondary mb-2">الملفات المرفوعة</h4>
-            <div class="text-[10px] text-text-secondary">
-              {{ selectedFiles().length }} ملف تم رفعهم
-            </div>
+          <!-- Files summary -->
+          <div class="p-4 rounded-2xl bg-surface border border-border flex flex-col gap-3">
+            <h4 class="text-xs font-black text-secondary flex items-center gap-1.5">
+              <i class="bi bi-folder2-open text-primary"></i> الملفات
+            </h4>
+            <p class="text-[11px] text-text-secondary">
+              <span class="font-bold text-secondary">عدد الملفات: </span>{{ selectedFiles().length }}
+            </p>
+            @for (f of selectedFiles(); track f.name) {
+              <div class="flex items-center gap-1.5 text-[10px] text-text-secondary">
+                <i class="bi bi-file-earmark-code text-primary"></i>
+                <span class="truncate">{{ f.name }}</span>
+              </div>
+            }
           </div>
         </div>
 
-        <!-- Cost Calculation Summary Panel -->
-        <div class="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-6 border border-primary/20 flex flex-col gap-4">
-          <h3 class="text-sm font-black text-secondary">تفاصيل الفاتورة التقديرية</h3>
-          
-          <div class="flex flex-col gap-2.5 text-xs text-secondary">
-            <div class="flex justify-between py-2 border-b border-border/50">
-              <span class="text-text-secondary">سعر الخدمات الأساسية</span>
-              <span class="font-bold">{{ pricingSummary().basePrice }} SAR</span>
+        <!-- Assignments summary -->
+        <div class="bg-surface rounded-2xl border border-border overflow-hidden">
+          <div class="px-4 py-3 border-b border-border bg-background flex items-center gap-2">
+            <i class="bi bi-list-check text-primary"></i>
+            <span class="text-xs font-black text-secondary">الخدمات المطلوبة ({{ assignments().length }})</span>
+          </div>
+          <div class="divide-y divide-border">
+            @for (a of assignments(); track a.id) {
+              <div class="flex items-center gap-3 px-4 py-2.5 text-[11px]">
+                <div class="flex-1">
+                  <span class="font-bold text-secondary">{{ serviceName(a.service) }}</span>
+                  <span class="text-text-secondary font-sans ms-2">
+                    @if (a.targetType === 'tooth') { {{ a.teeth.join(', ') }} }
+                    @else if (a.targetType === 'upper_arch') { فك علوي }
+                    @else if (a.targetType === 'lower_arch') { فك سفلي }
+                    @else { حالة كاملة }
+                  </span>
+                </div>
+                <span class="font-black"
+                  [class.text-primary]="a.service.pricingMethod !== PricingMethod.Quotation"
+                  [class.text-amber-500]="a.service.pricingMethod === PricingMethod.Quotation">
+                  @if (a.service.pricingMethod === PricingMethod.Quotation) { بالتسعير }
+                  @else { {{ getAssignmentItemPrice(a) }} SAR }
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Pricing breakdown -->
+        <div class="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl border border-primary/20 p-5 flex flex-col gap-3">
+          <h3 class="text-xs font-black text-secondary flex items-center gap-1.5">
+            <i class="bi bi-receipt text-primary"></i> الفاتورة التقديرية
+          </h3>
+          <div class="flex flex-col gap-2 text-xs">
+            <div class="flex justify-between py-1.5 border-b border-border/40">
+              <span class="text-text-secondary">الخدمات الأساسية</span>
+              <span class="font-bold font-sans text-secondary">{{ pricingSummary().basePrice }} SAR</span>
             </div>
-            @if (pricingSummary().gumFee > 0) {
-              <div class="flex justify-between py-2 border-b border-border/50">
-                <span class="text-text-secondary">رسوم اللثة التجميلية</span>
-                <span class="font-bold text-warning">+ {{ pricingSummary().gumFee }} SAR</span>
-              </div>
-            }
             @if (pricingSummary().expressFee > 0) {
-              <div class="flex justify-between py-2 border-b border-border/50">
-                <span class="text-text-secondary">رسوم الشحن المستعجل</span>
-                <span class="font-bold text-warning">+ {{ pricingSummary().expressFee }} SAR</span>
+              <div class="flex justify-between py-1.5 border-b border-border/40">
+                <span class="text-text-secondary flex items-center gap-1">
+                  <i class="bi bi-lightning-charge-fill text-amber-500"></i> رسوم الشحن المستعجل
+                </span>
+                <span class="font-bold text-amber-600 font-sans">+ {{ pricingSummary().expressFee }} SAR</span>
               </div>
             }
-            <div class="flex justify-between py-3 border-t border-border font-black text-sm text-secondary mt-2">
-              <span>التكلفة الإجمالية</span>
-              <span class="text-lg text-primary">{{ pricingSummary().finalPrice }} SAR</span>
+            <div class="flex justify-between pt-2 border-t border-border font-black">
+              <span class="text-secondary">الإجمالي التقديري</span>
+              <span class="text-xl text-primary font-sans">{{ pricingSummary().finalPrice }} SAR</span>
             </div>
           </div>
         </div>
       </div>
     }
 
-    <!-- ── Upload Progress Panel (shown during upload on step 6) ── -->
+    <!-- ══════════ Upload Progress ══════════ -->
     @if (isUploading()) {
-      <div class="bg-surface rounded-2xl border border-primary/30 shadow-card p-6 flex flex-col gap-4 animate-in fade-in">
+      <div class="bg-surface rounded-2xl border border-primary/30 shadow-sm p-5 flex flex-col gap-4">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4 text-primary animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-            </svg>
+          <div class="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <i class="bi bi-cloud-upload text-primary text-base animate-pulse"></i>
           </div>
           <div class="flex-1">
             <p class="text-sm font-black text-secondary">جاري رفع الملفات...</p>
-<p class="text-[11px] text-text-secondary">{{ completedUploadsCount() }} من {{ uploadStates().length }} ملف مكتمل</p>          </div>
-          <span class="text-lg font-black text-primary">{{ overallProgress() }}%</span>
-        </div>
-
-        <!-- Overall Progress Bar -->
-        <div class="w-full bg-border/40 rounded-full h-2.5 overflow-hidden">
-          <div
-            class="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-300 ease-out"
-            [style.width.%]="overallProgress()">
+            <p class="text-[11px] text-text-secondary">{{ completedUploadsCount() }} من {{ uploadStates().length }} مكتمل</p>
           </div>
+          <span class="text-xl font-black text-primary font-sans">{{ overallProgress() }}%</span>
         </div>
-
-        <!-- Per-file rows -->
+        <div class="w-full bg-border/40 rounded-full h-2 overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-300" [style.width.%]="overallProgress()"></div>
+        </div>
         <div class="flex flex-col gap-2">
           @for (state of uploadStates(); track state.file.name) {
             <div class="flex flex-col gap-1">
               <div class="flex justify-between items-center text-xs">
                 <span class="font-semibold text-secondary truncate max-w-[65%]">{{ state.file.name }}</span>
-                <div class="flex items-center gap-2">
-                  @if (state.status === 'done') {
-                    <svg class="w-4 h-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
-                    </svg>
-                  } @else if (state.status === 'error') {
-                    <svg class="w-4 h-4 text-rose-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
-                    </svg>
-                  } @else {
-                    <span class="text-primary font-bold">{{ state.progress }}%</span>
-                  }
-                </div>
+                @if (state.status === 'done') { <i class="bi bi-check-circle-fill text-emerald-500"></i> }
+                @else if (state.status === 'error') { <i class="bi bi-x-circle-fill text-rose-500"></i> }
+                @else { <span class="text-primary font-bold font-sans">{{ state.progress }}%</span> }
               </div>
-              <div class="w-full bg-border/40 rounded-full h-1.5 overflow-hidden">
-                <div
-                  class="h-full rounded-full transition-all duration-300 ease-out"
+              <div class="w-full bg-border/40 rounded-full h-1 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-300"
                   [class.bg-primary]="state.status !== 'done' && state.status !== 'error'"
                   [class.bg-emerald-500]="state.status === 'done'"
                   [class.bg-rose-500]="state.status === 'error'"
@@ -427,39 +670,37 @@
       </div>
     }
 
-    <!-- Navigation Buttons -->
+    <!-- ══════════ Navigation Buttons ══════════ -->
     @if (!isUploading()) {
-      <div class="flex justify-between gap-4 mt-6">
-        <button
-          type="button"
-          (click)="prevStep()"
-          [disabled]="currentStep() === 1"
-          class="flex-1 px-4 py-3 rounded-xl border border-border text-secondary font-bold text-xs hover:bg-background transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          السابق
+      <div class="flex justify-between gap-3">
+        <button type="button" (click)="prevStep()" [disabled]="currentStep() === 1"
+          class="flex-1 px-4 py-3 rounded-xl border border-border text-secondary font-bold text-xs hover:bg-background transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5">
+          <i class="bi bi-arrow-right"></i> السابق
         </button>
-
         @if (currentStep() < totalSteps) {
-          <button
-            type="button"
-            (click)="nextStep()"
-            class="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-bold text-xs hover:bg-primary-dark transition active:scale-95"
-          >
-            التالي
+          <button type="button" (click)="nextStep()" [disabled]="!isCurrentStepValid()"
+            class="flex-[2] px-4 py-3 rounded-xl bg-primary text-white font-bold text-xs hover:opacity-90 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5">
+            التالي <i class="bi bi-arrow-left"></i>
           </button>
         } @else {
-          <button
-            type="submit"
-            [disabled]="isLoading()"
-            class="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-bold text-xs hover:bg-primary-dark transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-            </svg>
-            إرسال طلب التصميم النهائي
+          <button type="submit" [disabled]="isLoading()"
+            class="flex-[2] px-4 py-3 rounded-xl bg-primary text-white font-bold text-xs hover:opacity-90 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            <i class="bi bi-send-fill"></i> إرسال الطلب
           </button>
         }
       </div>
     }
+
   </form>
+
+  <!-- ══════════ Date-Time Picker Modal ══════════ -->
+  @if (showDatePicker()) {
+    <app-date-time-picker
+      [minDate]="earliestAllowedDate()"
+      [initialValue]="form.get('requiredDeliveryDate')?.value || ''"
+      (confirmed)="onDateConfirmed($event)"
+      (dismissed)="closeDatePicker()"
+    ></app-date-time-picker>
+  }
+
 </div>

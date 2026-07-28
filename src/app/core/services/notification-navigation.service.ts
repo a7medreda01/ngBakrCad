@@ -42,6 +42,7 @@ export class NotificationNavigationService {
         }
         break;
 
+      case 'Meeting':
       case 'MeetingRequest':
         this.router.navigate([`/${portalPrefix}/meetings`], { queryParams: { meetingId: publicId } });
         break;

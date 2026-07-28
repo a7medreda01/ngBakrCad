@@ -36,19 +36,32 @@ export class MeetingsComponent implements OnInit {
     return roles.some(role => ['SuperAdmin', 'OperationsAdmin'].includes(role));
   });
 
-  readonly filteredMeetings = computed(() => {
-    const list = this.meetings();
-    const filter = this.activeFilter();
-    if (filter === 'pending')  return list.filter(m => m.status === MeetingStatus.Pending);
-    if (filter === 'approved') return list.filter(m => m.status === MeetingStatus.Approved);
-    if (filter === 'rejected') return list.filter(m => m.status === MeetingStatus.Rejected);
-    return list;
+readonly filteredMeetings = computed(() => {
+  const list = this.visibleMeetings(); // ← بدل this.meetings()
+  const filter = this.activeFilter();
+  if (filter === 'pending')  return list.filter(m => m.status === MeetingStatus.Pending);
+  if (filter === 'approved') return list.filter(m => m.status === MeetingStatus.Approved);
+  if (filter === 'rejected') return list.filter(m => m.status === MeetingStatus.Rejected);
+  return list;
+});
+
+readonly pendingCount  = computed(() => this.visibleMeetings().filter(m => m.status === MeetingStatus.Pending).length);
+readonly approvedCount = computed(() => this.visibleMeetings().filter(m => m.status === MeetingStatus.Approved).length);
+  readonly isDesigner = computed(() => {
+    const roles = this.auth.currentUser()?.roles ?? [];
+    return roles.includes('Designer');
   });
 
-  readonly pendingCount  = computed(() => this.meetings().filter(m => m.status === MeetingStatus.Pending).length);
-  readonly approvedCount = computed(() => this.meetings().filter(m => m.status === MeetingStatus.Approved).length);
-
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      const meetingId = params['meetingId'];
+      if (meetingId && this.meetings().length > 0) {
+        const found = this.meetings().find(m => m.id === meetingId || m.orderId === meetingId || m.meeting?.meetingRequestId === meetingId);
+        if (found) {
+          this.openModal(found);
+        }
+      }
+    });
     this.loadMeetings();
   }
 
@@ -61,7 +74,7 @@ export class MeetingsComponent implements OnInit {
         // Auto-open modal if meetingId query param is present
         const meetingId = this.route.snapshot.queryParamMap.get('meetingId');
         if (meetingId) {
-          const found = (res || []).find(m => m.id === meetingId);
+          const found = (res || []).find(m => m.id === meetingId || m.orderId === meetingId || m.meeting?.meetingRequestId === meetingId);
           if (found) {
             this.openModal(found);
           }
@@ -107,7 +120,11 @@ export class MeetingsComponent implements OnInit {
   }
 
   getJoinUrl(m: MeetingRequestDto): string | null {
-    return m.meeting?.joinUrl || null;
+    if (!m.meeting) return null;
+    if (this.isDesigner()) {
+      return m.meeting.designerJoinUrl || m.meeting.clientJoinUrl || null;
+    }
+    return m.meeting.clientJoinUrl || m.meeting.designerJoinUrl || null;
   }
 
   getStartUrl(m: MeetingRequestDto): string | null {
@@ -144,4 +161,22 @@ export class MeetingsComponent implements OnInit {
       }
     }
   }
+  readonly currentUserId = computed(() => this.auth.currentUser()?.userId ?? null);
+
+/** الطلبات المسموح للمستخدم الحالي يشوفها:
+ *  - لو هو الطالب: يشوف كل الحالات (حتى المرفوضة)
+ *  - لو الطرف التاني: يشوف المقبولة بس
+ *  - الأدمن: يشوف كل حاجة زي ما هي
+ */
+readonly visibleMeetings = computed(() => {
+  const list = this.meetings();
+  if (this.isAdmin()) return list;
+
+  const userId = this.currentUserId();
+  return list.filter(m => {
+    const isRequester = m.requestedByUserId === userId;
+    if (isRequester) return true;
+    return m.status === MeetingStatus.Approved;
+  });
+});
 }

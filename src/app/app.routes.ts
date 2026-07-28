@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { permissionGuard } from './core/guards/permission.guard';
 
 export const routes: Routes = [
   // ─── Public: Auth ────────────────────────────────────────────────────────
@@ -63,20 +64,22 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { expectedRoles: ['SuperAdmin', 'FinancialAdmin', 'OperationsAdmin', 'QualityAdmin'] },
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard',     loadComponent: () => import('./features/admin/dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent) },
-      { path: 'users',         loadComponent: () => import('./features/admin/users/users.component').then(m => m.UsersComponent) },
+      { path: '', redirectTo: 'analytics', pathMatch: 'full' },
+      { path: 'analytics',     loadComponent: () => import('./features/admin/analytics/analytics.component').then(m => m.AnalyticsComponent) },
+      { path: 'dashboard',     redirectTo: 'analytics', pathMatch: 'full' },
+      { path: 'employees',     loadComponent: () => import('./features/admin/employees/employees.component').then(m => m.EmployeesComponent), canActivate: [permissionGuard], data: { requiredPermission: 'ManageUsers' } },
+      { path: 'users',         loadComponent: () => import('./features/admin/users/users.component').then(m => m.UsersComponent), canActivate: [permissionGuard], data: { requiredPermission: 'ManageUsers' } },
       { path: 'orders',        loadComponent: () => import('./features/admin/orders/admin-orders.component').then(m => m.AdminOrdersComponent) },
       { path: 'orders/:id',   loadComponent: () => import('./features/admin/order details/app-admin-order-detail').then(m => m.AdminOrderDetailComponent) },
-      { path: 'services',      loadComponent: () => import('./features/admin/services/services.component').then(m => m.ServicesComponent) },
-      { path: 'custom-pricing', loadComponent: () => import('./features/admin/custom-pricing/custom-pricing.component').then(m => m.CustomPricingComponent) },
-      { path: 'packages',      loadComponent: () => import('./features/admin/packages/packages.component').then(m => m.PackagesComponent) },
-      { path: 'meetings',      loadComponent: () => import('./features/admin/meetings/meetings.component').then(m => m.MeetingsComponent) },
-      { path: 'wallet',        loadComponent: () => import('./features/admin/wallet/admin-wallet.component').then(m => m.AdminWalletComponent) },
-      { path: 'transactions',  loadComponent: () => import('./features/admin/transactions/transactions.component').then(m => m.TransactionsComponent) },
-      { path: 'audit-logs',    loadComponent: () => import('./features/admin/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent) },
-      { path: 'settings',      loadComponent: () => import('./features/admin/settings/settings.component').then(m => m.SettingsComponent) },
-      { path: 'financials',    loadComponent: () => import('./features/admin/financials/admin-financials.component').then(m => m.AdminFinancialsComponent) },
+      { path: 'services',      loadComponent: () => import('./features/admin/services/services.component').then(m => m.ServicesComponent), canActivate: [permissionGuard], data: { requiredPermission: 'ManageServices' } },
+      { path: 'custom-pricing', loadComponent: () => import('./features/admin/custom-pricing/custom-pricing.component').then(m => m.CustomPricingComponent), canActivate: [permissionGuard], data: { requiredPermission: 'ManageServices' } },
+      { path: 'packages',      loadComponent: () => import('./features/admin/packages/packages.component').then(m => m.PackagesComponent), canActivate: [permissionGuard], data: { requiredPermission: 'ManageDepositPackages' } },
+      { path: 'meetings',      loadComponent: () => import('./features/admin/meetings/meetings.component').then(m => m.MeetingsComponent), canActivate: [permissionGuard], data: { requiredPermission: 'ScheduleMeetings' } },
+      { path: 'wallet',        loadComponent: () => import('./features/admin/wallet/admin-wallet.component').then(m => m.AdminWalletComponent), canActivate: [permissionGuard], data: { requiredPermission: 'FinancialAdjustments' } },
+      { path: 'transactions',  loadComponent: () => import('./features/admin/transactions/transactions.component').then(m => m.TransactionsComponent), canActivate: [permissionGuard], data: { requiredPermission: 'FinancialAdjustments' } },
+      { path: 'financials',    loadComponent: () => import('./features/admin/financials/admin-financials.component').then(m => m.AdminFinancialsComponent), canActivate: [permissionGuard], data: { requiredPermission: 'FinancialAdjustments' } },
+      { path: 'audit-logs',    loadComponent: () => import('./features/admin/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent), canActivate: [permissionGuard], data: { expectedRoles: ['SuperAdmin'] } },
+      { path: 'settings',      loadComponent: () => import('./features/admin/settings/settings.component').then(m => m.SettingsComponent), canActivate: [permissionGuard], data: { expectedRoles: ['SuperAdmin'] } },
       { path: 'profile',       loadComponent: () => import('./features/client/profile/profile.component').then(m => m.ProfileComponent) },
       { path: 'support',       loadComponent: () => import('./features/support/support.component').then(m => m.SupportComponent) },
     ]

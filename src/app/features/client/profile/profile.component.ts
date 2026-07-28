@@ -20,6 +20,11 @@ export class ProfileComponent implements OnInit {
 
   readonly isLoading = signal(false);
 
+  // --- جديد: معاينة فورية للصورة الشخصية وقت الرفع، من غير ما ننتظر رد السيرفر ---
+  readonly previewPictureUrl = signal<string | null>(null);
+  readonly isUploadingPicture = signal(false);
+  private previewObjectUrl: string | null = null;
+
   readonly form = this.fb.group({
     fullName: ['', [Validators.required, Validators.minLength(3)]],
     phoneNumber: ['', [Validators.required]],
@@ -58,6 +63,48 @@ export class ProfileComponent implements OnInit {
         }
       });
     }
+  }
+
+  /**
+   * --- معدّل: بعد اختيار الصورة، بنعرضها فورًا (Object URL) قبل حتى ما نبدأ الرفع،
+   * عشان المستخدم يحس إن التحديث حصل على طول من غير ما ينتظر رد السيرفر.
+   * وبعد نجاح الرفع، بنعمل refresh لبيانات البروفايل من السيرفر عشان أي مكون
+   * تاني في التطبيق بيقرا authService.userProfile() ياخد الرابط الجديد الصحيح.
+   * لو فشل الرفع، بنرجع نمسح المعاينة المؤقتة عشان ميفضلش شكل مضلل للمستخدم.
+   * ---
+   */
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // نظّف أي object URL قديم قبل ما ننشئ واحد جديد عشان منعملش memory leak
+    if (this.previewObjectUrl) {
+      URL.revokeObjectURL(this.previewObjectUrl);
+    }
+    this.previewObjectUrl = URL.createObjectURL(file);
+    this.previewPictureUrl.set(this.previewObjectUrl);
+
+    this.isUploadingPicture.set(true);
+    this.authService.uploadProfilePicture(file).subscribe({
+      next: () => {
+        this.toast.success('تم تحديث الصورة الشخصية بنجاح');
+        // تحديث بيانات البروفايل من السيرفر عشان الرابط النهائي (المستضاف) يبقى متزامن بعد كده
+        this.authService.loadUserProfile().subscribe({
+          next: () => this.isUploadingPicture.set(false),
+          error: () => this.isUploadingPicture.set(false)
+        });
+      },
+      error: () => {
+        this.isUploadingPicture.set(false);
+        this.toast.error('حدث خطأ أثناء رفع الصورة');
+        // فشل الرفع: نرجع نمسح المعاينة المؤقتة ونرجع للصورة الأصلية
+        if (this.previewObjectUrl) {
+          URL.revokeObjectURL(this.previewObjectUrl);
+          this.previewObjectUrl = null;
+        }
+        this.previewPictureUrl.set(null);
+      }
+    });
   }
 
   onSubmit(): void {

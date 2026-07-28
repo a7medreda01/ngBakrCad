@@ -1,0 +1,636 @@
+<div class="min-h-screen bg-background p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 font-sans overflow-x-hidden">
+
+  <!-- =========================================================================
+       RECENT ACTIVITY WIDGET (أحدث النشاطات - TOP OF PAGE)
+  ========================================================================== -->
+  <app-recent-activity-widget />
+
+  <!-- =========================================================================
+       HEADER & SLICER CONTROLS (RESPONSIVE)
+  ========================================================================== -->
+  <header class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 sm:gap-6 relative overflow-hidden">
+    <!-- Ambient Background Glows -->
+    <div class="absolute -right-20 -top-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Title & Brand Info -->
+    <div class="flex items-center gap-3 sm:gap-4 relative z-10 w-full lg:w-auto">
+      <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-brand-gradient p-0.5 shadow-primary-sm flex-shrink-0 flex items-center justify-center">
+        <div class="w-full h-full bg-surface rounded-[10px] sm:rounded-[14px] flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 sm:w-6 sm:h-6 text-primary">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+          </svg>
+        </div>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="text-lg sm:text-xl md:text-2xl font-black text-text-primary tracking-tight truncate">
+            {{ i18n.isRtl() ? 'لوحة الأحصائيات والتحليلات الشاملة' : 'Executive Analytics & Intelligence' }}
+          </h1>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-primary/10 text-primary border border-primary/20 flex-shrink-0">
+            Power BI Suite
+          </span>
+        </div>
+        <p class="text-xs text-text-secondary font-medium mt-0.5 truncate">
+          {{ i18n.isRtl() ? 'تحليل الأداء المالي، الطلبات، وجودة التصميم' : 'Real-time performance metrics & insights' }}
+          @if (data()) {
+            <span class="text-primary font-bold ms-1">({{ data()?.periodLabel }})</span>
+          }
+        </p>
+      </div>
+    </div>
+
+    <!-- Power BI Slicers & Filters Controls -->
+    <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto relative z-10 justify-between lg:justify-end">
+
+      <!-- Month & Year Slicer -->
+      <div class="flex items-center gap-1 bg-background border border-border rounded-xl sm:rounded-2xl p-1 shadow-inner w-full sm:w-auto justify-between sm:justify-start">
+        <select [ngModel]="selectedMonth()" (ngModelChange)="setMonthFilter($event)"
+                class="bg-transparent text-xs font-bold text-text-primary px-2.5 py-1.5 focus:outline-none cursor-pointer">
+          @for (m of months; track m.value) {
+            <option [value]="m.value" class="bg-surface text-text-primary">
+              {{ i18n.isRtl() ? m.labelAr : m.labelEn }}
+            </option>
+          }
+        </select>
+
+        <select [ngModel]="selectedYear()" (ngModelChange)="setYearFilter($event)"
+                class="bg-transparent text-xs font-bold text-primary px-2.5 py-1.5 focus:outline-none cursor-pointer border-s border-border">
+          @for (y of years; track y) {
+            <option [value]="y" class="bg-surface text-primary">{{ y }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Live Refresh Button -->
+      <button (click)="loadAnalytics()" [disabled]="isLoading()"
+              class="w-full sm:w-auto px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-brand-gradient hover:opacity-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-primary active:scale-95 transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+             class="w-4 h-4" [class.animate-spin]="isLoading()">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+        </svg>
+        <span>{{ i18n.isRtl() ? 'تحديث البيانات' : 'Refresh' }}</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Dropdown Selector (Visible on Mobile Only) -->
+  <div class="block sm:hidden">
+    <div class="relative w-full">
+      <select [ngModel]="activeTab()" (ngModelChange)="activeTab.set($event)"
+              class="w-full bg-surface text-text-primary text-xs font-black px-4 py-3 rounded-2xl border border-primary/40 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer">
+        <option value="overview">📊 {{ i18n.isRtl() ? 'نظرة عامة (Overview)' : 'Overview' }}</option>
+        <option value="financials">💰 {{ i18n.isRtl() ? 'المالية والأرباح (Financials)' : 'Financials' }}</option>
+        <option value="orders">📦 {{ i18n.isRtl() ? 'الطلبات والعمليات (Orders)' : 'Orders & Cases' }}</option>
+        <option value="designers">🎨 {{ i18n.isRtl() ? 'المصممون (Designers)' : 'Designers' }}</option>
+        <option value="sla">⏱️ {{ i18n.isRtl() ? 'سرعة التوصيل ' : ' Performance' }}</option>
+      </select>
+      <div class="pointer-events-none absolute inset-y-0 end-0 flex items-center px-4 text-primary">
+        <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20">
+          <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop & Tablet Navigation View Tabs -->
+  <div class="hidden sm:flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2 pt-1">
+    <button (click)="activeTab.set('overview')"
+            [class]="activeTab() === 'overview' ? 'bg-secondary text-white shadow-lg' : 'bg-surface text-text-secondary hover:text-text-primary border border-border/80'"
+            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+      <span>📊 {{ i18n.isRtl() ? 'نظرة عامة (Overview)' : 'Overview' }}</span>
+    </button>
+    <button (click)="activeTab.set('financials')"
+            [class]="activeTab() === 'financials' ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface text-text-secondary hover:text-text-primary border border-border/80'"
+            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+      <span>💰 {{ i18n.isRtl() ? 'المالية والأرباح (Financials)' : 'Financials' }}</span>
+    </button>
+    <button (click)="activeTab.set('orders')"
+            [class]="activeTab() === 'orders' ? 'bg-info text-white shadow-lg' : 'bg-surface text-text-secondary hover:text-text-primary border border-border/80'"
+            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+      <span>📦 {{ i18n.isRtl() ? 'الطلبات والعمليات (Orders)' : 'Orders & Cases' }}</span>
+    </button>
+    <button (click)="activeTab.set('designers')"
+            [class]="activeTab() === 'designers' ? 'bg-purple-600 text-white shadow-lg' : 'bg-surface text-text-secondary hover:text-text-primary border border-border/80'"
+            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+      <span>🎨 {{ i18n.isRtl() ? 'المصممون (Designers)' : 'Designers' }}</span>
+    </button>
+    <button (click)="activeTab.set('sla')"
+            [class]="activeTab() === 'sla' ? 'bg-success text-white shadow-lg' : 'bg-surface text-text-secondary hover:text-text-primary border border-border/80'"
+            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+      <span>⏱️ {{ i18n.isRtl() ? 'سرعة التوصيل SLA' : 'SLA Performance' }}</span>
+    </button>
+  </div>
+
+  <!-- Loading Spinner -->
+  @if (isLoading()) {
+    <div class="h-80 flex flex-col items-center justify-center gap-4 bg-surface rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm p-4 text-center">
+      <div class="w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+      <p class="text-xs font-bold text-text-secondary animate-pulse">
+        {{ i18n.isRtl() ? 'جاري تحميل وحساب البيانات الإحصائية...' : 'Processing Power BI Analytics Pipeline...' }}
+      </p>
+    </div>
+  } @else if (data()) {
+
+    <!-- =========================================================================
+         TAB 1: OVERVIEW (VISUAL POWER BI SUMMARY)
+    ========================================================================== -->
+    @if (activeTab() === 'overview') {
+      
+      <!-- 4 Top KPI Scorecards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+        
+        <!-- Tile 1: Total Revenue -->
+        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-primary/50 transition-all shadow-sm">
+          <div class="flex items-center justify-between text-text-secondary text-xs font-bold mb-1.5">
+            <span>{{ i18n.isRtl() ? 'إجمالي الإيرادات' : 'Total Revenue' }}</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+          </div>
+          <div class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
+            {{ data()?.financials?.totalRevenue | number:'1.2-2' }} <span class="text-xs font-bold text-primary">SAR</span>
+          </div>
+          <div class="mt-3 flex items-center justify-between text-[11px] text-text-secondary font-semibold border-t border-border/60 pt-2">
+            <span>{{ i18n.isRtl() ? 'صافي دخل المنصة:' : 'Platform Net Profit:' }}</span>
+            <span class="text-emerald-600 font-black">{{ data()?.financials?.platformNetProfit | number:'1.2-2' }} SAR</span>
+          </div>
+        </div>
+
+        <!-- Tile 2: Total Orders -->
+        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-info/50 transition-all shadow-sm">
+          <div class="flex items-center justify-between text-text-secondary text-xs font-bold mb-1.5">
+            <span>{{ i18n.isRtl() ? 'إجمالي الطلبات' : 'Total Orders' }}</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] bg-info/10 text-info font-black">Active</span>
+          </div>
+          <div class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
+            {{ data()?.orders?.totalOrders }}
+          </div>
+          <div class="mt-3 flex items-center justify-between text-[11px] text-text-secondary font-semibold border-t border-border/60 pt-2">
+            <span>{{ i18n.isRtl() ? 'طلبات سريعة Express:' : 'Express Cases:' }}</span>
+            <span class="text-info font-black">{{ data()?.orders?.expressOrders }}</span>
+          </div>
+        </div>
+
+        <!-- Tile 3: SLA On-Time -->
+        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-warning/50 transition-all shadow-sm">
+          <div class="flex items-center justify-between text-text-secondary text-xs font-bold mb-1.5">
+            <span>{{ i18n.isRtl() ? 'معدل الالتزام بالوقت' : 'SLA On-Time Rate' }}</span>
+            <span class="text-amber-500 text-xs font-bold">⏱️</span>
+          </div>
+          <div class="text-2xl sm:text-3xl font-black text-secondary tracking-tight">
+            {{ data()?.sla?.onTimeDeliveryRate }}%
+          </div>
+          <div class="mt-3 flex items-center justify-between text-[11px] text-text-secondary font-semibold border-t border-border/60 pt-2">
+            <span>{{ i18n.isRtl() ? 'متوسط وقت الإنجاز:' : 'Avg Cycle Time:' }}</span>
+            <span class="text-text-primary font-bold">{{ data()?.sla?.averageCycleHours }} h</span>
+          </div>
+        </div>
+
+        <!-- Tile 4: Total Clients -->
+        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-purple-500/50 transition-all shadow-sm">
+          <div class="flex items-center justify-between text-text-secondary text-xs font-bold mb-1.5">
+            <span>{{ i18n.isRtl() ? 'الأطباء والعملاء' : 'Doctors & Clients' }}</span>
+            <span class="text-purple-500 text-xs font-bold">👥</span>
+          </div>
+          <div class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
+            {{ data()?.users?.totalClients }}
+          </div>
+          <div class="mt-3 flex items-center justify-between text-[11px] text-text-secondary font-semibold border-t border-border/60 pt-2">
+            <span>{{ i18n.isRtl() ? 'مصممون نشطون:' : 'Active Designers:' }}</span>
+            <span class="text-purple-600 font-bold">{{ data()?.users?.activeDesigners }} / {{ data()?.users?.totalDesigners }}</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Charts Row 1: Revenue Line Visual & Status Donut -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+
+        <!-- Revenue Line Visual Card -->
+        <div class="lg:col-span-2 bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <div>
+              <h2 class="text-xs sm:text-sm font-black text-secondary uppercase tracking-wider flex items-center gap-2">
+                <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-md bg-primary"></span>
+                {{ i18n.isRtl() ? 'مسار الإيرادات اليومية' : 'Daily Revenue Line Trend' }}
+              </h2>
+              <p class="text-[11px] text-text-secondary mt-0.5 font-medium">
+                {{ i18n.isRtl() ? 'متابعة حركة الدفع والإيرادات المسجلة' : 'Revenue trajectory across timeline' }}
+              </p>
+            </div>
+            <span class="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-xl">
+              Max: {{ revenueTrendChart().maxVal | number:'1.0-0' }} SAR
+            </span>
+          </div>
+
+          <div class="relative w-full h-44 sm:h-52 my-2 overflow-x-auto">
+            @if (revenueTrendChart().points.length > 0) {
+              <svg class="w-full h-full overflow-visible min-w-[300px]" viewBox="0 0 600 180" preserveAspectRatio="none">
+                <line x1="0" y1="40" x2="600" y2="40" stroke="#CBD5E1" stroke-dasharray="4 4" stroke-width="0.7" />
+                <line x1="0" y1="90" x2="600" y2="90" stroke="#CBD5E1" stroke-dasharray="4 4" stroke-width="0.7" />
+                <line x1="0" y1="140" x2="600" y2="140" stroke="#CBD5E1" stroke-dasharray="4 4" stroke-width="0.7" />
+
+                <defs>
+                  <linearGradient id="brandRevenueGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#2D8DB3" stop-opacity="0.3" />
+                    <stop offset="100%" stop-color="#2D8DB3" stop-opacity="0.0" />
+                  </linearGradient>
+                </defs>
+
+                <path [attr.d]="revenueTrendChart().areaPath" fill="url(#brandRevenueGrad)" />
+                <path [attr.d]="revenueTrendChart().path" fill="none" stroke="#2D8DB3" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+
+                @for (p of revenueTrendChart().points; track $index) {
+                  <circle [attr.cx]="p.x" [attr.cy]="p.y" r="5" class="fill-secondary stroke-white stroke-2 hover:r-7 transition-all cursor-pointer">
+                    <title>{{ p.item.date }}: {{ p.item.revenue }} SAR</title>
+                  </circle>
+                }
+              </svg>
+            } @else {
+              <div class="w-full h-full flex items-center justify-center text-xs text-text-muted">
+                {{ i18n.isRtl() ? 'لا توجد بيانات سداد في هذه الفترة' : 'No revenue records available' }}
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- SLA Gauge Speedometer Card -->
+        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm flex flex-col items-center justify-between text-center">
+          <div class="w-full text-start">
+            <h2 class="text-xs sm:text-sm font-black text-secondary uppercase tracking-wider flex items-center gap-2 mb-1">
+              ⏱️ {{ i18n.isRtl() ? 'مؤشر الالتزام بالمواعيد SLA' : 'SLA Performance Gauge' }}
+            </h2>
+            <p class="text-[11px] text-text-secondary font-medium">
+              {{ i18n.isRtl() ? 'نسبة تسليم الحالات المكتملة في الوقت المحدد' : 'On-time delivery performance meter' }}
+            </p>
+          </div>
+
+          <!-- SVG Radial Gauge Ring -->
+          <div class="relative w-36 h-36 sm:w-40 sm:h-40 my-3 flex items-center justify-center">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+              <!-- Track -->
+              <circle cx="50" cy="50" r="40" stroke="#E2E8F0" stroke-width="8" fill="none" />
+              <!-- Progress Ring -->
+              <circle cx="50" cy="50" r="40" stroke="#10B981" stroke-width="8" fill="none" stroke-linecap="round"
+                      [attr.stroke-dasharray]="slaGaugeVisual().circumference"
+                      [attr.stroke-dashoffset]="slaGaugeVisual().strokeDashoffset"
+                      class="transition-all duration-1000" />
+            </svg>
+            <div class="absolute flex flex-col items-center justify-center">
+              <span class="text-2xl sm:text-3xl font-black text-emerald-600">{{ data()?.sla?.onTimeDeliveryRate }}%</span>
+              <span class="text-[10px] font-bold text-text-secondary uppercase">On-Time</span>
+            </div>
+          </div>
+
+          <div class="w-full flex items-center justify-around border-t border-border/60 pt-3 text-xs">
+            <div>
+              <span class="text-[10px] text-text-secondary block font-bold">في الموعد</span>
+              <span class="font-black text-emerald-600">{{ data()?.sla?.completedOnTime }} cases</span>
+            </div>
+            <div class="border-s border-border/60 ps-4">
+              <span class="text-[10px] text-text-secondary block font-bold">متأخرة</span>
+              <span class="font-black text-rose-500">{{ data()?.sla?.completedLate }} cases</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Charts Row 2: Visual Leaderboards with SVG Progress Bars -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+
+        <!-- Visual 1: العملاء الأكثر طلباً (Top Clients by Order Count) -->
+        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-xs sm:text-sm font-black text-secondary uppercase tracking-wider flex items-center gap-2">
+                📦 {{ i18n.isRtl() ? 'العملاء الأكثر طلباً (حسب العدد)' : 'Top Clients (By Cases Count)' }}
+              </h2>
+              <p class="text-[11px] text-text-secondary mt-0.5 font-medium">الأطباء والعيادات الأكثر إنشاءً للطلبات</p>
+            </div>
+            <span class="text-xs font-extrabold text-info bg-info/10 px-2 py-0.5 rounded-lg">By Count</span>
+          </div>
+
+          <div class="space-y-3.5">
+            @for (c of topClientsByOrdersBars(); track c.clientId; let idx = $index) {
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-2 truncate">
+                    <span class="w-5 h-5 rounded-md font-black text-[10px] flex items-center justify-center bg-info/10 text-info flex-shrink-0">
+                      #{{ idx + 1 }}
+                    </span>
+                    <span class="font-black text-text-primary truncate">{{ c.fullName }}</span>
+                  </div>
+                  <span class="font-mono font-bold text-info flex-shrink-0 ms-2">{{ c.orderCount }} orders</span>
+                </div>
+                <!-- Visual Bar -->
+                <div class="w-full h-2.5 bg-background rounded-full overflow-hidden p-0.5 border border-border/40">
+                  <div class="h-full bg-gradient-to-r from-info to-primary rounded-full transition-all duration-700"
+                       [style.width.%]="c.percent"></div>
+                </div>
+              </div>
+            } @empty {
+              <div class="text-xs text-text-muted text-center py-6">لا يوجد طلبات مسجلة حتى الآن</div>
+            }
+          </div>
+        </div>
+
+        <!-- Visual 2: المصممون الأكثر إنجازاً (Top Designers by Completed Cases) -->
+        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-xs sm:text-sm font-black text-secondary uppercase tracking-wider flex items-center gap-2">
+                🎨 {{ i18n.isRtl() ? 'المصممون الأكثر إنجازاً' : 'Top Designers (By Cases Completed)' }}
+              </h2>
+              <p class="text-[11px] text-text-secondary mt-0.5 font-medium">المصممون الأكثر إنهاءً وتدقيقاً للحالات</p>
+            </div>
+            <span class="text-xs font-extrabold text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded-lg">Completed</span>
+          </div>
+
+          <div class="space-y-3.5">
+            @for (d of topDesignersBars(); track d.designerId; let idx = $index) {
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-2 truncate">
+                    <span class="w-5 h-5 rounded-md font-black text-[10px] flex items-center justify-center bg-purple-100 text-purple-700 flex-shrink-0">
+                      #{{ idx + 1 }}
+                    </span>
+                    <span class="font-black text-text-primary truncate">{{ d.fullName }}</span>
+                    <span class="text-[10px] font-bold text-amber-500 flex-shrink-0">⭐ {{ d.averageRating }}</span>
+                  </div>
+                  <span class="font-mono font-bold text-purple-700 flex-shrink-0 ms-2">{{ d.completedOrders }} cases</span>
+                </div>
+                <!-- Visual Bar -->
+                <div class="w-full h-2.5 bg-background rounded-full overflow-hidden p-0.5 border border-border/40">
+                  <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full transition-all duration-700"
+                       [style.width.%]="d.completedPercent"></div>
+                </div>
+              </div>
+            } @empty {
+              <div class="text-xs text-text-muted text-center py-6">لا يوجد حالات مكتملة مسجلة</div>
+            }
+          </div>
+        </div>
+
+        <!-- Visual 3: العملاء الأكثر إيراداً (Top Revenue Clients) -->
+        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-xs sm:text-sm font-black text-secondary uppercase tracking-wider flex items-center gap-2">
+                🏆 {{ i18n.isRtl() ? 'أعلى العملاء إيراداً (حسب الدفع)' : 'Top Clients (By Revenue)' }}
+              </h2>
+              <p class="text-[11px] text-text-secondary mt-0.5 font-medium">العيادات الأكثر تحقيقاً للإيرادات</p>
+            </div>
+            <span class="text-xs font-extrabold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-lg">Revenue</span>
+          </div>
+
+          <div class="space-y-3.5">
+            @for (c of topClientsByRevenueBars(); track c.clientId; let idx = $index) {
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-2 truncate">
+                    <span class="w-5 h-5 rounded-md font-black text-[10px] flex items-center justify-center bg-emerald-100 text-emerald-800 flex-shrink-0">
+                      #{{ idx + 1 }}
+                    </span>
+                    <span class="font-black text-text-primary truncate">{{ c.fullName }}</span>
+                  </div>
+                  <span class="font-mono font-bold text-emerald-600 flex-shrink-0 ms-2">{{ c.totalRevenue | number:'1.2-2' }} SAR</span>
+                </div>
+                <!-- Visual Bar -->
+                <div class="w-full h-2.5 bg-background rounded-full overflow-hidden p-0.5 border border-border/40">
+                  <div class="h-full bg-gradient-to-r from-emerald-400 to-teal-600 rounded-full transition-all duration-700"
+                       [style.width.%]="c.percent"></div>
+                </div>
+              </div>
+            } @empty {
+              <div class="text-xs text-text-muted text-center py-6">لا يوجد إيرادات مسجلة حتى الآن</div>
+            }
+          </div>
+        </div>
+
+      </div>
+
+    }
+
+    <!-- =========================================================================
+         TAB 2: FINANCIALS DETAILS
+    ========================================================================== -->
+    @if (activeTab() === 'financials') {
+      <div class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">إجمالي الإيرادات (Total Revenue)</span>
+            <div class="text-2xl sm:text-3xl font-black text-text-primary mt-2">
+              {{ data()?.financials?.totalRevenue | number:'1.2-2' }} <span class="text-xs font-bold text-primary">SAR</span>
+            </div>
+          </div>
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">إجمالي المودعات (Total Deposits)</span>
+            <div class="text-2xl sm:text-3xl font-black text-emerald-600 mt-2">
+              {{ data()?.financials?.totalDeposits | number:'1.2-2' }} <span class="text-xs font-bold text-emerald-600">SAR</span>
+            </div>
+          </div>
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">أرباح المصممين (Designer Earnings)</span>
+            <div class="text-2xl sm:text-3xl font-black text-purple-600 mt-2">
+              {{ data()?.financials?.totalDesignerEarnings | number:'1.2-2' }} <span class="text-xs font-bold text-purple-600">SAR</span>
+            </div>
+          </div>
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">صافي أرباح المنصة (Net Profit)</span>
+            <div class="text-2xl sm:text-3xl font-black text-primary mt-2">
+              {{ data()?.financials?.platformNetProfit | number:'1.2-2' }} <span class="text-xs font-bold text-primary">SAR</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transactions By Type Breakdown Table -->
+        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
+          <h3 class="text-sm font-black text-secondary uppercase tracking-wider mb-4">
+            💳 {{ i18n.isRtl() ? 'إحصائيات المعاملات المالية حسب النوع' : 'Financial Transactions by Type' }}
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            @for (tx of data()?.financials?.byTransactionType; track tx.type) {
+              <div class="p-3.5 rounded-2xl bg-background border border-border/60 flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-black text-text-primary">{{ tx.type }}</div>
+                  <div class="text-[10px] text-text-secondary font-mono mt-0.5">{{ tx.count }} Transactions</div>
+                </div>
+                <div class="text-xs font-black text-primary">
+                  {{ tx.totalAmount | number:'1.2-2' }} SAR
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- =========================================================================
+         TAB 3: ORDERS DETAILS
+    ========================================================================== -->
+    @if (activeTab() === 'orders') {
+      <div class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">إجمالي الطلبات (Total Orders)</span>
+            <div class="text-2xl sm:text-3xl font-black text-text-primary mt-2">{{ data()?.orders?.totalOrders }}</div>
+          </div>
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">الطلبات مكتملة الإنجاز (Completed)</span>
+            <div class="text-2xl sm:text-3xl font-black text-emerald-600 mt-2">{{ data()?.orders?.completedOrders }}</div>
+          </div>
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">طلبات سريعة (Express Cases)</span>
+            <div class="text-2xl sm:text-3xl font-black text-info mt-2">{{ data()?.orders?.expressOrders }}</div>
+          </div>
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">متوسط قيمة الطلب (Avg Order Value)</span>
+            <div class="text-2xl sm:text-3xl font-black text-secondary mt-2">
+              {{ data()?.orders?.averageOrderValue | number:'1.2-2' }} <span class="text-xs font-bold text-secondary">SAR</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orders Breakdown List -->
+        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
+          <h3 class="text-sm font-black text-secondary uppercase tracking-wider mb-4">
+            📌 {{ i18n.isRtl() ? 'تفاصيل حالة الطلبات والإيراد لكل حالة' : 'Orders Detailed Status Breakdown' }}
+          </h3>
+          <div class="space-y-3">
+            @for (st of data()?.orders?.byStatus; track st.status) {
+              <div class="p-3.5 rounded-2xl bg-background border border-border/60 flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-3">
+                  <span class="px-2.5 py-1 rounded-xl text-xs font-bold" [class]="getStatusBadgeClass(st.status)">
+                    {{ st.status }}
+                  </span>
+                  <span class="text-xs font-mono text-text-secondary">{{ st.count }} Orders</span>
+                </div>
+                <div class="text-xs font-black text-emerald-600">
+                  {{ st.totalRevenue | number:'1.2-2' }} SAR
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- =========================================================================
+         TAB 4: DESIGNERS DETAILS
+    ========================================================================== -->
+    @if (activeTab() === 'designers') {
+      <div class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">إجمالي المصممين (Total Designers)</span>
+            <div class="text-2xl sm:text-3xl font-black text-text-primary mt-2">{{ data()?.users?.totalDesigners }}</div>
+          </div>
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">مصممون نشطون (Active Designers)</span>
+            <div class="text-2xl sm:text-3xl font-black text-purple-600 mt-2">{{ data()?.users?.activeDesigners }}</div>
+          </div>
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">إجمالي أرباح المصممين (Total Earnings)</span>
+            <div class="text-2xl sm:text-3xl font-black text-emerald-600 mt-2">
+              {{ data()?.designers?.totalEarnings | number:'1.2-2' }} <span class="text-xs font-bold text-emerald-600">SAR</span>
+            </div>
+          </div>
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">رفض الجودة (Quality Rejections)</span>
+            <div class="text-2xl sm:text-3xl font-black text-rose-600 mt-2">{{ data()?.designers?.totalRejectedByQuality }}</div>
+          </div>
+        </div>
+
+        <!-- Top Designers Full List -->
+        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
+          <h3 class="text-sm font-black text-secondary uppercase tracking-wider mb-4">
+            🎨 {{ i18n.isRtl() ? 'جدول ترتيب المصممين الأكثر إنجازاً وأرباحاً' : 'Designer Performance Leaderboard' }}
+          </h3>
+          <div class="space-y-3">
+            @for (d of data()?.designers?.topDesigners; track d.designerId; let idx = $index) {
+              <div class="p-3.5 rounded-2xl bg-background border border-border/60 flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-3">
+                  <span class="w-8 h-8 rounded-xl font-black text-xs flex items-center justify-center bg-purple-100 text-purple-800 border border-purple-300">
+                    #{{ idx + 1 }}
+                  </span>
+                  <div>
+                    <div class="text-xs font-black text-text-primary flex items-center gap-2">
+                      {{ d.fullName }}
+                      <span class="text-[10px] font-bold text-amber-500">⭐ {{ d.averageRating }}</span>
+                    </div>
+                    <div class="text-[10px] text-text-secondary font-mono">{{ d.designerCode }} · {{ d.completedOrders }} completed cases</div>
+                  </div>
+                </div>
+                <div class="text-end">
+                  <div class="text-xs font-black text-purple-700">{{ d.totalEarnings | number:'1.2-2' }} SAR</div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- =========================================================================
+         TAB 5: SLA & PERFORMANCE DETAILS
+    ========================================================================== -->
+    @if (activeTab() === 'sla') {
+      <div class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">الطلبات الخاضعة للـ SLA</span>
+            <div class="text-2xl sm:text-3xl font-black text-text-primary mt-2">{{ data()?.sla?.ordersWithSla }}</div>
+          </div>
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">مكتملة في الموعد (On-Time)</span>
+            <div class="text-2xl sm:text-3xl font-black text-emerald-600 mt-2">{{ data()?.sla?.completedOnTime }}</div>
+          </div>
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">نسبة الالتزام بالمواعيد</span>
+            <div class="text-2xl sm:text-3xl font-black text-primary mt-2">{{ data()?.sla?.onTimeDeliveryRate }}%</div>
+          </div>
+          <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
+            <span class="text-xs text-text-secondary font-bold">طلبات متأخرة (Late Delivery)</span>
+            <div class="text-2xl sm:text-3xl font-black text-rose-600 mt-2">{{ data()?.sla?.completedLate }}</div>
+          </div>
+        </div>
+
+        <!-- Meetings & Support Tickets Metrics -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
+            <h3 class="text-sm font-black text-secondary uppercase tracking-wider mb-4">
+              📅 {{ i18n.isRtl() ? 'إحصائيات الاجتماعات الاستشارية' : 'Consultation Meetings Metrics' }}
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3 rounded-2xl bg-background border border-border/60">
+                <span class="text-[11px] text-text-secondary font-bold">إجمالي الطلبات</span>
+                <div class="text-xl font-black text-text-primary mt-1">{{ data()?.meetings?.totalRequests }}</div>
+              </div>
+              <div class="p-3 rounded-2xl bg-background border border-border/60">
+                <span class="text-[11px] text-text-secondary font-bold">اجتماعات مقبولة</span>
+                <div class="text-xl font-black text-emerald-600 mt-1">{{ data()?.meetings?.approved }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
+            <h3 class="text-sm font-black text-secondary uppercase tracking-wider mb-4">
+              🎧 {{ i18n.isRtl() ? 'إحصائيات الدعم الفني' : 'Support Tickets Metrics' }}
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3 rounded-2xl bg-background border border-border/60">
+                <span class="text-[11px] text-text-secondary font-bold">إجمالي التذاكر</span>
+                <div class="text-xl font-black text-text-primary mt-1">{{ data()?.support?.totalTickets }}</div>
+              </div>
+              <div class="p-3 rounded-2xl bg-background border border-border/60">
+                <span class="text-[11px] text-text-secondary font-bold">تذاكر محلولة</span>
+                <div class="text-xl font-black text-emerald-600 mt-1">{{ data()?.support?.resolvedTickets }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+  }
+</div>

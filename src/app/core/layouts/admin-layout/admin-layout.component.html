@@ -1,180 +1,439 @@
-<div class="min-h-screen flex bg-background font-sans" [dir]="translationService.isRtl() ? 'rtl' : 'ltr'">
-  <!-- Admin Sidebar -->
-  <aside class="hidden md:flex flex-col w-64 bg-secondary text-white p-6 justify-between flex-shrink-0 z-30">
-    <div class="flex flex-col gap-8">
-      <!-- Logo -->
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-md">
-          <span class="text-secondary font-black text-lg">B</span>
-        </div>
-        <div class="flex flex-col">
-          <span class="text-base font-bold leading-tight">BKR CAD</span>
-          <span class="text-[10px] text-white/50 uppercase tracking-widest">Admin Console</span>
-        </div>
-      </div>
+<div class="h-screen overflow-hidden flex bg-background font-sans" [dir]="translationService.isRtl() ? 'rtl' : 'ltr'">
 
-      <!-- Admin Menu Links -->
-      <nav class="flex flex-col gap-1">
-        <a routerLink="/admin/dashboard" routerLinkActive="bg-white/15 text-white" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 hover:text-white transition duration-200">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
-          {{ 'nav.dashboard' | translate }}
-        </a>
+  <!-- =========================================================================
+       DESKTOP SIDEBAR
+  ========================================================================== -->
+  <aside class="hidden md:flex flex-col w-64 h-full bg-secondary text-white p-5 justify-between flex-shrink-0 z-30 shadow-2xl border-e border-white/5">
+    <div class="flex flex-col gap-6 overflow-y-auto custom-scrollbar">
 
-        <p class="text-[10px] font-black text-white/30 uppercase tracking-widest px-4 pt-4 pb-1">إدارة المستخدمين</p>
-
-        <a routerLink="/admin/users" routerLinkActive="bg-white/15 text-white" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 hover:text-white transition duration-200">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
-          {{ 'nav.users' | translate }}
-        </a>
-
-        <p class="text-[10px] font-black text-white/30 uppercase tracking-widest px-4 pt-4 pb-1">إدارة الطلبات والخدمات</p>
-
-        <a routerLink="/admin/orders" routerLinkActive="bg-white/15 text-white" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 hover:text-white transition duration-200">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
-          {{ 'nav.orders' | translate }}
-        </a>
-
-        <a routerLink="/admin/services" routerLinkActive="bg-white/15 text-white" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 hover:text-white transition duration-200">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
-          {{ 'nav.services' | translate }}
-        </a>
-
-        <p class="text-[10px] font-black text-white/30 uppercase tracking-widest px-4 pt-4 pb-1">المالية والمدفوعات</p>
-
-        <a routerLink="/admin/packages" routerLinkActive="bg-white/15 text-white" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 hover:text-white transition duration-200">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18-3a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6m18 0V3.75A1.5 1.5 0 0 0 19.5 2.25h-15A1.5 1.5 0 0 0 3 3.75V6m18 0v3M3 6v3" /></svg>
-          {{ 'nav.packages' | translate }}
-        </a>
-
-        <a routerLink="/admin/financials" routerLinkActive="bg-white/15 text-white" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 hover:text-white transition duration-200">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-1.971-.659-1.171-.879-1.171-2.303 0-3.182 1.172-.879 3.07-.879 4.242 0L15 9M1.5 12h21" /></svg>
-          أرباح وسحوبات المصممين
-        </a>
-
-        <a routerLink="/admin/settings" routerLinkActive="bg-white/15 text-white" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 hover:text-white transition duration-200">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
-          إعدادات النظام العامة
-        </a>
-
-        <a routerLink="/admin/meetings" routerLinkActive="bg-white/15 text-white" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 hover:text-white transition duration-200">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-          {{ 'nav.meetings' | translate }}
-        </a>
-
-        <a routerLink="/admin/audit-logs" routerLinkActive="bg-white/15 text-white" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 hover:text-white transition duration-200">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
-          {{ 'nav.auditLogs' | translate }}
-        </a>
-
-        <a routerLink="/admin/profile" routerLinkActive="bg-white/15 text-white" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 hover:text-white transition duration-200">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
-          الملف الشخصي
-        </a>
-
-        <a routerLink="/admin/support" routerLinkActive="bg-white/15 text-white" class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 hover:text-white transition duration-200">
-          <div class="flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.75.75 0 1 0 .75.75.75.75 0 0 0-.75-.75Zm6.75 0a.75.75 0 1 0 .75.75.75.75 0 0 0-.75-.75ZM12 2.25c-5.385 0-9.75 4.365-9.75 9.75 0 1.33.33 2.588.92 3.71.56 1.07 1.38 1.96 2.4 2.57l.72 3.39 3.15-1.58a11.8 11.8 0 0 0 2.56 0l3.15 1.58-.72-3.39c1.02-.61 1.84-1.5 2.4-2.57.59-1.122.92-2.38.92-3.71 0-5.385-4.365-9.75-9.75-9.75Z" /></svg>
-            <span>الدعم</span>
+      <!-- Logo Header -->
+      <div class="flex items-center justify-between pb-2 border-b border-white/10">
+        <a routerLink="/admin/analytics" class="flex items-center gap-3 group">
+          <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center p-2 group-hover:bg-white/20 transition-all duration-300 shadow-inner">
+            <img src="/logo.png" alt="BKR CAD" class="h-6 w-auto object-contain brightness-0 invert" />
           </div>
-          @if (unreadSupportCount() > 0) {
-            <span class="px-2 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full">
-              {{ unreadSupportCount() }}
-            </span>
-          }
+          <div class="flex flex-col">
+            <span class="text-sm font-black tracking-wide text-white">BKR CAD</span>
+            <span class="text-[10px] font-bold text-white/50 tracking-wider uppercase">{{ 'portal.admin' | translate }}</span>
+          </div>
         </a>
-      </nav>
-    </div>
-
-    <!-- Admin user info -->
-    <div class="flex flex-col gap-4 border-t border-white/10 pt-4">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center font-bold text-sm">
-          {{ authService.currentUser()?.fullName?.charAt(0) }}
-        </div>
-        <div class="flex flex-col overflow-hidden">
-          <span class="text-xs font-bold truncate">{{ authService.currentUser()?.fullName }}</span>
-          <span class="text-[10px] text-white/50">{{ authService.currentUser()?.roles?.join(', ') }}</span>
-        </div>
       </div>
-      <button (click)="logout()" class="flex items-center gap-2 text-xs font-bold text-red-400 hover:bg-red-500/10 p-2 rounded-xl transition duration-200">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
-        </svg>
-        {{ 'auth.logout' | translate }}
-      </button>
-    </div>
-  </aside>
 
-  <!-- Mobile Menu overlay -->
-  @if (isSidebarOpen()) {
-    <div class="fixed inset-0 bg-secondary/40 backdrop-blur-sm z-40 md:hidden" (click)="toggleSidebar()"></div>
-    <aside class="fixed top-0 bottom-0 right-0 w-64 bg-secondary text-white p-6 flex flex-col justify-between z-50 md:hidden">
-      <div class="flex flex-col gap-6">
-        <div class="flex items-center justify-between">
-          <span class="text-base font-bold">BKR CAD Admin</span>
-          <button (click)="toggleSidebar()" class="p-1 rounded-lg hover:bg-white/10">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+      <!-- Navigation Menu Groups -->
+      <nav class="flex flex-col gap-2">
+
+        <!-- 1. Analytics & Statistics Dashboard -->
+        <a routerLink="/admin/analytics"
+           routerLinkActive="bg-primary text-white font-black shadow-lg shadow-primary/30"
+           class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-primary-light">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+          </svg>
+          <span>{{ translationService.isRtl() ? 'لوحة الأحصائيات' : 'Analytics Dashboard' }}</span>
+        </a>
+
+        <!-- 2. GROUP: Users & Staff Management -->
+        @if (authService.hasPermission('ManageUsers')) {
+          <div class="flex flex-col gap-1 mt-2">
+            <button (click)="toggleGroup('users')" class="w-full flex items-center justify-between px-3.5 py-1.5 rounded-xl text-xs font-bold text-white/50 hover:bg-white/5 hover:text-white/80 transition-all">
+              <div class="flex items-center gap-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 text-blue-400">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                </svg>
+                <span>{{ translationService.isRtl() ? 'المستخدمين والموظفين' : 'Users & Staff' }}</span>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 transition-transform" [class.rotate-180]="isGroupOpen('users')">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+
+            @if (isGroupOpen('users')) {
+              <div class="flex flex-col gap-1 ms-3 ps-3 border-s border-white/10 animate-in slide-in-from-top-1 fade-in duration-200">
+                <a routerLink="/admin/employees"
+                   routerLinkActive="bg-white/15 text-white font-bold"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                  <span>{{ translationService.isRtl() ? 'إدارة الموظفين' : 'Employees Management' }}</span>
+                </a>
+                <a routerLink="/admin/users"
+                   routerLinkActive="bg-white/15 text-white font-bold"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                  <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                  <span>{{ 'nav.users' | translate }}</span>
+                </a>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- 3. GROUP: Orders & Operations -->
+        <div class="flex flex-col gap-1 mt-2">
+          <button (click)="toggleGroup('orders')" class="w-full flex items-center justify-between px-3.5 py-1.5 rounded-xl text-xs font-bold text-white/50 hover:bg-white/5 hover:text-white/80 transition-all">
+            <div class="flex items-center gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 text-emerald-400">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+              </svg>
+              <span>{{ translationService.isRtl() ? 'الطلبات والعمليات' : 'Orders & Operations' }}</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 transition-transform" [class.rotate-180]="isGroupOpen('orders')">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
           </button>
+
+          @if (isGroupOpen('orders')) {
+            <div class="flex flex-col gap-1 ms-3 ps-3 border-s border-white/10 animate-in slide-in-from-top-1 fade-in duration-200">
+              <a routerLink="/admin/orders"
+                 routerLinkActive="bg-white/15 text-white font-bold"
+                 class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span>{{ 'nav.orders' | translate }}</span>
+              </a>
+
+              @if (authService.hasPermission('ScheduleMeetings')) {
+                <a routerLink="/admin/meetings"
+                   routerLinkActive="bg-white/15 text-white font-bold"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                  <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                  <span>{{ 'nav.meetings' | translate }}</span>
+                </a>
+              }
+            </div>
+          }
         </div>
-        <nav class="flex flex-col gap-1" (click)="toggleSidebar()">
-          <a routerLink="/admin/dashboard" class="px-4 py-3 rounded-xl text-sm font-bold text-white/70 hover:bg-white/10 hover:text-white">{{ 'nav.dashboard' | translate }}</a>
-          <a routerLink="/admin/users" class="px-4 py-3 rounded-xl text-sm font-bold text-white/70 hover:bg-white/10 hover:text-white">{{ 'nav.users' | translate }}</a>
-          <a routerLink="/admin/orders" class="px-4 py-3 rounded-xl text-sm font-bold text-white/70 hover:bg-white/10 hover:text-white">{{ 'nav.orders' | translate }}</a>
-          <a routerLink="/admin/services" class="px-4 py-3 rounded-xl text-sm font-bold text-white/70 hover:bg-white/10 hover:text-white">{{ 'nav.services' | translate }}</a>
-          <a routerLink="/admin/packages" class="px-4 py-3 rounded-xl text-sm font-bold text-white/70 hover:bg-white/10 hover:text-white">{{ 'nav.packages' | translate }}</a>
-          <a routerLink="/admin/meetings" class="px-4 py-3 rounded-xl text-sm font-bold text-white/70 hover:bg-white/10 hover:text-white">{{ 'nav.meetings' | translate }}</a>
-          <a routerLink="/admin/audit-logs" class="px-4 py-3 rounded-xl text-sm font-bold text-white/70 hover:bg-white/10 hover:text-white">{{ 'nav.auditLogs' | translate }}</a>
-          <a routerLink="/admin/profile" class="px-4 py-3 rounded-xl text-sm font-bold text-white/70 hover:bg-white/10 hover:text-white">الملف الشخصي</a>
-          <a routerLink="/admin/support" class="px-4 py-3 rounded-xl text-sm font-bold text-white/70 hover:bg-white/10 hover:text-white flex items-center justify-between gap-3">
-            <span>الدعم</span>
+
+        <!-- NEW GROUP: Pricing (التسعير) -->
+        @if (authService.hasPermission('ManageServices')) {
+          <div class="flex flex-col gap-1 mt-2">
+            <button (click)="toggleGroup('pricing')" class="w-full flex items-center justify-between px-3.5 py-1.5 rounded-xl text-xs font-bold text-white/50 hover:bg-white/5 hover:text-white/80 transition-all">
+              <div class="flex items-center gap-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 text-teal-400">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+                </svg>
+                <span>{{ translationService.isRtl() ? 'التسعير والخدمات' : 'Pricing & Services' }}</span>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 transition-transform" [class.rotate-180]="isGroupOpen('pricing')">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+
+            @if (isGroupOpen('pricing')) {
+              <div class="flex flex-col gap-1 ms-3 ps-3 border-s border-white/10 animate-in slide-in-from-top-1 fade-in duration-200">
+                <a routerLink="/admin/services"
+                   routerLinkActive="bg-white/15 text-white font-bold"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                  <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
+                  <span>{{ 'nav.services' | translate }}</span>
+                </a>
+
+                <a routerLink="/admin/custom-pricing" [queryParams]="{ role: 'Doctor' }"
+                   routerLinkActive="bg-white/15 text-white font-bold"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                  <span>{{ translationService.isRtl() ? 'أسعار الأطباء (مخصص)' : 'Doctor Prices' }}</span>
+                </a>
+
+                <a routerLink="/admin/custom-pricing" [queryParams]="{ role: 'Designer' }"
+                   routerLinkActive="bg-white/15 text-white font-bold"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                  <span class="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
+                  <span>{{ translationService.isRtl() ? 'أسعار المصممين (مخصص)' : 'Designer Prices' }}</span>
+                </a>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- 4. GROUP: Financials & Payments -->
+        @if (authService.hasPermission('FinancialAdjustments') || authService.hasPermission('ManageDepositPackages')) {
+          <div class="flex flex-col gap-1 mt-2">
+            <button (click)="toggleGroup('finance')" class="w-full flex items-center justify-between px-3.5 py-1.5 rounded-xl text-xs font-bold text-white/50 hover:bg-white/5 hover:text-white/80 transition-all">
+              <div class="flex items-center gap-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 text-amber-400">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-1.971-.659-1.171-.879-1.171-2.303 0-3.182 1.172-.879 3.07-.879 4.242 0L15 9M1.5 12h21" />
+                </svg>
+                <span>{{ translationService.isRtl() ? 'المالية والمدفوعات' : 'Finance & Wallets' }}</span>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 transition-transform" [class.rotate-180]="isGroupOpen('finance')">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+
+            @if (isGroupOpen('finance')) {
+              <div class="flex flex-col gap-1 ms-3 ps-3 border-s border-white/10 animate-in slide-in-from-top-1 fade-in duration-200">
+                @if (authService.hasPermission('ManageDepositPackages')) {
+                  <a routerLink="/admin/packages"
+                     routerLinkActive="bg-white/15 text-white font-bold"
+                     class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    <span>{{ 'nav.packages' | translate }}</span>
+                  </a>
+                }
+
+                @if (authService.hasPermission('FinancialAdjustments')) {
+                  <a routerLink="/admin/financials"
+                     routerLinkActive="bg-white/15 text-white font-bold"
+                     class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                    <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                    <span>{{ translationService.isRtl() ? 'أرباح وسحوبات المصممين' : 'Designer Earnings' }}</span>
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- 5. GROUP: System & Security -->
+        @if (authService.isSuperAdmin()) {
+          <div class="flex flex-col gap-1 mt-2">
+            <button (click)="toggleGroup('system')" class="w-full flex items-center justify-between px-3.5 py-1.5 rounded-xl text-xs font-bold text-white/50 hover:bg-white/5 hover:text-white/80 transition-all">
+              <div class="flex items-center gap-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 text-rose-400">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+                <span>{{ translationService.isRtl() ? 'إعدادات النظام والأمان' : 'System & Security' }}</span>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 transition-transform" [class.rotate-180]="isGroupOpen('system')">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+
+            @if (isGroupOpen('system')) {
+              <div class="flex flex-col gap-1 ms-3 ps-3 border-s border-white/10 animate-in slide-in-from-top-1 fade-in duration-200">
+                <a routerLink="/admin/settings"
+                   routerLinkActive="bg-white/15 text-white font-bold"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                  <span>{{ translationService.isRtl() ? 'إعدادات النظام العامة' : 'General Settings' }}</span>
+                </a>
+                <a routerLink="/admin/audit-logs"
+                   routerLinkActive="bg-white/15 text-white font-bold"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                  <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                  <span>{{ 'nav.auditLogs' | translate }}</span>
+                </a>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- 6. Direct Support & Profile Links -->
+        <div class="pt-3 border-t border-white/10 flex flex-col gap-1">
+          <a routerLink="/admin/support"
+             routerLinkActive="bg-white/15 text-white font-black"
+             class="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+            <div class="flex items-center gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 text-emerald-300">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.75.75 0 1 0 .75.75.75.75 0 0 0-.75-.75Zm6.75 0a.75.75 0 1 0 .75.75.75.75 0 0 0-.75-.75ZM12 2.25c-5.385 0-9.75 4.365-9.75 9.75 0 1.33.33 2.588.92 3.71.56 1.07 1.38 1.96 2.4 2.57l.72 3.39 3.15-1.58a11.8 11.8 0 0 0 2.56 0l3.15 1.58-.72-3.39c1.02-.61 1.84-1.5 2.4-2.57.59-1.122.92-2.38.92-3.71 0-5.385-4.365-9.75-9.75-9.75Z" />
+              </svg>
+              <span>{{ translationService.isRtl() ? 'الدعم الفني والتذاكر' : 'Support Tickets' }}</span>
+            </div>
             @if (unreadSupportCount() > 0) {
-              <span class="px-2 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full">
+              <span class="px-2 py-0.5 text-[10px] font-black bg-rose-500 text-white rounded-full animate-pulse shadow-md">
                 {{ unreadSupportCount() }}
               </span>
             }
           </a>
+
+          <a routerLink="/admin/profile"
+             routerLinkActive="bg-white/15 text-white font-black"
+             class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 text-sky-300">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+            </svg>
+            <span>{{ translationService.isRtl() ? 'الملف الشخصي' : 'Profile' }}</span>
+          </a>
+        </div>
+
+      </nav>
+    </div>
+
+    <!-- Admin Profile Card & Logout -->
+    <div class="flex flex-col gap-3 border-t border-white/10 pt-4 mt-2">
+      <div class="flex items-center gap-3 bg-white/5 p-2.5 rounded-2xl border border-white/10">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-dark text-white flex items-center justify-center font-black text-sm shadow-md">
+          {{ authService.currentUser()?.fullName?.charAt(0) }}
+        </div>
+        <div class="flex flex-col overflow-hidden">
+          <span class="text-xs font-bold text-white truncate">{{ authService.currentUser()?.fullName }}</span>
+          <span class="text-[10px] text-white/50 truncate">{{ authService.currentUser()?.roles?.join(', ') }}</span>
+        </div>
+      </div>
+
+      <button (click)="logout()" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-300 hover:bg-rose-500/20 hover:text-rose-200 transition-all border border-rose-500/20">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+        </svg>
+        <span>{{ 'auth.logout' | translate }}</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       MOBILE DRAWER SIDEBAR
+  ========================================================================== -->
+  @if (isSidebarOpen()) {
+    <div class="fixed inset-0 bg-secondary/60 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200" (click)="toggleSidebar()"></div>
+    <aside class="fixed top-0 bottom-0 start-0 w-72 bg-secondary text-white p-6 flex flex-col justify-between z-50 md:hidden overflow-y-auto shadow-2xl">
+      <div class="flex flex-col gap-6">
+        <div class="flex items-center justify-between border-b border-white/10 pb-4">
+          <a routerLink="/admin/analytics" class="flex items-center gap-2">
+            <img src="/logo.png" alt="BKR CAD" class="h-7 w-auto object-contain brightness-0 invert" />
+            <span class="text-sm font-black tracking-wide text-white">BKR CAD</span>
+          </a>
+          <button (click)="toggleSidebar()" class="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <nav class="flex flex-col gap-2" (click)="toggleSidebar()">
+          <a routerLink="/admin/analytics" class="px-4 py-2.5 rounded-xl text-xs font-bold text-white/80 hover:bg-white/10 hover:text-white flex items-center gap-3">
+            <span>{{ translationService.isRtl() ? 'لوحة الأحصائيات' : 'Analytics Dashboard' }}</span>
+          </a>
+
+          @if (authService.hasPermission('ManageUsers')) {
+            <div class="text-[10px] font-black text-white/30 uppercase tracking-wider px-2 pt-2">{{ translationService.isRtl() ? 'المستخدمين والموظفين' : 'Users & Staff' }}</div>
+            <a routerLink="/admin/employees" class="px-4 py-2 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+              <span>إدارة الموظفين</span>
+            </a>
+            <a routerLink="/admin/users" class="px-4 py-2 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+              <span>{{ 'nav.users' | translate }}</span>
+            </a>
+          }
+
+          <div class="text-[10px] font-black text-white/30 uppercase tracking-wider px-2 pt-2">{{ translationService.isRtl() ? 'الطلبات والعمليات' : 'Orders & Operations' }}</div>
+          <a routerLink="/admin/orders" class="px-4 py-2 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>{{ 'nav.orders' | translate }}</span>
+          </a>
+
+          @if (authService.hasPermission('ManageServices')) {
+            <a routerLink="/admin/services" class="px-4 py-2 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
+              <span>{{ 'nav.services' | translate }}</span>
+            </a>
+          }
+
+          @if (authService.hasPermission('ScheduleMeetings')) {
+            <a routerLink="/admin/meetings" class="px-4 py-2 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+              <span>{{ 'nav.meetings' | translate }}</span>
+            </a>
+          }
+
+          @if (authService.hasPermission('FinancialAdjustments') || authService.hasPermission('ManageDepositPackages')) {
+            <div class="text-[10px] font-black text-white/30 uppercase tracking-wider px-2 pt-2">{{ translationService.isRtl() ? 'المالية والمدفوعات' : 'Finance & Wallets' }}</div>
+            @if (authService.hasPermission('ManageDepositPackages')) {
+              <a routerLink="/admin/packages" class="px-4 py-2 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                <span>{{ 'nav.packages' | translate }}</span>
+              </a>
+            }
+            @if (authService.hasPermission('FinancialAdjustments')) {
+              <a routerLink="/admin/financials" class="px-4 py-2 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                <span>أرباح وسحوبات المصممين</span>
+              </a>
+            }
+          }
+
+          @if (authService.isSuperAdmin()) {
+            <div class="text-[10px] font-black text-white/30 uppercase tracking-wider px-2 pt-2">{{ translationService.isRtl() ? 'النظام والأمان' : 'System & Security' }}</div>
+            <a routerLink="/admin/settings" class="px-4 py-2 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+              <span>إعدادات النظام</span>
+            </a>
+            <a routerLink="/admin/audit-logs" class="px-4 py-2 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+              <span>{{ 'nav.auditLogs' | translate }}</span>
+            </a>
+          }
+
+          <div class="pt-2 border-t border-white/10 mt-2">
+            <a routerLink="/admin/profile" class="px-4 py-2.5 rounded-xl text-xs font-bold text-white/80 hover:bg-white/10 hover:text-white">الملف الشخصي</a>
+            <a routerLink="/admin/support" class="px-4 py-2.5 rounded-xl text-xs font-bold text-white/80 hover:bg-white/10 hover:text-white flex items-center justify-between gap-3">
+              <span>الدعم الفني</span>
+              @if (unreadSupportCount() > 0) {
+                <span class="px-2 py-0.5 text-[10px] font-black bg-rose-500 text-white rounded-full">
+                  {{ unreadSupportCount() }}
+                </span>
+              }
+            </a>
+          </div>
         </nav>
       </div>
-      <button (click)="logout()" class="flex items-center gap-2 text-xs font-bold text-red-400 p-2 rounded-xl">{{ 'auth.logout' | translate }}</button>
+
+      <button (click)="logout()" class="w-full flex items-center justify-center gap-2 text-xs font-bold text-rose-300 bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+        </svg>
+        <span>{{ 'auth.logout' | translate }}</span>
+      </button>
     </aside>
   }
 
-  <!-- Viewport Area -->
-  <div class="flex-1 flex flex-col min-w-0">
-    <header class="h-16 bg-surface border-b border-border px-6 flex items-center justify-between z-20 flex-shrink-0">
-      <div class="flex items-center gap-4">
-        <button (click)="toggleSidebar()" class="md:hidden p-2 rounded-xl hover:bg-background text-secondary">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
-        </button>
-        <span class="text-sm font-bold text-secondary hidden md:inline">{{ 'portal.admin' | translate }}</span>
-      </div>
+  <!-- =========================================================================
+       MAIN CONTENT VIEWPORT & TOP TOOLBAR
+  ========================================================================== -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- Top Toolbar Header -->
+    <header class="h-16 bg-surface/90 backdrop-blur-md border-b border-border/80 px-6 flex items-center justify-between z-20 flex-shrink-0 shadow-sm">
+      
+      <!-- Left: Mobile Menu Toggle & Portal Title -->
       <div class="flex items-center gap-3">
-        <button (click)="translationService.toggleLanguage()" class="text-xs font-bold text-primary hover:bg-primary/10 p-2 rounded-xl transition duration-200">
-          {{ translationService.currentLang() === 'ar' ? 'English' : 'عربي' }}
+        <button (click)="toggleSidebar()" class="md:hidden p-2 rounded-xl bg-background hover:bg-border/60 text-secondary transition">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+        </button>
+        
+        <div class="hidden sm:flex items-center gap-2 bg-background/80 px-3.5 py-1.5 rounded-full border border-border/60">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-xs font-black text-secondary">{{ 'portal.admin' | translate }}</span>
+        </div>
+      </div>
+
+      <!-- Right: Controls (Language, Notifications, Profile Pill) -->
+      <div class="flex items-center gap-3">
+
+        <!-- Language Switcher Button -->
+        <button (click)="translationService.toggleLanguage()"
+                class="flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20 transition duration-200 shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9s2.015-9 4.5-9m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m-15.686-2.253c0-.778.099-1.533.284-2.253" />
+          </svg>
+          <span>{{ translationService.currentLang() === 'ar' ? 'English' : 'عربي' }}</span>
         </button>
 
-        <!-- Notifications Bell -->
+        <!-- Notifications Bell Button -->
         <div class="relative">
-          <button (click)="toggleNotif()" class="relative p-2 rounded-xl hover:bg-background text-secondary transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
+          <button (click)="toggleNotif()" class="relative p-2.5 rounded-xl bg-background hover:bg-border/60 text-secondary transition border border-border/50 shadow-sm">
+            <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
             @if (unreadCount() > 0) {
-              <span class="absolute -top-0.5 -end-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+              <span class="absolute -top-1 -end-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-md animate-pulse">
                 {{ unreadCount() > 9 ? '9+' : unreadCount() }}
               </span>
             }
           </button>
-          
-          <!-- Notifications Dropdown -->
+
+          <!-- Notifications Dropdown Panel -->
           @if (isNotifOpen()) {
-            <div class="absolute end-0 mt-2 w-80 bg-surface border border-border rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[28rem]">
-              <div class="p-4 border-b border-border flex items-center justify-between bg-background/50">
-                <span class="font-bold text-sm text-secondary">{{ translationService.currentLang() === 'ar' ? 'الإشعارات' : 'Notifications' }}</span>
+            <div class="fixed inset-0 z-40" (click)="toggleNotif()"></div>
+            <div class="absolute top-full end-0 mt-2 w-80 bg-surface border border-border/80 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-[28rem] animate-in fade-in slide-in-from-top-2 duration-200" [dir]="translationService.isRtl() ? 'rtl' : 'ltr'">
+              <div class="p-3.5 border-b border-border flex items-center justify-between bg-background/80">
+                <span class="font-black text-xs text-secondary tracking-wide uppercase">{{ translationService.currentLang() === 'ar' ? 'مركز الإشعارات' : 'Notifications Center' }}</span>
+                @if (unreadCount() > 0) {
+                  <span class="px-2 py-0.5 text-[10px] font-black bg-primary/10 text-primary rounded-full">
+                    {{ unreadCount() }} {{ translationService.currentLang() === 'ar' ? 'جديد' : 'new' }}
+                  </span>
+                }
               </div>
+
               <div class="overflow-y-auto flex-1 p-2">
                 @if (notificationService.notifications().length === 0) {
                   <div class="p-8 text-center flex flex-col items-center gap-2">
                     <svg class="w-8 h-8 text-secondary/20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
-                    <span class="text-xs font-bold text-secondary/40">{{ translationService.currentLang() === 'ar' ? 'لا توجد إشعارات' : 'No notifications' }}</span>
+                    <span class="text-xs font-bold text-secondary/40">{{ translationService.currentLang() === 'ar' ? 'لا توجد إشعارات حالياً' : 'No notifications' }}</span>
                   </div>
                 }
                 @for (notif of notificationService.notifications(); track notif.id) {
@@ -198,14 +457,21 @@
           }
         </div>
 
-        <div class="w-8 h-8 rounded-full brand-gradient flex items-center justify-center text-white font-bold text-xs">
-          {{ authService.currentUser()?.fullName?.charAt(0) }}
-        </div>
+        <!-- User Profile Avatar Pill -->
+        <a routerLink="/admin/profile" class="flex items-center gap-2 p-1.5 rounded-2xl hover:bg-background transition border border-transparent hover:border-border/60">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary-dark text-white flex items-center justify-center font-black text-xs shadow-md">
+            {{ authService.currentUser()?.fullName?.charAt(0) }}
+          </div>
+          <span class="text-xs font-bold text-secondary hidden lg:inline">{{ authService.currentUser()?.fullName }}</span>
+        </a>
+
       </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto p-6 sm:p-8">
+    <!-- Main Viewport Router Outlet -->
+    <main class="flex-1 overflow-y-auto p-6 sm:p-8 bg-background/50">
       <router-outlet></router-outlet>
     </main>
+
   </div>
 </div>

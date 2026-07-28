@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-background font-sans">
+<div class="min-h-screen bg-background font-sans" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
 
   <!-- ═══════════════════ HERO ═══════════════════ -->
   <section class="relative overflow-hidden brand-gradient text-text-onDark">
@@ -6,121 +6,199 @@
     <div class="absolute inset-0 bg-navy-deep/20 pointer-events-none"></div>
 
     <!-- Header -->
-    <header class="relative z-10 section-container py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 animate-fade-in">
-      <a routerLink="/" class="flex items-center gap-3">
-        <img src="/logo.png" alt="BKR CAD" class="h-12 sm:h-16 w-auto object-contain" />
+    <!-- White-to-transparent gradient at top for the header area -->
+    <div class="absolute top-0 inset-x-0 h-28 sm:h-32 bg-gradient-to-b from-white/40 via-white/15 to-transparent pointer-events-none z-0"></div>
+
+<!-- Header -->
+<!-- خلفية بيضاء واضحة أعلى الصفحة عشان يبرز اللوجو -->
+<div class="absolute top-0 inset-x-0 h-16 sm:h-20 bg-white shadow-sm pointer-events-none z-0"></div>
+<header class="relative z-10 section-container py-1 sm:py-1 flex flex-row items-center justify-between gap-3 sm:gap-4 animate-fade-in">
+  <!-- Logo -->
+  <a routerLink="/" class="flex items-center gap-2 flex-shrink-0">
+    <img src="/logo.png" alt="BKR CAD" class="h-16 sm:h-18 w-auto object-contain" />
+  </a>
+
+  <!-- Nav Buttons -->
+  <nav class="flex items-center gap-2 sm:gap-3">
+    @if (!isLoggedIn) {
+      <a routerLink="/auth/login"
+         class="inline-flex items-center justify-center h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm font-bold text-secondary/80 hover:text-secondary hover:bg-secondary/5 transition-colors">
+        {{ t('home.login') }}
       </a>
-      <nav class="flex items-center gap-3">
+      <a routerLink="/auth/register"
+         class="inline-flex items-center justify-center h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary/90 shadow-md transition-colors">
+        {{ t('home.join') }}
+      </a>
+    } @else {
+      <a [routerLink]="dashboardLink"
+         class="inline-flex items-center justify-center h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm font-bold text-secondary/80 hover:text-secondary hover:bg-secondary/5 transition-colors">
+        {{ t('home.dashboard') }}
+      </a>
+      <button (click)="logout()"
+         class="inline-flex items-center justify-center h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm font-bold bg-secondary/5 border border-secondary/15 text-secondary hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-colors">
+        تسجيل خروج
+      </button>
+    }
+  </nav>
+</header>
+
+<!-- Hero Content -->
+<!-- Hero Content -->
+<div class="relative z-10 section-container pb-10 pt-4 sm:pb-20 sm:pt-8 lg:pt-14">
+  <div class="grid lg:grid-cols-[1.35fr_1fr] gap-10 lg:gap-20 items-center">
+
+    <!-- Text -->
+    <div class="animate-stagger text-center lg:text-start order-2 lg:order-none">
+      <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2 mb-4 sm:mb-7">
+        <span class="inline-flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-accent-light bg-white/10 border border-white/15 rounded-full px-3 sm:px-4 py-1 sm:py-1.5">
+          <span class="w-2 h-2 rounded-full bg-accent animate-pulse-soft"></span>
+          {{ t('home.heroEyebrow') }}
+        </span>
+
+        <button
+          type="button"
+          (click)="i18n.toggleLanguage()"
+          class="inline-flex h-7 sm:h-8 items-center gap-1.5 rounded-lg border border-white/25 bg-white/10 px-2 sm:px-2.5 text-[10px] sm:text-[11px] font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+          [attr.aria-label]="i18n.currentLang() === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'"
+        >
+          <i class="bi bi-translate text-xs"></i>
+          {{ i18n.currentLang() === 'ar' ? 'English' : 'عربي' }}
+        </button>
+      </div>
+
+      <!-- Bigger Title -->
+      <h1 class="text-3xl sm:text-2xl lg:text-[2.5rem] xl:text-[2.3rem] font-bold leading-[1.1] mb-5 sm:mb-8 text-white">
+        {{ t('home.heroTitle') }}
+      </h1>
+
+      <!-- Bigger Description -->
+      <p class="hidden sm:block text-xl lg:text-3xl text-text-onDark/85 leading-relaxed mb-8 sm:mb-10 max-w-3xl mx-auto lg:mx-0">
+        {{ t('home.heroDescription') }}
+      </p>
+
+      <p class="sm:hidden text-base text-text-onDark/80 leading-relaxed mb-6 max-w-sm mx-auto line-clamp-2">
+        {{ t('home.heroDescription') }}
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start mb-8 sm:mb-12">
         @if (!isLoggedIn) {
-          <a routerLink="/auth/login" class="btn-ghost btn-md text-text-onDark/80 hover:text-white hover:bg-white/10">
-            تسجيل دخول
+          <a
+            routerLink="/auth/login"
+            class="btn btn-lg sm:btn-xl bg-white text-secondary hover:bg-white/90 shadow-elevated"
+          >
+            <i class="bi bi-cloud-arrow-up"></i>
+            {{ t('home.newCase') }}
           </a>
-          <a routerLink="/auth/register" class="btn btn-md bg-white/10 border border-white/25 text-white hover:bg-white/20 backdrop-blur-sm">
-            انضم إلينا
+
+          <a
+            routerLink="/auth/register"
+            [queryParams]="{ type: 'designer' }"
+            class="btn btn-lg sm:btn-xl bg-accent text-secondary border border-accent/80 hover:bg-accent/90 shadow-primary"
+          >
+            <i class="bi bi-pencil-square"></i>
+            {{ t('home.joinDesigner') }}
           </a>
         } @else {
-          <a [routerLink]="dashboardLink" class="btn-ghost btn-md text-text-onDark/80 hover:text-white hover:bg-white/10">
+          <a [routerLink]="dashboardLink" class="btn-primary btn-lg sm:btn-xl shadow-primary">
+            <i class="bi bi-grid-fill"></i>
             لوحة التحكم
           </a>
-          <button (click)="logout()" class="btn btn-md bg-white/10 border border-white/25 text-white hover:bg-rose-500/80 hover:border-rose-500 backdrop-blur-sm transition">
-            تسجيل خروج
-          </button>
         }
-      </nav>
-    </header>
+      </div>
 
-    <!-- Hero Content -->
-    <div class="relative z-10 section-container pb-10 pt-4 sm:pb-20 sm:pt-8 lg:pt-12">
-      <div class="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+      <!-- Trust badges -->
+      <div class="hidden sm:flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-3 mb-10 sm:mb-12 text-sm sm:text-base">
+        <span class="inline-flex items-center gap-1.5 text-text-onDark/80">
+          <i class="bi bi-lightning-charge-fill text-accent"></i>
+          <span class="text-text-onDark/60">{{ t('home.badgeTurnaroundLabel') }}:</span>
+          <span class="font-bold text-white">{{ t('home.badgeTurnaroundValue') }}</span>
+        </span>
 
-        <!-- Text -->
-        <div class="animate-stagger text-center lg:text-start">
-          <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent-light bg-white/10 border border-white/15 rounded-full px-4 py-1.5 mb-4 sm:mb-6">
-            <span class="w-2 h-2 rounded-full bg-accent animate-pulse-soft"></span>
-            منصة متكاملة لتصميم التركيبات السنية
-          </span>
+        <span class="hidden sm:inline text-white/20">|</span>
 
-          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6 text-white">
-            منصة
-            <span class="text-gradient"> BKR CAD </span>
-            لتصميم الأسنان الرقمي
-          </h1>
+        <span class="inline-flex items-center gap-1.5 text-text-onDark/80">
+          <i class="bi bi-bullseye text-accent"></i>
+          <span class="text-text-onDark/60">{{ t('home.badgeFitLabel') }}:</span>
+          <span class="font-bold text-white">{{ t('home.badgeFitValue') }}</span>
+        </span>
 
-          <p class="text-base sm:text-xl text-text-onDark/80 leading-relaxed mb-6 sm:mb-8 max-w-xl mx-auto lg:mx-0">
-            تربط العيادات والأطباء بمصممي CAD المحترفين ومعامل التصنيع — لإدارة الحالات ومتابعة التصاميم وتسليم ملفات STL بدقة عالية.
-          </p>
+        <span class="hidden sm:inline text-white/20">|</span>
 
-          <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-8 sm:mb-12">
-            @if (!isLoggedIn) {
-              <a routerLink="/auth/register" class="btn-primary btn-lg shadow-primary">
-                <i class="bi bi-plus-lg"></i>
-                ابدأ حالة جديدة
-              </a>
-              <a routerLink="/auth/login" class="btn btn-lg bg-white/10 border border-white/25 text-white hover:bg-white/20 backdrop-blur-sm">
-                <i class="bi bi-play-circle"></i>
-                شاهد كيف تعمل
-              </a>
-            } @else {
-              <a [routerLink]="dashboardLink" class="btn-primary btn-lg shadow-primary">
-                <i class="bi bi-grid-fill"></i>
-                لوحة التحكم
-              </a>
-            }
-          </div>
+        <span class="inline-flex items-center gap-1.5 text-text-onDark/80">
+          <i class="bi bi-unlock-fill text-accent"></i>
+          <span class="text-text-onDark/60">{{ t('home.badgeFormatsLabel') }}:</span>
+          <span class="font-bold text-white">{{ t('home.badgeFormatsValue') }}</span>
+        </span>
 
-          <!-- Stats -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-            @for (stat of stats; track stat.label) {
-              <div class="rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm p-3 sm:p-4 text-center hover:bg-white/15 transition-colors">
-                <p class="text-lg sm:text-2xl font-bold text-white">{{ stat.value }}</p>
-                <p class="text-xs text-text-onDark/70 mt-1">{{ stat.label }}</p>
-              </div>
-            }
-          </div>
-        </div>
+        <span class="hidden sm:inline text-white/20">|</span>
 
-        <!-- Hero Visual (desktop only) -->
-        <div class="animate-slide-in-right hidden lg:block">
-          <div class="relative">
-            <div class="absolute -inset-4 bg-accent/10 rounded-4xl blur-2xl"></div>
-            <div class="relative card-glass p-8 text-white">
-              <p class="text-xs font-bold uppercase tracking-widest text-accent-light mb-2">خدماتنا الأبرز</p>
-              <h2 class="text-2xl font-bold text-white mb-6">حلول تصميم كاملة بتركيز احترافي</h2>
+        <span class="inline-flex items-center gap-1.5 text-text-onDark/80">
+          <i class="bi bi-shield-check text-accent"></i>
+          <span class="font-bold text-white">{{ t('home.badgeComplianceValue') }}</span>
+        </span>
+      </div>
 
-              <div class="space-y-4">
-                <div class="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                  <div class="w-10 h-10 rounded-xl bg-primary/30 flex items-center justify-center shrink-0">
-                    <i class="bi bi-shield-check text-accent-light"></i>
-                  </div>
-                  <div>
-                    <p class="font-bold text-sm">إدارة الجودة والإشراف</p>
-                    <p class="text-xs text-text-onDark/70 mt-1">فريق مراقبة يضمن دقة كل STL قبل التصنيع</p>
-                  </div>
-                </div>
-                <div class="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                  <div class="w-10 h-10 rounded-xl bg-primary/30 flex items-center justify-center shrink-0">
-                    <i class="bi bi-pencil-square text-accent-light"></i>
-                  </div>
-                  <div>
-                    <p class="font-bold text-sm">مصممو CAD للأسنان</p>
-                    <p class="text-xs text-text-onDark/70 mt-1">مصممون معتمدون بخبرة واسعة في التراكيب</p>
-                  </div>
-                </div>
-                <div class="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                  <div class="w-10 h-10 rounded-xl bg-primary/30 flex items-center justify-center shrink-0">
-                    <i class="bi bi-diagram-3-fill text-accent-light"></i>
-                  </div>
-                  <div>
-                    <p class="font-bold text-sm">ربط العيادات والمعامل</p>
-                    <p class="text-xs text-text-onDark/70 mt-1">تدفق عمل موحد بين جميع الأطراف</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- Stats -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+  @for (stat of stats; track stat.label; let index = $index) {
+    <div
+      class="flex flex-col items-center justify-center rounded-xl sm:rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm p-3 sm:p-5 text-center hover:bg-white/15 transition-colors min-h-[100px] sm:min-h-[120px]"
+    >
+      <p class="text-xl sm:text-3xl font-bold text-white tabular-nums leading-tight">
+        {{ formatStat(index) }}
+      </p>
+      <p class="text-xs sm:text-sm text-text-onDark/70 mt-1.5 sm:mt-2 leading-snug">
+        {{ t(stat.label) }}
+      </p>
+    </div>
+  }
+</div>
+    </div>
+
+    <!-- Hero Visual -->
+    <div class="animate-slide-in-right order-1 lg:order-none">
+      <style>
+        @keyframes toothFloat {
+          0%, 100% {
+            transform: translateY(0) scale(1);
+          }
+          50% {
+            transform: translateY(-20px) scale(1.05);
+          }
+        }
+
+        @keyframes glowPulse {
+          0%, 100% {
+            opacity: 0.45;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.9;
+            transform: scale(1.15);
+          }
+        }
+      </style>
+
+      <div class="relative mx-auto max-w-2xl flex items-center justify-center">
+
+        <!-- Glow -->
+        <div
+          class="absolute inset-0 m-auto w-72 h-72 sm:w-[30rem] sm:h-[30rem] lg:w-[38rem] lg:h-[38rem] rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.45)_0%,rgba(56,189,248,0.1)_45%,transparent_70%)] blur-3xl"
+          style="animation: glowPulse 4.5s ease-in-out infinite;"
+        ></div>
+
+        <!-- Tooth -->
+        <img
+          src="/hero.png"
+          alt="{{ t('home.specsTypeValue') }}"
+          class="relative z-10 w-72 h-72 sm:w-[32rem] sm:h-[32rem] lg:w-[42rem] lg:h-[42rem] object-contain drop-shadow-[0_0_80px_rgba(56,189,248,0.75)]"
+          style="animation: toothFloat 5s ease-in-out infinite;"
+        />
       </div>
     </div>
+
+  </div>
+</div>
 
     <!-- Wave divider -->
     <div class="absolute bottom-0 inset-x-0">
@@ -134,10 +212,10 @@
   <section class="py-12 lg:py-28">
     <div class="section-container">
       <div class="text-center mb-8 lg:mb-14">
-        <span class="eyebrow mb-4">المميزات</span>
-        <h2 class="section-heading mt-4 mb-3 lg:mb-4">منصة واحدة لجميع أطراف سلسلة التصميم</h2>
+        <span class="eyebrow mb-4">{{ t('home.featuresEyebrow') }}</span>
+        <h2 class="section-heading mt-4 mb-3 lg:mb-4">{{ t('home.featuresTitle') }}</h2>
         <p class="section-subheading mx-auto">
-          أدوات متخصصة لكل دور — من رفع الحالة في العيادة إلى تسليم ملف STL جاهز للتصنيع.
+          {{ t('home.featuresDescription') }}
         </p>
       </div>
 
@@ -148,13 +226,13 @@
                  [class]="feature.color">
               <i [class]="'bi ' + feature.icon"></i>
             </div>
-            <h3 class="text-xl font-bold text-text-primary mb-2 lg:mb-3">{{ feature.title }}</h3>
-            <p class="text-sm text-text-secondary leading-relaxed mb-4 lg:mb-5 flex-1">{{ feature.description }}</p>
+            <h3 class="text-xl font-bold text-text-primary mb-2 lg:mb-3">{{ t(feature.title) }}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed mb-4 lg:mb-5 flex-1">{{ t(feature.description) }}</p>
             <ul class="space-y-2 mb-5 lg:mb-6">
               @for (item of feature.items; track item) {
                 <li class="flex items-center gap-2 text-sm text-text-secondary">
                   <i class="bi bi-check-circle-fill text-success shrink-0"></i>
-                  {{ item }}
+                  {{ t(item) }}
                 </li>
               }
             </ul>
@@ -172,10 +250,10 @@
   <section class="py-12 lg:py-28 bg-surface border-y border-border">
     <div class="section-container">
       <div class="text-center mb-8 lg:mb-14">
-        <span class="eyebrow mb-4">رحلة العمل</span>
-        <h2 class="section-heading mt-4 mb-3 lg:mb-4">من الحالة إلى ملف STL في 5 خطوات</h2>
+        <span class="eyebrow mb-4">{{ t('home.workflowEyebrow') }}</span>
+        <h2 class="section-heading mt-4 mb-3 lg:mb-4">{{ t('home.workflowTitle') }}</h2>
         <p class="section-subheading mx-auto">
-          تدفق عمل واضح يربط العيادة بالمصمم وفريق الجودة — بشفافية كاملة في كل مرحلة.
+          {{ t('home.workflowDescription') }}
         </p>
       </div>
 
@@ -183,7 +261,7 @@
         <!-- Connection line (desktop) -->
         <div class="hidden lg:block absolute top-16 inset-x-0 h-0.5 bg-gradient-to-l from-primary/20 via-primary to-primary/20"></div>
 
-        <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-5 lg:gap-6">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
           @for (step of workflow; track step.step) {
             <div class="relative text-center group">
               <div class="relative z-10 w-14 h-14 lg:w-16 lg:h-16 mx-auto rounded-2xl brand-gradient flex items-center justify-center text-white text-xl shadow-primary mb-3 lg:mb-4 group-hover:scale-105 transition-transform">
@@ -192,8 +270,8 @@
               <span class="text-xs font-bold text-primary bg-primary-50 border border-primary-100 rounded-full px-2.5 py-0.5">
                 {{ step.step }}
               </span>
-              <h3 class="text-base font-bold text-text-primary mt-2.5 lg:mt-3 mb-1.5 lg:mb-2">{{ step.title }}</h3>
-              <p class="text-sm text-text-secondary leading-relaxed">{{ step.description }}</p>
+              <h3 class="text-base font-bold text-text-primary mt-2.5 lg:mt-3 mb-1.5 lg:mb-2">{{ t(step.title) }}</h3>
+              <p class="text-sm text-text-secondary leading-relaxed">{{ t(step.description) }}</p>
             </div>
           }
         </div>
@@ -201,19 +279,21 @@
     </div>
   </section>
 
+  <app-services-map></app-services-map>
+
   <!-- ═══════════════════ VALUE PROPS ═══════════════════ -->
   <section class="py-12 lg:py-28">
     <div class="section-container">
       <div class="grid lg:grid-cols-2 gap-8 lg:gap-20 items-center">
         <div>
-          <span class="eyebrow mb-4">لماذا BKR CAD؟</span>
-          <h2 class="section-heading mt-4 mb-4 lg:mb-6">أدوات ذكية لإدارة التصميم والتواصل وجودة النتائج</h2>
+          <span class="eyebrow mb-4">{{ t('home.whyUs') }}</span>
+          <h2 class="section-heading mt-4 mb-4 lg:mb-6">{{ t('home.valueTitle') }}</h2>
           <p class="text-text-secondary leading-relaxed mb-6 lg:mb-8">
-            منصة BKR CAD توفر تدفق عمل موحد بين العيادة والمصمم ومعمل التصنيع، مع أدوات شفافة لتسليم حالات STL وإنشاء تصميمات دقيقة مطابقة للمعايير الطبية.
+            {{ t('home.valueDescription') }}
           </p>
           <a routerLink="/auth/register" class="btn-primary btn-lg">
             <i class="bi bi-rocket-takeoff"></i>
-            ابدأ مجاناً
+            {{ t('home.startFree') }}
           </a>
         </div>
 
@@ -223,8 +303,8 @@
               <i class="bi bi-cpu-fill"></i>
             </div>
             <div>
-              <h4 class="font-bold text-text-primary mb-1">توجيه ذكي للحالات</h4>
-              <p class="text-sm text-text-secondary">نظام توجيه يقلل الأخطاء ويوجه الحالة إلى القسم المناسب بسرعة.</p>
+              <h4 class="font-bold text-text-primary mb-1">{{ t('home.smartCaseRouting') }}</h4>
+              <p class="text-sm text-text-secondary">{{ t('home.smartCaseRoutingDesc') }}</p>
             </div>
           </div>
           <div class="card flex gap-4 items-start hover:shadow-card-hover transition-shadow">
@@ -232,8 +312,8 @@
               <i class="bi bi-shield-lock-fill"></i>
             </div>
             <div>
-              <h4 class="font-bold text-text-primary mb-1">خصوصية وأمان</h4>
-              <p class="text-sm text-text-secondary">تشفير بيانات المرضى والملفات طوال دورة العمل لحماية المعلومات الطبية.</p>
+              <h4 class="font-bold text-text-primary mb-1">{{ t('home.privacySecurity') }}</h4>
+              <p class="text-sm text-text-secondary">{{ t('home.privacySecurityDesc') }}</p>
             </div>
           </div>
           <div class="card flex gap-4 items-start hover:shadow-card-hover transition-shadow">
@@ -241,8 +321,8 @@
               <i class="bi bi-people-fill"></i>
             </div>
             <div>
-              <h4 class="font-bold text-text-primary mb-1">تواصل فوري</h4>
-              <p class="text-sm text-text-secondary">اجتماعات ومراجعات في الوقت الحقيقي مع الفريق الطبي لتأكيد التفاصيل.</p>
+              <h4 class="font-bold text-text-primary mb-1">{{ t('home.instantCommunication') }}</h4>
+              <p class="text-sm text-text-secondary">{{ t('home.instantCommunicationDesc') }}</p>
             </div>
           </div>
         </div>
@@ -255,28 +335,28 @@
     <div class="section-container">
       <div class="text-center mb-8 lg:mb-14">
         <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent-light bg-white/10 border border-white/15 rounded-full px-4 py-1.5 mb-4">
-          آراء العملاء
+          {{ t('home.testimonialsEyebrow') }}
         </span>
-        <h2 class="text-2xl sm:text-4xl font-bold text-white mt-4 mb-3 lg:mb-4">يثق بنا محترفون في مجال الأسنان</h2>
-        <p class="text-base lg:text-lg text-white/70 max-w-2xl mx-auto">تجارب حقيقية من عيادات ومصممين يستخدمون المنصة يومياً.</p>
+        <h2 class="text-2xl sm:text-4xl font-bold text-white mt-4 mb-3 lg:mb-4">{{ t('home.testimonialsTitle') }}</h2>
+        <p class="text-base lg:text-lg text-white/70 max-w-2xl mx-auto">{{ t('home.testimonialsDescription') }}</p>
       </div>
 
       <div class="grid md:grid-cols-3 gap-5 lg:gap-6">
-        @for (t of testimonials; track t.name) {
+        @for (testimonial of testimonials; track testimonial.name) {
           <blockquote class="rounded-2xl bg-white/5 border border-white/10 p-5 lg:p-6 hover:bg-white/10 transition-colors flex flex-col">
             <div class="flex gap-1 text-accent mb-3 lg:mb-4">
               @for (star of [1,2,3,4,5]; track star) {
                 <i class="bi bi-star-fill text-sm"></i>
               }
             </div>
-            <p class="text-sm text-white/85 leading-relaxed flex-1 mb-5 lg:mb-6">"{{ t.quote }}"</p>
+            <p class="text-sm text-white/85 leading-relaxed flex-1 mb-5 lg:mb-6">"{{ t(testimonial.quote) }}"</p>
             <div class="flex items-center gap-3 pt-3 lg:pt-4 border-t border-white/10">
               <div class="w-10 h-10 rounded-full brand-gradient flex items-center justify-center font-bold text-sm">
-                {{ t.avatar }}
+                {{ testimonial.avatar }}
               </div>
               <div>
-                <p class="font-bold text-sm text-white">{{ t.name }}</p>
-                <p class="text-xs text-white/60">{{ t.role }}</p>
+                <p class="font-bold text-sm text-white">{{ testimonial.name }}</p>
+                <p class="text-xs text-white/60">{{ t(testimonial.role) }}</p>
               </div>
             </div>
           </blockquote>
@@ -291,23 +371,21 @@
       <div class="relative overflow-hidden rounded-3xl brand-gradient p-7 sm:p-10 lg:p-14 text-center text-white">
         <div class="absolute inset-0 bg-hero-mesh pointer-events-none"></div>
         <div class="relative z-10 max-w-2xl mx-auto">
-          <h2 class="text-2xl sm:text-4xl font-bold mb-3 lg:mb-4">جاهز لتحويل سير عملك؟</h2>
-          <p class="text-base lg:text-lg text-white/80 mb-6 lg:mb-8">
-            انضم إلى مئات العيادات والمصممين الذين يعتمدون على BKR CAD لإدارة تصاميمهم الرقمية.
-          </p>
+          <h2 class="text-2xl sm:text-4xl font-bold mb-3 lg:mb-4">{{ t('home.ctaTitle') }}</h2>
+          <p class="text-base lg:text-lg text-white/80 mb-6 lg:mb-8">{{ t('home.ctaDescription') }}</p>
           <div class="flex flex-col sm:flex-row gap-3 justify-center">
             @if (!isLoggedIn) {
               <a routerLink="/auth/register" class="btn btn-xl bg-white text-secondary hover:bg-white/90 shadow-elevated">
                 <i class="bi bi-person-plus"></i>
-                إنشاء حساب مجاني
+                {{ t('home.createFreeAccount') }}
               </a>
               <a routerLink="/auth/login" class="btn btn-xl bg-white/10 border border-white/25 text-white hover:bg-white/20">
-                تسجيل الدخول
+                {{ t('home.login') }}
               </a>
             } @else {
               <a [routerLink]="dashboardLink" class="btn btn-xl bg-white text-secondary hover:bg-white/90 shadow-elevated">
                 <i class="bi bi-grid-fill"></i>
-                الذهاب للوحة التحكم
+                {{ t('home.goDashboard') }}
               </a>
             }
           </div>
@@ -324,7 +402,7 @@
         <div class="sm:col-span-2 lg:col-span-1">
           <img src="/logo.png" alt="BKR CAD" class="h-12 w-auto mb-4" />
           <p class="text-sm text-text-onDark/60 leading-relaxed mb-5">
-            منصة رقمية تربط العيادات والمعامل بفريق مصممي CAD المحترفين لإدارة حالات تركيبات الأسنان بدقة وسرعة.
+            {{ t('home.footerDescription') }}
           </p>
           <div class="flex gap-3">
             @for (social of ['instagram', 'linkedin', 'twitter-x', 'whatsapp']; track social) {
@@ -336,16 +414,16 @@
         </div>
 
         <div>
-          <p class="text-sm font-bold text-white mb-4">روابط سريعة</p>
+          <p class="text-sm font-bold text-white mb-4">{{ t('home.quickLinks') }}</p>
           <ul class="space-y-2.5">
-            @for (link of [{l:'الرئيسية',r:'/'},{l:'من نحن',r:'/'},{l:'خدماتنا',r:'/'},{l:'انضم إلينا',r:'/auth/register'}]; track link.l) {
-              <li><a [routerLink]="link.r" class="text-sm text-text-onDark/60 hover:text-accent-light transition-colors">{{ link.l }}</a></li>
+            @for (link of [{l:'home.dashboard',r:'/'},{l:'home.about',r:'/'},{l:'home.services',r:'/'},{l:'home.join',r:'/auth/register'}]; track link.l) {
+              <li><a [routerLink]="link.r" class="text-sm text-text-onDark/60 hover:text-accent-light transition-colors">{{ t(link.l) }}</a></li>
             }
           </ul>
         </div>
 
         <div>
-          <p class="text-sm font-bold text-white mb-4">تواصل معنا</p>
+          <p class="text-sm font-bold text-white mb-4">{{ t('home.contact') }}</p>
           <ul class="space-y-3 text-sm text-text-onDark/60">
             <li class="flex items-center gap-2"><i class="bi bi-envelope-fill text-accent"></i> support&#64;bkrcad.com</li>
             <li class="flex items-center gap-2"><i class="bi bi-telephone-fill text-accent"></i> +966 00 000 0000</li>
@@ -355,10 +433,10 @@
       </div>
 
       <div class="border-t border-white/10 pt-5 lg:pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 lg:gap-4">
-        <p class="text-xs text-text-onDark/50">© 2026 BKR CAD. جميع الحقوق محفوظة.</p>
+        <p class="text-xs text-text-onDark/50">{{ t('home.copyright') }}</p>
         <div class="flex gap-5">
-          <a routerLink="/" class="text-xs text-text-onDark/50 hover:text-accent-light transition-colors">سياسة الخصوصية</a>
-          <a routerLink="/" class="text-xs text-text-onDark/50 hover:text-accent-light transition-colors">الشروط والأحكام</a>
+          <a routerLink="/" class="text-xs text-text-onDark/50 hover:text-accent-light transition-colors">{{ t('home.privacy') }}</a>
+          <a routerLink="/" class="text-xs text-text-onDark/50 hover:text-accent-light transition-colors">{{ t('home.terms') }}</a>
         </div>
       </div>
     </div>

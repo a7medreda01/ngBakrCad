@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 import { catchError, switchMap, throwError, BehaviorSubject, filter, take } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { ToastService } from '../services/toast.service';
 
 // Variables for managing token refresh state across concurrent requests
 let isRefreshing = false;
@@ -16,6 +17,7 @@ export const refreshTokenInterceptor: HttpInterceptorFn = (req, next) => {
   const http = inject(HttpClient);
   const router = inject(Router);
   const auth = inject(AuthService);
+  const toast = inject(ToastService);
   const apiUrl = environment.apiUrl;
 
   return next(req).pipe(
@@ -81,6 +83,7 @@ export const refreshTokenInterceptor: HttpInterceptorFn = (req, next) => {
             catchError((refreshErr) => {
               isRefreshing = false;
               refreshTokenSubject.next(null);
+              toast.warning('تم تسجيل الخروج لأن الحساب تم فتحه من جهاز آخر.');
               auth.logout();
               return throwError(() => refreshErr);
             })

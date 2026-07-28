@@ -11,7 +11,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       if (error instanceof HttpErrorResponse) {
         let errorMsg = 'عذراً، حدث خطأ في الاتصال بالخادم.'; // Default Arabic error
         
-        if (error.error && error.error.message) {
+        if (error.status === 403) {
+          errorMsg = error.error?.message || 'عذراً، لا تملك الصلاحيات الكافية للوصول إلى هذه البيانات أو للقيام بهذه العملية.';
+        } else if (error.error && error.error.message) {
           errorMsg = error.error.message;
         } else if (error.error && typeof error.error === 'string') {
           try {

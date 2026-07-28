@@ -1,17 +1,22 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { TranslationService } from '../../core/services/translation.service';
+import { ServicesMapComponent } from '../../shared/components/services-map/services-map.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ServicesMapComponent],
   templateUrl: './home.component.html',
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit, OnDestroy {
   readonly authService = inject(AuthService);
   readonly router = inject(Router);
+  readonly i18n = inject(TranslationService);
+  readonly animatedStats = signal([0, 0, 0, 0]);
+  private animationFrameId?: number;
 
   get isLoggedIn(): boolean {
     return this.authService.currentUser() !== null;
@@ -30,93 +35,128 @@ export class HomeComponent {
   logout(): void {
     this.authService.logout();
   }
+
+  t(key: string): string {
+    return this.i18n.translate(key);
+  }
+
   readonly stats = [
-    { value: '4,820+', label: 'حالة تم تسليمها' },
-    { value: '2.5 س', label: 'متوسط وقت التسليم' },
-    { value: '99.8%', label: 'نسبة قبول الجودة' },
-    { value: '350+', label: 'عيادة ومختبر شريك' },
+    { target: 4820, decimals: 0, suffix: '+', label: 'home.deliveredCases' },
+    { target:45, decimals: 0, suffix: 'home.hoursShort', label: 'home.averageDelivery' },
+    { target: 99.8, decimals: 1, suffix: '%', label: 'home.qualityRate' },
+    { target: 350, decimals: 0, suffix: '+', label: 'home.partnerClinics' },
   ];
+
+  ngOnInit(): void {
+    const startTime = performance.now();
+    const duration = 1400;
+
+    const animate = (timestamp: number) => {
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      this.animatedStats.set(this.stats.map(stat => stat.target * easedProgress));
+
+      if (progress < 1) {
+        this.animationFrameId = requestAnimationFrame(animate);
+      }
+    };
+
+    this.animationFrameId = requestAnimationFrame(animate);
+  }
+
+  ngOnDestroy(): void {
+    if (this.animationFrameId !== undefined) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+  }
+
+  formatStat(index: number): string {
+    const stat = this.stats[index];
+    const suffix = stat.suffix.startsWith('home.') ? this.t(stat.suffix) : stat.suffix;
+    return `${this.animatedStats()[index].toLocaleString('en-US', {
+      minimumFractionDigits: stat.decimals,
+      maximumFractionDigits: stat.decimals
+    })}${suffix}`;
+  }
 
   readonly features = [
     {
       icon: 'bi-hospital',
       color: 'bg-primary-50 text-primary border-primary-100',
-      title: 'عيادات ومختبرات الأسنان',
-      description: 'أرسل ملفات STL و OBJ بسهولة، وتابع حالة التصميم من الرفع حتى الإنتاج.',
-      items: ['رفع ملفات آمن وسريع', 'تتبع مرحلة التصميم', 'تواصل مباشر مع المصمم'],
-      cta: 'بوابة العيادات',
+      title: 'home.clinicsLabs',
+      description: 'home.clinicsLabsDesc',
+      items: ['home.secureUpload', 'home.designTracking', 'home.directDesignerContact'],
+      cta: 'home.clinicsLabs',
       link: '/auth/login',
     },
     {
       icon: 'bi-pencil-square',
       color: 'bg-accent/10 text-accent-dark border-accent/20',
-      title: 'مصممو CAD المحترفون',
-      description: 'مساحة عمل منظمة مع أدوات تصميم متقدمة ومعاينة ثلاثية الأبعاد فورية.',
-      items: ['مساحة عمل مرنة', 'معاينة 3D تفاعلية', 'تقارير جودة دقيقة'],
-      cta: 'لوحة المصممين',
+      title: 'home.professionalDesigners',
+      description: 'home.professionalDesignersDesc',
+      items: ['home.flexibleWorkspace', 'home.interactive3d', 'home.qualityReports'],
+      cta: 'home.professionalDesigners',
       link: '/auth/login',
     },
     {
       icon: 'bi-shield-check',
       color: 'bg-success-light text-success-dark border-success/20',
-      title: 'إدارة الجودة والإشراف',
-      description: 'راقب كل حالة بدقة ووافق على التصميمات قبل التسليم النهائي.',
-      items: ['تقييم جودة شامل', 'متابعة لحظية', 'تقرير مراجعة مفصل'],
-      cta: 'لوحة الجودة',
+      title: 'home.qualitySupervision',
+      description: 'home.qualitySupervisionDesc',
+      items: ['home.qualityEvaluation', 'home.realtimeTracking', 'home.detailedReview'],
+      cta: 'home.qualitySupervision',
       link: '/auth/login',
     },
   ];
 
+  // Workflow reduced to 4 steps (previously 5). "Smart Routing" step was removed
+  // because it implied the case gets matched/routed to an external designer,
+  // which conflicts with positioning BKR CAD as the single entity executing
+  // the work end-to-end rather than a clinic<->designer matchmaking platform.
   readonly workflow = [
     {
       step: '01',
       icon: 'bi-cloud-arrow-up',
-      title: 'رفع الحالة',
-      description: 'ترفع العيادة ملفات المريض والتفاصيل السريرية عبر بوابة آمنة.',
+      title: 'home.uploadCase',
+      description: 'home.uploadCaseDesc',
     },
     {
       step: '02',
-      icon: 'bi-cpu',
-      title: 'التوجيه الذكي',
-      description: 'النظام يوجّه الحالة تلقائياً إلى المصمم الأنسب حسب التخصص والحمل.',
+      icon: 'bi-box',
+      title: 'home.cadDesign',
+      description: 'home.cadDesignDesc',
     },
     {
       step: '03',
-      icon: 'bi-box',
-      title: 'التصميم CAD',
-      description: 'المصمم ينفّذ التصميم الرقمي مع معاينة ثلاثية الأبعاد ومراجعات فورية.',
+      icon: 'bi-clipboard2-check',
+      title: 'home.qualityReview',
+      description: 'home.qualityReviewDesc',
     },
     {
       step: '04',
-      icon: 'bi-clipboard2-check',
-      title: 'مراجعة الجودة',
-      description: 'فريق الجودة يراجع الدقة والمطابقة للمعايير قبل الموافقة.',
-    },
-    {
-      step: '05',
       icon: 'bi-file-earmark-arrow-down',
-      title: 'تسليم STL',
-      description: 'تسليم ملفات جاهزة للتصنيع مع سجل كامل لكل مرحلة.',
+      title: 'home.stlDelivery',
+      description: 'home.stlDeliveryDesc',
     },
   ];
 
   readonly testimonials = [
     {
-      quote: 'منذ استخدام BKR CAD، انخفض وقت تسليم التركيبات بنسبة 40%. التواصل مع المصممين أصبح سلساً جداً.',
+      quote: 'home.testimonial1',
       name: 'د. أحمد الشمري',
-      role: 'عيادة أسنان — الرياض',
+      role: 'home.testimonial1Role',
       avatar: 'أ',
     },
     {
-      quote: 'المنصة وفّرت لي مساحة عمل منظمة وأدوات مراجعة 3D ممتازة. جودة التصميمات ارتفعت بشكل ملحوظ.',
+      quote: 'home.testimonial2',
       name: 'سارة العتيبي',
-      role: 'مصممة CAD — جدة',
+      role: 'home.testimonial2Role',
       avatar: 'س',
     },
     {
-      quote: 'نظام مراقبة الجودة المتكامل يسمح لنا بضمان دقة كل تصميم قبل التسليم. أداة لا غنى عنها.',
+      quote: 'home.testimonial3',
       name: 'م. خالد الدوسري',
-      role: 'مدير جودة — الدمام',
+      role: 'home.testimonial3Role',
       avatar: 'خ',
     },
   ];

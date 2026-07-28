@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { ApiService } from '../api/api.service';
 import { Observable } from 'rxjs';
-import { WalletTransactionDto, BalanceAdjustmentRequest, CreditLimitUpdateRequest, DepositPackageDto, InvoiceDto, PagedResultDto } from '../models';
+import { WalletTransactionDto, BalanceAdjustmentRequest, CreditLimitUpdateRequest, DepositPackageDto, InvoiceDto, PagedResultDto, WalletDto } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -26,12 +26,16 @@ getTransactions(userId: string): Observable<PagedResultDto<WalletTransactionDto>
     return this.api.get<DepositPackageDto[]>('Wallet/packages');
   }
 
-  purchasePackage(packageId: string): Observable<any> {
-    return this.api.post(`Wallet/packages/${packageId}/purchase`);
+  purchasePackage(packageId: string): Observable<{ checkoutUrl: string }> {
+    return this.api.post<{ checkoutUrl: string }>(`Wallet/packages/${packageId}/purchase`);
   }
 
-  payInvoiceViaStripe(invoiceId: string): Observable<{ success: boolean; data: { clientSecret: string } }> {
-    return this.api.post<{ success: boolean; data: { clientSecret: string } }>(`Wallet/invoices/${invoiceId}/pay-stripe`);
+  confirmCheckoutSession(sessionId: string): Observable<WalletDto> {
+    return this.api.post<WalletDto>('Wallet/stripe/confirm-checkout', { sessionId });
+  }
+
+  payInvoiceViaStripe(invoiceId: string): Observable<{ clientSecret: string }> {
+    return this.api.post<{ clientSecret: string }>(`Wallet/invoices/${invoiceId}/pay-stripe`);
   }
 
   getPayoutBalance(): Observable<number> {

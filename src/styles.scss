@@ -23,7 +23,8 @@
 }
 
 @layer base {
-  html, body {
+  html,
+  body {
     margin: 0;
     padding: 0;
     background-color: var(--color-background);
@@ -34,11 +35,23 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Prevent iPhone Safari zoom on inputs */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
   .font-sans {
     font-family: var(--app-font) !important;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display font-bold text-text-primary;
   }
 }

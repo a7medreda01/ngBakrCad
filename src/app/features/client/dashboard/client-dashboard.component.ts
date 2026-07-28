@@ -8,6 +8,17 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { BadgeComponent } from '../../../shared/ui/badge/badge.component';
 import { OrderDto, OrderStatus } from '../../../core/models';
 
+/** Convert API status (number OR string like "Draft") → numeric OrderStatus */
+function normalizeOrderStatus(status: any): OrderStatus {
+  if (typeof status === 'number') return status as OrderStatus;
+  const key = status as keyof typeof OrderStatus;
+  if (key in OrderStatus) return OrderStatus[key] as unknown as OrderStatus;
+  return OrderStatus.Draft;
+}
+function normalizeOrder(o: any): OrderDto {
+  return { ...o, status: normalizeOrderStatus(o.status) } as OrderDto;
+}
+
 @Component({
   selector: 'app-client-dashboard',
   standalone: true,
@@ -39,7 +50,7 @@ export class ClientDashboardComponent implements OnInit {
   loadDashboard(): void {
     this.orderService.getMyOrders(1, 5).subscribe({
       next: (res: any) => {
-        const orders: OrderDto[] = res?.data || res?.items || res || [];
+        const orders: OrderDto[] = (res?.data || res?.items || res || []).map(normalizeOrder);
         this.recentOrders.set(orders);
         this.stats.set({
           active: orders.filter((o: OrderDto) => ![OrderStatus.Completed, OrderStatus.Cancelled, OrderStatus.Draft].includes(o.status)).length,
@@ -105,5 +116,40 @@ export class ClientDashboardComponent implements OnInit {
       [OrderStatus.Cancelled]: 'ملغي'
     };
     return labels[status] || 'غير معروف';
+  }
+
+  getNextLevelName(currentLevel?: string): string {
+    if (!currentLevel || currentLevel === 'Bronze') return 'الفئة الفضية (Silver)';
+    if (currentLevel === 'Silver') return 'الفئة الذهبية (Gold)';
+    return 'الفئة الذهبية (أعلى فئة)';
+  }
+
+  getLevelProgress(currentLevel?: string, completedCount?: number): number {
+    const count = completedCount || 0;
+    if (!currentLevel || currentLevel === 'Bronze') {
+      return Math.min(Math.round((count / 10) * 100), 100);
+    }
+    if (currentLevel === 'Silver') {
+      const silverCount = Math.max(0, count - 10);
+      return Math.min(Math.round((silverCount / 40) * 100), 100);
+    }
+    return 100;
+  }
+
+  getLevelEncouragement(currentLevel?: string, completedCount?: number): string {
+    const count = completedCount || 0;
+    if (!currentLevel || currentLevel === 'Bronze') {
+      const remaining = Math.max(0, 10 - count);
+      return remaining > 0 
+        ? `أكمل ${remaining} من الحالات الإضافية للترقية إلى الفئة الفضية للحصول على خصم على جميع طلباتك!`
+        : `أنت جاهز للترقية للفئة الفضية!`;
+    }
+    if (currentLevel === 'Silver') {
+      const remaining = Math.max(0, 50 - count);
+      return remaining > 0 
+        ? `أكمل ${remaining} من الحالات الإضافية للترقية إلى الفئة الذهبية للحصول على خصم وأولوية قصوى لتنفيذ تصاميمك!`
+        : `أنت جاهز للترقية للفئة الذهبية!`;
+    }
+    return 'تهانينا! لقد وصلت إلى أعلى فئة عضوية ذهبية بنجاح. أنت الآن تستمتع بأفضل الأسعار المتاحة وبأعلى أولوية!';
   }
 }

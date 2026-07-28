@@ -1,8 +1,53 @@
 <div class="flex flex-col gap-6" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
   <!-- Header -->
-  <div class="border-b border-border pb-4">
-    <h1 class="text-xl font-extrabold text-secondary">{{ t('nav.settings') }}</h1>
-    <p class="text-xs text-text-secondary mt-1">تعديل معلومات الحساب الشخصية وبيانات الاتصال والعيادة</p>
+  @let level = authService.userProfile()?.designerProfile?.level || authService.userProfile()?.clientProfile?.level;
+
+  <div class="bg-surface rounded-2xl border border-border shadow-card p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+    <div class="flex flex-col items-center text-center sm:items-start sm:text-right gap-1 order-2 sm:order-1">
+      <h1 class="text-xl font-extrabold text-secondary">{{ t('nav.settings') }}</h1>
+      <p class="text-xs text-text-secondary">تعديل معلومات الحساب الشخصية وبيانات الاتصال والعيادة</p>
+    </div>
+
+    <div class="flex flex-col items-center gap-2.5 order-1 sm:order-2">
+      <div
+        class="relative group"
+        [ngClass]="{
+          'drop-shadow-[0_0_10px_rgba(245,158,11,0.35)]': level === 'Gold',
+          'drop-shadow-[0_0_8px_rgba(148,163,184,0.35)]': level === 'Silver',
+          'drop-shadow-[0_0_8px_rgba(217,119,6,0.3)]': level === 'Bronze'
+        }"
+      >
+        <img
+          [src]="authService.userProfile()?.profilePictureUrl || 'assets/images/avatar.png'"
+          alt="Profile"
+          class="w-20 h-20 rounded-full object-cover border-[3px]"
+          [ngClass]="{
+            'border-amber-400': level === 'Gold',
+            'border-slate-300': level === 'Silver',
+            'border-orange-400': level === 'Bronze',
+            'border-primary': !level
+          }"
+        >
+        <label class="absolute inset-0 bg-black/50 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white">
+          <i class="fa-solid fa-camera"></i>
+          <input type="file" class="hidden" accept=".png,.jpg,.jpeg" (change)="onFileSelected($event)">
+        </label>
+      </div>
+
+      @if (level) {
+        <div
+          class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11px] font-black shadow-md"
+          [ngClass]="{
+            'bg-gradient-to-r from-amber-400 to-yellow-500 text-white shadow-amber-500/30': level === 'Gold',
+            'bg-gradient-to-r from-slate-300 to-slate-400 text-slate-800 shadow-slate-400/30': level === 'Silver',
+            'bg-gradient-to-r from-orange-400 to-amber-600 text-white shadow-orange-500/30': level === 'Bronze'
+          }"
+        >
+          <i class="fa-solid" [ngClass]="level === 'Gold' ? 'fa-crown' : 'fa-medal'"></i>
+          {{ level }} Member
+        </div>
+      }
+    </div>
   </div>
 
   <div class="bg-surface rounded-2xl border border-border shadow-card max-w-2xl p-6">

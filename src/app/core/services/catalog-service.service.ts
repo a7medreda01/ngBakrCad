@@ -47,4 +47,8 @@ export class CatalogService {
   getCustomProfitsForDesigner(designerId: string): Observable<DesignerServicePricingDto[]> {
     return this.api.get<DesignerServicePricingDto[]>(`Services/custom-profits/${designerId}`);
   }
+
+  getCategories(): Observable<{ categoryAr: string; categoryEn: string }[]> {
+    return this.api.get<{ categoryAr: string; categoryEn: string }[]>('Services/categories');
+  }
 }

@@ -7,10 +7,12 @@ import { TranslationService } from '../../../core/services/translation.service';
 import { UserProfileDto } from '../../../core/models';
 import { ToastService } from '../../../core/services/toast.service';
 
+import { RouterModule } from '@angular/router';
+
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss'
 })
@@ -182,6 +184,44 @@ export class UsersComponent implements OnInit {
       next: () => {
         this.toast.success('تم تحديث الحد الائتماني بنجاح');
         this.showCreditModal.set(false);
+        this.loadUsers();
+      }
+    });
+  }
+
+  // --- User Details Modal ---
+  readonly showUserDetailsModal = signal(false);
+
+  openUserDetails(user: any): void {
+    this.selectedUser.set(user);
+    this.showUserDetailsModal.set(true);
+  }
+
+  // --- Level & Rating Update Modal ---
+  readonly showLevelModal = signal(false);
+  readonly updateLevelForm = signal<{ level: string, rating: number | null }>({ level: 'Bronze', rating: null });
+
+  openLevelModal(user: any): void {
+    this.selectedUser.set(user);
+    const profile = user.roles?.includes('Designer') || user.roles?.includes('Lab') 
+      ? user.designerProfile 
+      : user.clientProfile;
+      
+    this.updateLevelForm.set({
+      level: profile?.level || 'Bronze',
+      rating: user.roles?.includes('Designer') || user.roles?.includes('Lab') ? (profile?.rating || 5.0) : null
+    });
+    this.showLevelModal.set(true);
+  }
+
+  submitLevelUpdate(): void {
+    const user = this.selectedUser();
+    if (!user) return;
+
+    this.adminService.adminUpdateProfile(user.id, this.updateLevelForm()).subscribe({
+      next: () => {
+        this.toast.success('تم تحديث المستوى/التقييم بنجاح');
+        this.showLevelModal.set(false);
         this.loadUsers();
       }
     });

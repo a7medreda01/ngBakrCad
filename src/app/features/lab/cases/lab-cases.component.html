@@ -102,7 +102,7 @@
               <!-- Info Sections Grid -->
               <div class="grid grid-cols-3 gap-2 mb-3">
                 <!-- Services -->
-                <div class="bg-background/70 rounded-lg border border-border/50 p-2.5">
+                <div class="bg-background/70 rounded-lg border border-border/50 p-2.5 col-span-2">
                   <p class="text-[9px] font-bold text-text-secondary mb-1 uppercase">الخدمات</p>
                   <p class="text-[10px] font-semibold text-secondary line-clamp-2">
                     @if (c.services.length) {
@@ -119,10 +119,10 @@
                 </div>
 
                 <!-- Assignment Date -->
-                <div class="bg-background/70 rounded-lg border border-border/50 p-2.5">
+                <!-- <div class="bg-background/70 rounded-lg border border-border/50 p-2.5">
                   <p class="text-[9px] font-bold text-text-secondary mb-1 uppercase">تاريخ الإسناد</p>
                   <p class="text-[10px] font-bold text-secondary">{{ (c.createdAt || c.slaTracking?.startedAt) | date:'yyyy-MM-dd' }}</p>
-                </div>
+                </div> -->
 
                 <!-- Delivery Date -->
                 <div class="bg-background/70 rounded-lg border border-border/50 p-2.5">

@@ -6,6 +6,17 @@ import { OrderDto } from '../../../core/models';
 import { OrderStatus } from '../../../core/enums';
 import { ToastService } from '../../../core/services/toast.service';
 
+/** Convert API status (number OR string like "Draft") → numeric OrderStatus */
+function normalizeOrderStatus(status: any): OrderStatus {
+  if (typeof status === 'number') return status as OrderStatus;
+  const key = status as keyof typeof OrderStatus;
+  if (key in OrderStatus) return OrderStatus[key] as unknown as OrderStatus;
+  return OrderStatus.Draft;
+}
+function normalizeOrder(o: any): OrderDto {
+  return { ...o, status: normalizeOrderStatus(o.status) } as OrderDto;
+}
+
 @Component({
   selector: 'app-lab-cases',
   standalone: true,
@@ -46,7 +57,8 @@ export class LabCasesComponent implements OnInit {
             o.patientName.toLowerCase().includes(query)
           );
         }
-        this.cases.set(items);
+        const normalizedItems = items.map(normalizeOrder);
+        this.cases.set(normalizedItems);
         this.totalCount.set(res.totalCount || items.length);
         this.isLoading.set(false);
       },

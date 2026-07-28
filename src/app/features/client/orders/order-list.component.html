@@ -40,7 +40,7 @@
     <div>
       <select
         [ngModel]="filterPriority()"
-        (ngModelChange)="filterPriority.set($event); onFilterChange()"
+        (ngModelChange)="filterPriority.set($event); onPriorityFilterChange()"
         class="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition duration-200"
       >
         <option value="">كل الطلبات</option>

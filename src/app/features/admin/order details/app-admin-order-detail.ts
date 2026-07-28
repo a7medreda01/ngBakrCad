@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 
@@ -18,9 +18,23 @@ import { OrderStatus } from '../../../core/enums';
 
 import { OrderDto, StatusAction, STATUS_META, getStatusActions, STUCK_STATUSES, PAUSED_STATUSES, statusLabel, OrderStatusHistoryDto } from '../../../core/models';
 
+/** Convert API status (number OR string like "Draft") → numeric OrderStatus */
+function normalizeOrderStatus(status: any): OrderStatus {
+  if (typeof status === 'number') return status as OrderStatus;
+  const key = status as keyof typeof OrderStatus;
+  if (key in OrderStatus) return OrderStatus[key] as unknown as OrderStatus;
+  return OrderStatus.Draft;
+}
+
+/** Patch a raw API order so status is always the numeric enum value */
+function normalizeOrder(o: any): OrderDto {
+  return { ...o, status: normalizeOrderStatus(o.status) } as OrderDto;
+}
+
 
 import { AssignDesignerModalComponent, DesignerOption } from '../orders/app-assign-designer';
 import { OdontogramComponent } from '../../../shared/components/odontogram/odontogram.component';
+import { ThreeViewerComponent, FileInput } from '../../../shared/components/three-viewer/three-viewer.component';
 
 
 
@@ -30,11 +44,11 @@ import { OdontogramComponent } from '../../../shared/components/odontogram/odont
 
   standalone: true,
 
-  imports: [CommonModule, FormsModule, AssignDesignerModalComponent, OdontogramComponent],
+  imports: [CommonModule, FormsModule, AssignDesignerModalComponent, OdontogramComponent, ThreeViewerComponent],
 
   templateUrl: './admin-order-detail.html',
 
-//   styleUrl: './admin-order-detail.component.scss'
+  //   styleUrl: './admin-order-detail.component.scss'
 
 })
 
@@ -60,6 +74,23 @@ export class AdminOrderDetailComponent implements OnInit {
 
   readonly order = signal<OrderDto | null>(null);
   readonly activeFilesTab = signal<'client' | 'designer'>('client');
+  readonly selectedFileIds = signal<Set<string>>(new Set());  // New: track selected files
+  readonly selectedServiceId = signal<string | null>(null);
+
+  readonly activeServiceTeeth = computed<number[] | null>(() => {
+    const svcId = this.selectedServiceId();
+    if (!svcId) return null;
+    const svc = (this.order()?.services || []).find(s => s.serviceId === svcId);
+    return svc?.teeth && svc.teeth.length > 0 ? svc.teeth : null;
+  });
+
+  toggleServiceSelection(svcId: string): void {
+    if (this.selectedServiceId() === svcId) {
+      this.selectedServiceId.set(null);
+    } else {
+      this.selectedServiceId.set(svcId);
+    }
+  }
 
   readonly isLoading = signal(true);
 
@@ -144,6 +175,53 @@ export class AdminOrderDetailComponent implements OnInit {
 
 
 
+  readonly selectedFiles = computed(() => {
+    const selectedIds = this.selectedFileIds();
+    const allFiles = this.order()?.files ?? [];
+    return allFiles.filter(f => selectedIds.has(f.id));
+  });
+
+  readonly all3dFiles = computed(() => {
+    const files = this.order()?.files ?? [];
+    return files.filter(f => {
+      const ext = (f.fileName || '').split('.').pop()?.toLowerCase() || '';
+      return ['stl', 'obj', 'ply'].includes(ext) && !f.isExternalLink;
+    });
+  });
+
+  readonly viewerFileInputs = computed(() => {
+    const selectedFiles = this.selectedFiles();
+    if (selectedFiles.length === 0) return [];
+
+    const colors = [0x90caf9, 0xa5d6a7, 0xffcc80, 0xef9a9a, 0xf0f4c3, 0xce93d8, 0x80deea];
+    return selectedFiles.map((file, idx) => ({
+      url: file.filePath,
+      type: this.getFileExtension(file.fileName),
+      label: file.fileName,
+      color: colors[idx % colors.length]
+    } as FileInput));
+  });
+
+  toggleFileSelection(fileId: string): void {
+    const current = new Set(this.selectedFileIds());
+    if (current.has(fileId)) {
+      current.delete(fileId);
+    } else {
+      current.add(fileId);
+    }
+    this.selectedFileIds.set(current);
+  }
+
+  isFileSelected(fileId: string): boolean {
+    return this.selectedFileIds().has(fileId);
+  }
+
+  getFileExtension(fileName: string): string {
+    return fileName.split('.').pop()?.toLowerCase() || 'stl';
+  }
+
+
+
   readonly isStuck = computed(() => {
 
     const o = this.order();
@@ -217,9 +295,19 @@ export class AdminOrderDetailComponent implements OnInit {
 
     this.orderService.getOrder(this.orderId).subscribe({
 
-      next: (order) => { 
+      next: (order) => {
 
-        this.order.set(order); 
+        this.order.set(normalizeOrder(order));
+
+        // Automatically select the first 3D previewable file (.stl, .obj, .ply) if available
+        const previewableFiles = (order.files || []).filter(f => {
+          const ext = (f.fileName || '').split('.').pop()?.toLowerCase() || '';
+          return ['stl', 'obj', 'ply'].includes(ext) && !f.isExternalLink;
+        });
+
+        if (previewableFiles.length > 0) {
+          this.selectedFileIds.set(new Set([previewableFiles[0].id]));
+        }
 
         // Set default pricing in input if quotation pricing is set
         const quotationLine = order.services?.find(s => s.subtotal > 0 || s.priceCharged > 0);
@@ -229,7 +317,7 @@ export class AdminOrderDetailComponent implements OnInit {
           this.quotationPrice.set(0);
         }
 
-        this.isLoading.set(false); 
+        this.isLoading.set(false);
 
       },
 
@@ -253,11 +341,11 @@ export class AdminOrderDetailComponent implements OnInit {
 
     this.orderService.getOrderStatusHistory(this.orderId).subscribe({
 
-      next: (h) => { 
+      next: (h) => {
 
-        this.history.set(h || []); 
+        this.history.set(h || []);
 
-        this.isLoadingHistory.set(false); 
+        this.isLoadingHistory.set(false);
 
       },
 
@@ -369,7 +457,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
       next: (updated) => {
 
-        this.order.set(updated);
+        this.order.set(normalizeOrder(updated));
 
         this.toast.success('Updated successfully');
 
@@ -383,7 +471,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
       error: (err) => {
 
-        this.toast.error(err?.error?.message || 'ØªØ¹Ø°Ø± ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø­Ø§Ù„Ø©');
+        this.toast.error(err?.error?.message || 'Failed to update status');
 
         this.isSubmittingAction.set(false);
 
@@ -397,17 +485,17 @@ export class AdminOrderDetailComponent implements OnInit {
 
   // â”€â”€ Assign / reassign designer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  openAssignModal(): void { 
+  openAssignModal(): void {
 
-    this.showAssignModal.set(true); 
+    this.showAssignModal.set(true);
 
   }
 
-  
 
-  closeAssignModal(): void { 
 
-    this.showAssignModal.set(false); 
+  closeAssignModal(): void {
+
+    this.showAssignModal.set(false);
 
   }
 
@@ -425,7 +513,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
       next: (updated) => {
 
-        this.order.set(updated);
+        this.order.set(normalizeOrder(updated));
 
         this.toast.success('ØªÙ… Ø¥Ø³Ù†Ø§Ø¯ Ø§Ù„Ø·Ù„Ø¨ Ù„Ù„Ù…ØµÙ…Ù… Ø¨Ù†Ø¬Ø§Ø­');
 
@@ -492,9 +580,9 @@ export class AdminOrderDetailComponent implements OnInit {
 
 
 
-  closeRedoPanel(): void { 
+  closeRedoPanel(): void {
 
-    this.showRedoPanel.set(false); 
+    this.showRedoPanel.set(false);
 
   }
 
@@ -520,7 +608,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
       next: (updated) => {
 
-        this.order.set(updated);
+        this.order.set(normalizeOrder(updated));
 
         this.toast.success('ØªÙ…Øª Ø¥Ø¹Ø§Ø¯Ø© ÙØªØ­ Ø§Ù„Ø·Ù„Ø¨ Ù„Ù„ØªØµÙ…ÙŠÙ…');
 
@@ -562,17 +650,17 @@ export class AdminOrderDetailComponent implements OnInit {
 
 
 
-  statusLabel(status: OrderStatus): string { 
+  statusLabel(status: OrderStatus): string {
 
-    return statusLabel(status); 
+    return statusLabel(status);
 
   }
 
 
 
-  statusMeta(status: OrderStatus) { 
+  statusMeta(status: OrderStatus) {
 
-    return STATUS_META[status]; 
+    return STATUS_META[status];
 
   }
 
@@ -589,7 +677,7 @@ export class AdminOrderDetailComponent implements OnInit {
     this.isSettingQuotationPrice.set(true);
     this.orderService.setQuotationPrice(order.id, price).subscribe({
       next: (updated) => {
-        this.order.set(updated);
+        this.order.set(normalizeOrder(updated));
         this.toast.success('تم تحديد سعر التسعيرة بنجاح');
         this.isSettingQuotationPrice.set(false);
       },
@@ -608,7 +696,7 @@ export class AdminOrderDetailComponent implements OnInit {
       this.isProcessing.set(true);
       this.orderService.approveQuotation(order.id).subscribe({
         next: (updated) => {
-          this.order.set(updated);
+          this.order.set(normalizeOrder(updated));
           this.toast.success(this.i18n.currentLang() === 'ar' ? 'تم اعتماد التسعيرة ودفع القيمة بنجاح!' : 'Quotation approved and paid successfully!');
           this.isProcessing.set(false);
           this.loadOrder();
@@ -621,9 +709,9 @@ export class AdminOrderDetailComponent implements OnInit {
     }
   }
 
-  goBack(): void { 
+  goBack(): void {
 
-    this.router.navigate(['/admin/orders']); 
+    this.router.navigate(['/admin/orders']);
 
   }
 

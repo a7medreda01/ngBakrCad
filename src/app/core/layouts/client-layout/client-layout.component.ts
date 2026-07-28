@@ -46,6 +46,18 @@ export class ClientLayoutComponent implements OnInit, OnDestroy {
       : (this.i18n.currentLang() === 'ar' ? 'بوابة الطبيب / العميل' : 'Doctor / Client Portal')
   );
 
+  /** Profile level */
+  readonly userLevel = computed(() => {
+    const p = this.auth.userProfile();
+    return p?.designerProfile?.level || p?.clientProfile?.level || null;
+  });
+
+  /** Profile picture URL */
+  readonly userProfilePicture = computed(() => {
+    const p = this.auth.userProfile();
+    return p?.profilePictureUrl || null;
+  });
+
   // --- Sound alert for new notifications ---
   private audioCtx: AudioContext | null = null;
   private pollIntervalId?: any;
@@ -67,6 +79,9 @@ export class ClientLayoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    if (!this.auth.userProfile()) {
+      this.auth.loadUserProfile().subscribe();
+    }
     this.notifService.loadNotifications().subscribe();
     this.supportService.loadUnreadCount().subscribe();
     // بولينج كل 30 ثانية عشان نكتشف إشعارات جديدة وتذاكر جديدة

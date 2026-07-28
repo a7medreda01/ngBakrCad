@@ -24,21 +24,29 @@ export class LoginComponent {
 
   readonly isLoading = signal(false);
   readonly showPassword = signal(false);
+  readonly showSessionConflictModal = signal(false);
+  readonly conflictMessage = signal('');
 
   form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
 
-  onSubmit(): void {
+  onSubmit(confirmLogoutOtherDevices = false): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
     this.isLoading.set(true);
-    this.authService.login(this.form.getRawValue()).subscribe({
+    const payload = {
+      ...this.form.getRawValue(),
+      confirmLogoutOtherDevices
+    };
+
+    this.authService.login(payload).subscribe({
       next: (res) => {
         this.isLoading.set(false);
+        this.showSessionConflictModal.set(false);
         // Role-based redirect
         const roles = res.roles;
         if (roles.some(r => ['SuperAdmin','FinancialAdmin','OperationsAdmin','QualityAdmin'].includes(r))) {
@@ -52,8 +60,21 @@ export class LoginComponent {
       error: (err) => { 
         this.isLoading.set(false);
         const errorMsg = err.error?.message || 'Login failed. Please check your credentials.';
-        this.toast.error(errorMsg);
+        if (errorMsg.includes('SESSION_CONFLICT')) {
+          this.conflictMessage.set(errorMsg.replace('SESSION_CONFLICT: ', ''));
+          this.showSessionConflictModal.set(true);
+        } else {
+          this.toast.error(errorMsg);
+        }
       }
     });
+  }
+
+  confirmSessionOverride(): void {
+    this.onSubmit(true);
+  }
+
+  cancelSessionOverride(): void {
+    this.showSessionConflictModal.set(false);
   }
 }

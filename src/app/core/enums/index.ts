@@ -33,11 +33,11 @@ export enum OrderStatus {
 }
 
 export enum PricingMethod {
-  PerTooth = 0,
-  PerArch = 1,
-  PerHole = 2,
-  FixedCase = 3,
-  Quotation = 4
+  PerTooth = 'PerTooth',
+  PerArch = 'PerArch',
+  PerHole = 'PerHole',
+  FixedCase = 'FixedCase',
+  Quotation = 'Quotation'
 }
 
 export enum TransactionType {

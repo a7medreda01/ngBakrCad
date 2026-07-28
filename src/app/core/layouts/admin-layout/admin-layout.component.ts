@@ -1,6 +1,6 @@
 import { Component, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { TranslationService } from '../../services/translation.service';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
@@ -8,6 +8,7 @@ import { NotificationService } from '../../services/notification.service';
 import { NotificationNavigationService } from '../../services/notification-navigation.service';
 import { SupportService } from '../../services/support.service';
 import { OnInit, OnDestroy } from '@angular/core';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-admin-layout',
@@ -22,11 +23,55 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   readonly notificationService = inject(NotificationService);
   readonly notifNav = inject(NotificationNavigationService);
   readonly supportService = inject(SupportService);
+  private readonly router = inject(Router);
 
   readonly isSidebarOpen = signal(false);
   readonly isNotifOpen = signal(false);
   readonly unreadCount = this.notificationService.unreadCount;
   readonly unreadSupportCount = this.supportService.unreadTicketsCount;
+
+  // --- Grouped Navigation State ---
+  // تبدأ كل المجموعات مقفولة، ويتم فتح المجموعة النشطة فقط تلقائيًا حسب الـ route
+  readonly openGroups = signal<Set<string>>(new Set());
+
+  // خريطة تربط كل مسار (route) بالمجموعة اللي بيتبعلها، لفتحها تلقائيًا عند التنقل
+  private readonly routeGroupMap: { prefix: string; group: string }[] = [
+    { prefix: '/admin/employees', group: 'users' },
+    { prefix: '/admin/users', group: 'users' },
+    { prefix: '/admin/orders', group: 'orders' },
+    { prefix: '/admin/meetings', group: 'orders' },
+    { prefix: '/admin/services', group: 'pricing' },
+    { prefix: '/admin/custom-pricing', group: 'pricing' },
+    { prefix: '/admin/packages', group: 'finance' },
+    { prefix: '/admin/financials', group: 'finance' },
+    { prefix: '/admin/settings', group: 'system' },
+    { prefix: '/admin/audit-logs', group: 'system' },
+  ];
+
+  toggleGroup(groupName: string): void {
+    this.openGroups.update(groups => {
+      const newGroups = new Set(groups);
+      if (newGroups.has(groupName)) {
+        newGroups.delete(groupName);
+      } else {
+        newGroups.add(groupName);
+      }
+      return newGroups;
+    });
+  }
+
+  isGroupOpen(groupName: string): boolean {
+    return this.openGroups().has(groupName);
+  }
+
+  // تفتح المجموعة المطابقة للمسار الحالي فقط (وتقفل الباقي)
+  private openGroupForCurrentRoute(url: string): void {
+    const match = this.routeGroupMap.find(r => url.startsWith(r.prefix));
+    if (match) {
+      this.openGroups.set(new Set([match.group]));
+    }
+  }
+
   private pollIntervalId?: any;
 
   // --- Sound alert for new notifications ---
@@ -55,6 +100,16 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
       this.notificationService.loadNotifications().subscribe();
       this.supportService.loadUnreadCount().subscribe();
     }, 30000);
+
+    // افتح المجموعة الصحيحة عند تحميل الصفحة أول مرة
+    this.openGroupForCurrentRoute(this.router.url);
+
+    // وافتحها تلقائيًا كل ما ينتقل المستخدم لصفحة جديدة
+    this.router.events
+      .pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe((e) => {
+        this.openGroupForCurrentRoute((e as NavigationEnd).urlAfterRedirects);
+      });
   }
 
   ngOnDestroy(): void {

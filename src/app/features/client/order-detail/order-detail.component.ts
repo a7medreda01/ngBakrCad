@@ -6,10 +6,21 @@ import { OrderService } from '../../../core/services/order.service';
 import { TranslationService } from '../../../core/services/translation.service';
 import { MeetingService } from '../../../core/services/meeting.service';
 import { OrderDto, OrderStatus, FileMetadataDto, getStatusActions, StatusAction, statusLabel, PAUSED_STATUSES } from '../../../core/models';
-import { ThreeViewerComponent } from '../../../shared/components/three-viewer/three-viewer.component';
+import { ThreeViewerComponent, FileInput } from '../../../shared/components/three-viewer/three-viewer.component';
 import { BadgeComponent } from '../../../shared/ui/badge/badge.component';
 import { OdontogramComponent } from '../../../shared/components/odontogram/odontogram.component';
 import { ToastService } from '../../../core/services/toast.service';
+
+/** Convert API status (number OR string like "Draft") → numeric OrderStatus */
+function normalizeOrderStatus(status: any): OrderStatus {
+  if (typeof status === 'number') return status as OrderStatus;
+  const key = status as keyof typeof OrderStatus;
+  if (key in OrderStatus) return OrderStatus[key] as unknown as OrderStatus;
+  return OrderStatus.Draft;
+}
+function normalizeOrder(o: any): OrderDto {
+  return { ...o, status: normalizeOrderStatus(o.status) } as OrderDto;
+}
 
 @Component({
   selector: 'app-order-detail',
@@ -33,9 +44,30 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
 
   readonly selectedThreeFile = signal<FileMetadataDto | null>(null);
   readonly activeFilesTab = signal<'client' | 'designer'>('client');
+  readonly selectedFileIds = signal<Set<string>>(new Set());  // New: track selected files
+  readonly selectedServiceId = signal<string | null>(null);
 
+  readonly activeServiceTeeth = computed<number[] | null>(() => {
+    const svcId = this.selectedServiceId();
+    if (!svcId) return null;
+    const svc = (this.order()?.services || []).find(s => s.serviceId === svcId);
+    return svc?.teeth && svc.teeth.length > 0 ? svc.teeth : null;
+  });
+
+  toggleServiceSelection(svcId: string): void {
+    if (this.selectedServiceId() === svcId) {
+      this.selectedServiceId.set(null);
+    } else {
+      this.selectedServiceId.set(svcId);
+    }
+  }
+
+  // SLA Time state (نفس تصميم/منطق صفحة المصمم)
   readonly slaRemainingText = signal<string>('');
   readonly slaExpectedDueAt = signal<Date | null>(null);
+  readonly slaProgressPercent = signal<number>(0);
+  readonly slaIsPaused = signal<boolean>(false);
+  readonly slaIsBreached = signal<boolean>(false);
   private slaIntervalId?: any;
 
   // ── جديد: حالة رفع الملف الناقص وقت WaitingClientResponse ──
@@ -80,10 +112,51 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
   readonly clientFiles = computed(() => [...this.clientOrderFiles(), ...this.clientResponseFiles()]);
   readonly designerFiles = computed(() => [...this.designerPreviewFiles(), ...this.designerFinalFiles()]);
 
+  readonly selectedFiles = computed(() => {
+    const selectedIds = this.selectedFileIds();
+    const allFiles = [...this.designerPreviewFiles(), ...this.designerFinalFiles()];
+    return allFiles.filter(f => selectedIds.has(f.id));
+  });
+
+  readonly viewerFileInputs = computed(() => {
+    const selectedFiles = this.selectedFiles();
+    if (selectedFiles.length === 0) return [];
+
+    const colors = [0x90caf9, 0xa5d6a7, 0xffcc80, 0xef9a9a, 0xf0f4c3];
+    return selectedFiles.map((file, idx) => ({
+      url: file.filePath,
+      type: this.getFileExtension(file.fileName),
+      label: file.fileName,
+      color: colors[idx % colors.length]
+    } as FileInput));
+  });
+
+  readonly canShowDesignerFiles = computed(() => {
+    const status = this.order()?.status;
+    return status === OrderStatus.Completed ||
+      status === OrderStatus.ReadyForDownload ||
+      status === OrderStatus.DoctorRevisionRequested ||
+      status === OrderStatus.DoctorReview ||
+      status === OrderStatus.WaitingClientReview;
+  });
+
   readonly canDownloadFiles = computed(() =>
-    this.order()?.status === OrderStatus.ReadyForDownload ||
-    this.order()?.status === OrderStatus.Completed
+    this.canShowDesignerFiles()
   );
+
+  toggleFileSelection(fileId: string): void {
+    const current = new Set(this.selectedFileIds());
+    if (current.has(fileId)) {
+      current.delete(fileId);
+    } else {
+      current.add(fileId);
+    }
+    this.selectedFileIds.set(current);
+  }
+
+  isFileSelected(fileId: string): boolean {
+    return this.selectedFileIds().has(fileId);
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -102,11 +175,34 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
     this.isLoading.set(true);
     this.orderService.getOrder(id).subscribe({
       next: (res) => {
-        this.order.set(res);
-        const file = res.files.find(f => ['stl', 'obj', 'ply'].includes(f.fileName.split('.').pop() || ''));
-        if (file) {
-          this.selectedThreeFile.set(file);
+        this.order.set(normalizeOrder(res));
+
+        // الحالات اللي يُسمح فيها بعرض ملفات المصمم (نفس منطق canShowDesignerFiles)
+        const allowedDesignerFileStatuses = [
+          OrderStatus.Completed,
+          OrderStatus.ReadyForDownload,
+          OrderStatus.DoctorRevisionRequested,
+          OrderStatus.DoctorReview,
+          OrderStatus.WaitingClientReview
+        ];
+
+        const is3DFile = (f: FileMetadataDto) =>
+          !f.isExternalLink &&
+          ['stl', 'obj', 'ply'].includes(f.fileName.split('.').pop()?.toLowerCase() || '');
+
+        let autoFile: FileMetadataDto | null = null;
+        if (allowedDesignerFileStatuses.includes(res.status)) {
+          // الأولوية للملف النهائي (final)، ولو مش موجود نرجع لملف المعاينة (preview)
+          const finalFile = res.files.find(
+            f => (f.category || '').toLowerCase() === 'final' && is3DFile(f)
+          );
+          const previewFile = res.files.find(
+            f => (f.category || '').toLowerCase() === 'preview' && is3DFile(f)
+          );
+          autoFile = finalFile ?? previewFile ?? null;
         }
+        this.selectedThreeFile.set(autoFile);
+
         // إعادة ضبط حالة الرفع كل ما نحمل الأوردر من جديد
         this.pendingFile.set(null);
         this.hasUploadedFile.set(res.status !== OrderStatus.WaitingClientResponse ? false : this.hasUploadedFile());
@@ -122,68 +218,125 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
     return fileName.split('.').pop()?.toLowerCase() || 'stl';
   }
 
-setupSlaTimer(order: OrderDto): void {
-  if (this.slaIntervalId) clearInterval(this.slaIntervalId);
-
-  if (!order.slaTracking?.dueAt || order.status === OrderStatus.Completed) {
-    this.slaRemainingText.set('');
-    this.slaExpectedDueAt.set(null);
-    return;
-  }
-
-  const parseTime = (value: string | null | undefined): number => {
-    const parsed = value ? Date.parse(value) : NaN;
+  /**
+   * parseTime: بيحوّل ISO date string لـ timestamp.
+   * ملحوظة مهمة: الباك إند بيرجع التواريخ من غير مؤشر Timezone (من غير Z في الآخر)،
+   * ولو سبناها زي ما هي، الـ Date.parse بيفسرها كـ توقيت محلي للمتصفح مش UTC،
+   * وده بيخلي حساب الوقت المتبقي غلط بفارق ساعتين/تلاتة حسب توقيت المستخدم.
+   * فبنتأكد إننا نضيف Z تلقائيًا لو مفيش أي مؤشر timezone في الـ string.
+   */
+  private parseTime(value: string | null | undefined): number {
+    if (!value) return NaN;
+    const normalized = /[zZ]|[+-]\d{2}:?\d{2}$/.test(value) ? value : `${value}Z`;
+    const parsed = Date.parse(normalized);
     return Number.isNaN(parsed) ? NaN : parsed;
-  };
-
-  const computeExpectedTime = () => {
-    const dueTime = parseTime(order.slaTracking!.dueAt!);
-    if (Number.isNaN(dueTime)) {
-      return NaN;
-    }
-
-    const totalPausedMs = (order.slaTracking?.totalPausedMinutes ?? 0) * 60 * 1000;
-    const currentPausedMs = order.slaTracking?.pausedAt && PAUSED_STATUSES.has(order.status)
-      ? Math.max(0, Date.now() - parseTime(order.slaTracking.pausedAt))
-      : 0;
-
-    return dueTime + totalPausedMs + currentPausedMs;
-  };
-
-  const expectedTime = computeExpectedTime();
-  this.slaExpectedDueAt.set(Number.isNaN(expectedTime) ? null : new Date(expectedTime));
-
-  if (PAUSED_STATUSES.has(order.status)) {
-    this.slaRemainingText.set(this.i18n.currentLang() === 'ar' ? '⏸️ متوقف مؤقتًا' : '⏸️ Paused');
-    return;
   }
 
-  const updateTimer = () => {
-    const expectedTime = computeExpectedTime();
-    if (Number.isNaN(expectedTime)) {
+  setupSlaTimer(order: OrderDto): void {
+    if (this.slaIntervalId) clearInterval(this.slaIntervalId);
+
+    this.slaIsPaused.set(false);
+    this.slaIsBreached.set(false);
+
+    if (!order.slaTracking?.dueAt || order.status === OrderStatus.Completed) {
       this.slaRemainingText.set('');
       this.slaExpectedDueAt.set(null);
+      this.slaProgressPercent.set(0);
       return;
     }
 
-    this.slaExpectedDueAt.set(new Date(expectedTime));
-    const diff = expectedTime - Date.now();
+    const startTime = this.parseTime(order.slaTracking?.startedAt);
 
-    if (diff <= 0) {
-      this.slaRemainingText.set(this.i18n.currentLang() === 'ar' ? 'انتهت المهلة' : 'Breached');
+    const computeExpectedTime = () => {
+      const dueTime = this.parseTime(order.slaTracking!.dueAt!);
+      if (Number.isNaN(dueTime)) {
+        return NaN;
+      }
+
+      const totalPausedMs = (order.slaTracking?.totalPausedMinutes ?? 0) * 60 * 1000;
+      const currentPausedMs = order.slaTracking?.pausedAt && PAUSED_STATUSES.has(order.status)
+        ? Math.max(0, Date.now() - this.parseTime(order.slaTracking.pausedAt))
+        : 0;
+
+      return dueTime + totalPausedMs + currentPausedMs;
+    };
+
+    const updateProgress = (expectedTime: number) => {
+      if (Number.isNaN(startTime) || Number.isNaN(expectedTime) || expectedTime <= startTime) {
+        this.slaProgressPercent.set(0);
+        return;
+      }
+      const total = expectedTime - startTime;
+      const elapsed = Date.now() - startTime;
+      const pct = Math.min(100, Math.max(0, (elapsed / total) * 100));
+      this.slaProgressPercent.set(pct);
+    };
+
+    const expectedTime = computeExpectedTime();
+    this.slaExpectedDueAt.set(Number.isNaN(expectedTime) ? null : new Date(expectedTime));
+    updateProgress(expectedTime);
+
+    if (PAUSED_STATUSES.has(order.status)) {
+      this.slaIsPaused.set(true);
+      this.slaRemainingText.set(this.i18n.currentLang() === 'ar' ? 'متوقف مؤقتًا' : 'Paused');
       return;
     }
 
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+    const updateTimer = () => {
+      const expectedTime = computeExpectedTime();
+      if (Number.isNaN(expectedTime)) {
+        this.slaRemainingText.set('');
+        this.slaExpectedDueAt.set(null);
+        this.slaProgressPercent.set(0);
+        return;
+      }
 
-    this.slaRemainingText.set(`${hours}h ${mins}m ${secs}s`);
-  };
+      this.slaExpectedDueAt.set(new Date(expectedTime));
+      updateProgress(expectedTime);
+      const diff = expectedTime - Date.now();
 
-  updateTimer();
-  this.slaIntervalId = setInterval(updateTimer, 1000);
-}
+      if (diff <= 0) {
+        this.slaIsBreached.set(true);
+        this.slaProgressPercent.set(100);
+        this.slaRemainingText.set(this.i18n.currentLang() === 'ar' ? 'انتهت المهلة' : 'Breached');
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+      this.slaRemainingText.set(`${hours}h ${mins}m ${secs}s`);
+    };
+
+    updateTimer();
+    this.slaIntervalId = setInterval(updateTimer, 1000);
+  }
+
+  /**
+   * يحدد شدة حالة الـ SLA الحالية عشان نلوّن الويدجت بشكل مناسب:
+   * breached: تم تجاوز الموعد | paused: العداد متوقف مؤقتًا
+   * critical: أوشك على الانتهاء (>= 85% من الوقت المستهلك) | normal: باقي وقت كافي
+   */
+  slaSeverity(): 'breached' | 'paused' | 'critical' | 'normal' {
+    if (this.slaIsBreached()) return 'breached';
+    if (this.slaIsPaused()) return 'paused';
+    if (this.slaProgressPercent() >= 85) return 'critical';
+    return 'normal';
+  }
+
+  slaColorClasses(): { badge: string; icon: string; value: string; bar: string } {
+    switch (this.slaSeverity()) {
+      case 'breached':
+        return { badge: 'bg-red-50 border-red-200', icon: 'bg-red-100 text-red-600', value: 'text-red-600', bar: 'bg-red-500' };
+      case 'paused':
+        return { badge: 'bg-slate-50 border-slate-200', icon: 'bg-slate-200 text-slate-500', value: 'text-slate-500', bar: 'bg-slate-400' };
+      case 'critical':
+        return { badge: 'bg-orange-50 border-orange-200', icon: 'bg-orange-100 text-orange-600', value: 'text-orange-600', bar: 'bg-orange-500' };
+      default:
+        return { badge: 'bg-emerald-50 border-emerald-200', icon: 'bg-emerald-100 text-emerald-600', value: 'text-emerald-700', bar: 'bg-emerald-500' };
+    }
+  }
 
   // ── جديد: اختيار الملف من الجهاز (لسه ما اترفعش) ──
   onFileSelected(event: Event): void {

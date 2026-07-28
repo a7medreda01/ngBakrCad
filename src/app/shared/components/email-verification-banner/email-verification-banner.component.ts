@@ -12,15 +12,15 @@ import { WalletService } from '../../../core/services/wallet.service';
   imports: [CommonModule],
   template: `
     @if (showBanner()) {
-      <div class="bg-gradient-to-r from-amber-500/10 via-amber-600/10 to-amber-500/10 border border-amber-500/20 px-6 py-3.5 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4 mb-6 shadow-sm animate-fade-in"
+      <div class="bg-gradient-to-r from-amber-500/10 via-amber-600/10 to-amber-500/10 border border-amber-500/20 px-4 sm:px-6 py-4 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shadow-sm animate-fade-in"
            [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
-        <div class="flex items-center gap-3 text-center md:text-left">
-          <span class="text-amber-600 p-2 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+        <div class="flex items-start gap-3 w-full md:w-auto">
+          <span class="text-amber-600 p-2 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex-shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
             </svg>
           </span>
-          <div class="flex flex-col gap-0.5">
+          <div class="flex flex-col gap-0.5 min-w-0">
             <span class="text-xs font-black text-amber-900">
               {{ i18n.isRtl() ? 'بريدك الإلكتروني غير مؤكد!' : 'Your email address is not verified!' }}
             </span>
@@ -38,7 +38,7 @@ import { WalletService } from '../../../core/services/wallet.service';
 
         <button (click)="resendAndRedirect()" 
                 [disabled]="isLoading()"
-                class="px-5 py-2 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm disabled:opacity-50">
+                class="w-full md:w-auto px-5 py-2 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 flex-shrink-0">
           {{ isLoading() ? (i18n.isRtl() ? 'جاري الإرسال...' : 'Sending...') : (i18n.isRtl() ? 'تأكيد البريد الآن' : 'Verify Email Now') }}
         </button>
       </div>
@@ -99,5 +99,3 @@ export class EmailVerificationBannerComponent implements OnInit {
     });
   }
 }
-
-

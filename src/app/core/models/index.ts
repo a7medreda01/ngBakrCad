@@ -4,6 +4,7 @@ export { UserRole, OrderStatus, PricingMethod, TransactionType, InvoiceStatus, T
 export interface LoginRequest {
   email: string;
   password: string;
+  confirmLogoutOtherDevices?: boolean;
 }
 
 export interface RegisterRequest {
@@ -42,6 +43,9 @@ export interface ClientProfileDto {
   negativeBalanceAllowed: boolean;
   classificationTag: ClientClassification;
   walletBalance: number;
+  level: string;
+  completedCasesCount: number;
+  caseCompletionRate: number;
 }
 
 export interface DesignerProfileDto {
@@ -49,7 +53,9 @@ export interface DesignerProfileDto {
   specialization: string | null;
   slaStats: string | null;
   rating: number;
-  level: number;
+  level: string;
+  completedCasesCount: number;
+  caseCompletionRate: number;
   isAvailable?: boolean;
 }
 
@@ -60,6 +66,8 @@ export interface ServiceDto {
   nameEn: string;
   descriptionAr: string;
   descriptionEn: string;
+  categoryAr?: string;
+  categoryEn?: string;
   pricingMethod: PricingMethod;
   price: number;
   designerProfit: number;
@@ -96,6 +104,8 @@ export interface CreateServiceRequest {
   nameEn: string;
   descriptionAr: string;
   descriptionEn: string;
+  categoryAr?: string;
+  categoryEn?: string;
   pricingMethod: PricingMethod;
   price: number;
   designerProfit: number;
@@ -107,6 +117,8 @@ export interface UpdateServiceRequest {
   nameEn: string;
   descriptionAr: string;
   descriptionEn: string;
+  categoryAr?: string;
+  categoryEn?: string;
   pricingMethod: PricingMethod;
   price: number;
   designerProfit: number;
@@ -119,6 +131,12 @@ export interface SetCustomPriceRequest {
   customPrice: number;
 }
 
+export interface OrderServiceSelection {
+  serviceId: string;
+  teeth?: number[];
+  targetType?: 'tooth' | 'upper_arch' | 'lower_arch' | 'full_case';
+}
+
 export interface OrderCreateRequest {
   patientName: string;
   patientGender: string;
@@ -129,6 +147,7 @@ export interface OrderCreateRequest {
   gumDesignChecked: boolean;
   selectedTeeth: number[];
   serviceIds: string[];
+  serviceSelections?: OrderServiceSelection[];
   notes?: string;
 }
 
@@ -137,6 +156,7 @@ export interface OrderDto {
   orderCode: string;
   clientId: string;
   clientCode: string;
+  clientName?: string | null;
   designerId: string | null;
   designerCode: string | null;
   designerName: string | null;  // Full name for admin display
@@ -167,6 +187,7 @@ export interface OrderServiceDto {
   priceCharged: number;
   quantity: number;
   subtotal: number;
+  teeth?: number[];
 }
 
 export interface OrderReviewRequest {
@@ -268,12 +289,14 @@ export interface MeetingRequestDto {
   status: MeetingStatus;
   reason: string;
   meeting?: MeetingDto | null;
+  requestedByUserId: string;
 }
 
 export interface MeetingDto {
   meetingRequestId: string;
   zoomMeetingId: string;
-  joinUrl: string;
+  clientJoinUrl: string;
+  designerJoinUrl: string;
   startUrl: string;
   scheduledAt: string;
 }
@@ -363,6 +386,7 @@ export interface UserProfileDto {
   isActive: boolean;
   isEmailVerified: boolean;
   roles: string[];
+  profilePictureUrl?: string | null;
   clientProfile: ClientProfileDto | null;
   designerProfile: DesignerProfileDto | null;
 }
@@ -372,7 +396,7 @@ export interface DesignerDashboardDto {
   fullName: string;
   specialization: string | null;
   rating: number;
-  level: number;
+  level: string;
   totalCompletedOrders: number;
   activeOrders: number;
   pendingReviewOrders: number;
@@ -420,28 +444,28 @@ export interface StatusMeta {
 }
 
 export const STATUS_META: Record<OrderStatus, StatusMeta> = {
-  [OrderStatus.Draft]:                   { label: 'مسودة',                  badge: 'bg-slate-100 text-slate-600',    dot: 'bg-slate-400' },
-  [OrderStatus.PendingAdminReview]:      { label: 'مراجعة الإدارة',          badge: 'bg-amber-50 text-amber-700',     dot: 'bg-amber-500' },
-  [OrderStatus.AssignedToLab]:           { label: 'تم الإسناد للمصمم',       badge: 'bg-blue-50 text-blue-700',       dot: 'bg-blue-500' },
-  [OrderStatus.LabReview]:               { label: 'مراجعة المصمم للحالة',    badge: 'bg-blue-50 text-blue-700',       dot: 'bg-blue-500' },
-  [OrderStatus.LabRejected]:             { label: 'رفض المصمم للحالة',       badge: 'bg-red-50 text-red-700',         dot: 'bg-red-500' },
-  [OrderStatus.LabAccepted]:             { label: 'قبل المصمم الحالة',       badge: 'bg-teal-50 text-teal-700',       dot: 'bg-teal-500' },
-  [OrderStatus.WaitingClientReview]:     { label: 'معاينة عند العميل',       badge: 'bg-purple-50 text-purple-700',   dot: 'bg-purple-500' },
-  [OrderStatus.WaitingDoctorResponse]:   { label: 'بانتظار رد الطبيب',       badge: 'bg-orange-50 text-orange-700',   dot: 'bg-orange-500' },
-  [OrderStatus.WaitingLabResponse]:      { label: 'بانتظار رد المصمم',       badge: 'bg-orange-50 text-orange-700',   dot: 'bg-orange-500' },
-  [OrderStatus.WaitingAdminResponse]:    { label: 'بانتظار رد الإدارة',      badge: 'bg-orange-50 text-orange-700',   dot: 'bg-orange-500' },
-  [OrderStatus.InDesign]:                { label: 'قيد التصميم',             badge: 'bg-indigo-50 text-indigo-700',   dot: 'bg-indigo-500' },
-  [OrderStatus.QualityReview]:           { label: 'مراجعة الجودة',           badge: 'bg-cyan-50 text-cyan-700',       dot: 'bg-cyan-500' },
-  [OrderStatus.ReturnedToDesigner]:      { label: 'مرتجع للمصمم',            badge: 'bg-orange-50 text-orange-700',   dot: 'bg-orange-500' },
-  [OrderStatus.RejectedByQuality]:       { label: 'رفض الجودة',              badge: 'bg-red-50 text-red-700',         dot: 'bg-red-500' },
-  [OrderStatus.ApprovedByQuality]:       { label: 'قبول الجودة',             badge: 'bg-green-50 text-green-700',     dot: 'bg-green-500' },
-  [OrderStatus.DoctorReview]:            { label: 'مراجعة الطبيب',           badge: 'bg-purple-50 text-purple-700',   dot: 'bg-purple-500' },
-  [OrderStatus.DoctorRevisionRequested]: { label: 'طلب تعديل من الطبيب',     badge: 'bg-rose-50 text-rose-700',       dot: 'bg-rose-500' },
-  [OrderStatus.ReadyForDownload]:        { label: 'جاهز للتحميل',            badge: 'bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500' },
-  [OrderStatus.Completed]:               { label: 'مكتمل',                  badge: 'bg-emerald-100 text-emerald-800',dot: 'bg-emerald-600' },
-  [OrderStatus.Cancelled]:               { label: 'ملغي',                   badge: 'bg-slate-200 text-slate-700',    dot: 'bg-slate-500' },
+  [OrderStatus.Draft]: { label: 'مسودة', badge: 'bg-slate-100 text-slate-600', dot: 'bg-slate-400' },
+  [OrderStatus.PendingAdminReview]: { label: 'مراجعة الإدارة', badge: 'bg-amber-50 text-amber-700', dot: 'bg-amber-500' },
+  [OrderStatus.AssignedToLab]: { label: 'تم الإسناد للمصمم', badge: 'bg-blue-50 text-blue-700', dot: 'bg-blue-500' },
+  [OrderStatus.LabReview]: { label: 'مراجعة المصمم للحالة', badge: 'bg-blue-50 text-blue-700', dot: 'bg-blue-500' },
+  [OrderStatus.LabRejected]: { label: 'رفض المصمم للحالة', badge: 'bg-red-50 text-red-700', dot: 'bg-red-500' },
+  [OrderStatus.LabAccepted]: { label: 'قبل المصمم الحالة', badge: 'bg-teal-50 text-teal-700', dot: 'bg-teal-500' },
+  [OrderStatus.WaitingClientReview]: { label: 'معاينة عند العميل', badge: 'bg-purple-50 text-purple-700', dot: 'bg-purple-500' },
+  [OrderStatus.WaitingDoctorResponse]: { label: 'بانتظار رد الطبيب', badge: 'bg-orange-50 text-orange-700', dot: 'bg-orange-500' },
+  [OrderStatus.WaitingLabResponse]: { label: 'بانتظار رد المصمم', badge: 'bg-orange-50 text-orange-700', dot: 'bg-orange-500' },
+  [OrderStatus.WaitingAdminResponse]: { label: 'بانتظار رد الإدارة', badge: 'bg-orange-50 text-orange-700', dot: 'bg-orange-500' },
+  [OrderStatus.InDesign]: { label: 'قيد التصميم', badge: 'bg-indigo-50 text-indigo-700', dot: 'bg-indigo-500' },
+  [OrderStatus.QualityReview]: { label: 'مراجعة الجودة', badge: 'bg-cyan-50 text-cyan-700', dot: 'bg-cyan-500' },
+  [OrderStatus.ReturnedToDesigner]: { label: 'مرتجع للمصمم', badge: 'bg-orange-50 text-orange-700', dot: 'bg-orange-500' },
+  [OrderStatus.RejectedByQuality]: { label: 'رفض الجودة', badge: 'bg-red-50 text-red-700', dot: 'bg-red-500' },
+  [OrderStatus.ApprovedByQuality]: { label: 'قبول الجودة', badge: 'bg-green-50 text-green-700', dot: 'bg-green-500' },
+  [OrderStatus.DoctorReview]: { label: 'مراجعة الطبيب', badge: 'bg-purple-50 text-purple-700', dot: 'bg-purple-500' },
+  [OrderStatus.DoctorRevisionRequested]: { label: 'طلب تعديل من الطبيب', badge: 'bg-rose-50 text-rose-700', dot: 'bg-rose-500' },
+  [OrderStatus.ReadyForDownload]: { label: 'جاهز للتحميل', badge: 'bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500' },
+  [OrderStatus.Completed]: { label: 'مكتمل', badge: 'bg-emerald-100 text-emerald-800', dot: 'bg-emerald-600' },
+  [OrderStatus.Cancelled]: { label: 'ملغي', badge: 'bg-slate-200 text-slate-700', dot: 'bg-slate-500' },
   // ← جديد
-  [OrderStatus.WaitingClientResponse]:   { label: 'ملف ناقص - بانتظار العميل', badge: 'bg-orange-50 text-orange-700', dot: 'bg-orange-500' },
+  [OrderStatus.WaitingClientResponse]: { label: 'ملف ناقص - بانتظار العميل', badge: 'bg-orange-50 text-orange-700', dot: 'bg-orange-500' },
 };
 
 export function statusLabel(status: OrderStatus): string {
@@ -510,12 +534,12 @@ const TRANSITIONS: Partial<Record<OrderStatus, StatusAction[]>> = {
     { next: OrderStatus.Completed, label: 'إغلاق الطلب كمكتمل', style: 'success' },
   ],
   [OrderStatus.WaitingAdminResponse]: [
-  { next: OrderStatus.InDesign, label: 'الرد وإعادة الطلب للتصميم', style: 'primary', requiresNotes: true },
-  { next: OrderStatus.ReturnedToDesigner, label: 'الموافقة وإرجاع الطلب للمصمم', style: 'success' },
-  // ── جديد ──
-  { next: OrderStatus.WaitingClientResponse, label: 'طلب ملف ناقص من العميل', style: 'neutral', requiresNotes: true },
-  { next: OrderStatus.Cancelled, label: 'إلغاء الطلب', style: 'danger', requiresNotes: true },
-],
+    { next: OrderStatus.InDesign, label: 'الرد وإعادة الطلب للتصميم', style: 'primary', requiresNotes: true },
+    { next: OrderStatus.ReturnedToDesigner, label: 'الموافقة وإرجاع الطلب للمصمم', style: 'success' },
+    // ── جديد ──
+    { next: OrderStatus.WaitingClientResponse, label: 'طلب ملف ناقص من العميل', style: 'neutral', requiresNotes: true },
+    { next: OrderStatus.Cancelled, label: 'إلغاء الطلب', style: 'danger', requiresNotes: true },
+  ],
 };
 
 export function getStatusActions(current: OrderStatus): StatusAction[] {
@@ -573,4 +597,25 @@ export interface SupportTicketListDto {
 
 export interface UnreadCountDto {
   totalUnread: number;
+}
+
+export interface EmployeeDto {
+  id: string;
+  email: string;
+  fullName: string;
+  phoneNumber: string;
+  isActive: boolean;
+  isEmailVerified: boolean;
+  role: string;
+  permissions: string[];
+  createdAt: string;
+}
+
+export interface UpdateEmployeeRoleRequest {
+  role: UserRole;
+}
+
+export interface RolePermissionsSummaryDto {
+  roleName: string;
+  permissions: string[];
 }

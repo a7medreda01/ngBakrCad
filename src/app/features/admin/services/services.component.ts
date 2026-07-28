@@ -34,6 +34,8 @@ export class ServicesComponent implements OnInit {
   readonly selectedService = signal<ServiceDto | null>(null);
   readonly isEditMode = signal(false); // true for edit, false for create
 
+  readonly availableCategories = signal<{ categoryAr: string; categoryEn: string }[]>([]);
+
   // Form for both create and edit
   form = this.fb.group({
     serviceCode: ['', [Validators.required]],
@@ -41,7 +43,9 @@ export class ServicesComponent implements OnInit {
     nameEn: ['', [Validators.required]],
     descriptionAr: [''],
     descriptionEn: [''],
-    pricingMethod: ['FixedPrice', [Validators.required]],
+    categoryAr: ['التيجان والقبعات'],
+    categoryEn: ['Crowns & Copings'],
+    pricingMethod: ['FixedCase', [Validators.required]],
     price: [0, [Validators.required, Validators.min(0)]],
     designerProfit: [50, [Validators.required, Validators.min(0)]],
     minimumDeliveryHours: [24, [Validators.required, Validators.min(1)]]
@@ -49,8 +53,8 @@ export class ServicesComponent implements OnInit {
 
   readonly pricingMethods = [
     { value: 'PerTooth', label: 'لكل سن', numValue: 0 },
-    { value: 'PerArch', label: 'لكل قوس', numValue: 1 },
-    { value: 'PerHole', label: 'لكل فتحة', numValue: 2 },
+    { value: 'PerArch', label: 'لكل فك واحد', numValue: 1 },
+    { value: 'PerHole', label: 'لكل زرعة (فتحة)', numValue: 2 },
     { value: 'FixedCase', label: 'سعر ثابت للحالة', numValue: 3 },
     { value: 'Quotation', label: 'تسعير بالطلب', numValue: 4 }
   ];
@@ -95,6 +99,8 @@ export class ServicesComponent implements OnInit {
       nameEn: '',
       descriptionAr: '',
       descriptionEn: '',
+      categoryAr: 'التيجان والقبعات',
+      categoryEn: 'Crowns & Copings',
       pricingMethod: 'FixedCase',
       price: 0,
       designerProfit: 50,
@@ -118,6 +124,8 @@ export class ServicesComponent implements OnInit {
       nameEn: this.form.value.nameEn || '',
       descriptionAr: this.form.value.descriptionAr || '',
       descriptionEn: this.form.value.descriptionEn || '',
+      categoryAr: this.form.value.categoryAr || 'التيجان والقبعات',
+      categoryEn: this.form.value.categoryEn || 'Crowns & Copings',
       pricingMethod: (this.form.value.pricingMethod as any) || 'FixedCase',
       price: this.form.value.price || 0,
       designerProfit: this.form.value.designerProfit || 0,
@@ -148,6 +156,8 @@ export class ServicesComponent implements OnInit {
       nameEn: service.nameEn,
       descriptionAr: service.descriptionAr,
       descriptionEn: service.descriptionEn,
+      categoryAr: service.categoryAr || 'التيجان والقبعات',
+      categoryEn: service.categoryEn || 'Crowns & Copings',
       pricingMethod: this.getPricingMethodValue(service.pricingMethod),
       price: service.price,
       designerProfit: service.designerProfit,
@@ -170,6 +180,8 @@ export class ServicesComponent implements OnInit {
       nameEn: this.form.value.nameEn || '',
       descriptionAr: this.form.value.descriptionAr || '',
       descriptionEn: this.form.value.descriptionEn || '',
+      categoryAr: this.form.value.categoryAr || 'التيجان والقبعات',
+      categoryEn: this.form.value.categoryEn || 'Crowns & Copings',
       pricingMethod: this.form.value.pricingMethod || 'FixedCase',
       price: this.form.value.price || 0,
       designerProfit: this.form.value.designerProfit || 0,

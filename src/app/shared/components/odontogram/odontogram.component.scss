@@ -39,7 +39,7 @@
   &.read-only {
     cursor: default;
   }
-  
+
   &[role="button"] {
     outline: none;
 
@@ -180,9 +180,11 @@
     transform: scale(0.98);
     opacity: 0.8;
   }
+
   50% {
     transform: scale(1.05);
   }
+
   100% {
     transform: scale(1);
     opacity: 1;
@@ -190,9 +192,12 @@
 }
 
 @keyframes toothGlow {
-  0%, 100% {
+
+  0%,
+  100% {
     filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.1));
   }
+
   50% {
     filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.3));
   }

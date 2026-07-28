@@ -145,6 +145,27 @@
             }
           </div>
 
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-secondary">التصنيف (عربي)</label>
+              <input
+                type="text"
+                formControlName="categoryAr"
+                placeholder="مثال: التيجان والقبعات"
+                class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-secondary">Category (English)</label>
+              <input
+                type="text"
+                formControlName="categoryEn"
+                placeholder="e.g. Crowns & Copings"
+                class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+              />
+            </div>
+          </div>
+
           <div class="flex flex-col gap-1.5">
             <label class="text-xs font-bold text-secondary">الوصف (عربي)</label>
             <textarea
@@ -288,6 +309,27 @@
             @if (form.get('nameEn')?.hasError('required') && form.get('nameEn')?.touched) {
               <p class="text-[10px] text-rose-600">الحقل مطلوب</p>
             }
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-secondary">التصنيف (عربي)</label>
+              <input
+                type="text"
+                formControlName="categoryAr"
+                placeholder="التصنيف بالعربية"
+                class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-secondary">Category (English)</label>
+              <input
+                type="text"
+                formControlName="categoryEn"
+                placeholder="Category in English"
+                class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+              />
+            </div>
           </div>
 
           <div class="flex flex-col gap-1.5">

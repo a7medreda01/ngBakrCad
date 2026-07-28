@@ -1,0 +1,124 @@
+<!-- services-map.component.html -->
+<section class="section-container" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
+  <div class="text-center mb-8 lg:mb-10">
+    <span class="eyebrow mb-4">{{ i18n.translate('home.servicesMap.eyebrow') }}</span>
+    <h2 class="section-heading mt-4 mb-3">{{ i18n.translate('home.servicesMap.title') }}</h2>
+    <p class="section-subheading mx-auto">{{ i18n.translate('home.servicesMap.description') }}</p>
+  </div>
+
+  @if (isLoading()) {
+    <div class="card grid lg:grid-cols-[0.8fr_1.2fr] gap-6 animate-pulse">
+      <div class="space-y-3">
+        <div class="h-4 w-32 rounded bg-border"></div>
+        <div class="h-12 w-full rounded-xl bg-border"></div>
+        <div class="h-12 w-full rounded-xl bg-border"></div>
+        <div class="h-12 w-full rounded-xl bg-border"></div>
+      </div>
+      <div class="h-64 rounded-2xl bg-border"></div>
+    </div>
+  } @else if (hasError()) {
+    <div class="card flex flex-col items-center justify-center gap-4 py-12 text-center">
+      <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center">
+        <i class="bi bi-exclamation-triangle text-xl"></i>
+      </div>
+      <p class="text-sm font-bold text-secondary">{{ i18n.translate('home.servicesMap.loadingError') }}</p>
+      <button type="button" (click)="loadServices()" class="btn-primary btn-md">
+        <i class="bi bi-arrow-clockwise"></i>
+        {{ i18n.translate('home.servicesMap.retry') }}
+      </button>
+    </div>
+  } @else if (services().length === 0) {
+    <div class="card py-12 text-center text-sm font-bold text-text-secondary">{{ i18n.translate('home.servicesMap.empty') }}</div>
+  } @else {
+    <div class="flex justify-center">
+      <div class="card flex flex-col gap-5 w-full max-w-4xl">
+        <div>
+          <h3 class="text-lg font-black text-secondary">{{ i18n.translate('home.servicesMap.chooseCategory') }}</h3>
+          <p class="text-xs text-text-secondary mt-1">{{ i18n.translate('home.servicesMap.chooseCategoryHint') }}</p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" role="group" aria-label="فئات الخدمات">
+          @for (category of categories(); track category.code) {
+            <button
+              type="button"
+              (click)="selectCategory(category)"
+              [attr.aria-pressed]="selectedCategoryCode() === category.code"
+              [class.bg-primary]="selectedCategoryCode() === category.code"
+              [class.text-white]="selectedCategoryCode() === category.code"
+              [class.border-primary]="selectedCategoryCode() === category.code"
+              [class.text-text-secondary]="selectedCategoryCode() !== category.code"
+              [class.hover\:text-primary]="selectedCategoryCode() !== category.code"
+              class="min-h-12 rounded-xl border border-border px-2 py-2 text-xs font-bold transition hover:border-primary"
+            >
+              {{ categoryName(category) }}
+            </button>
+          }
+        </div>
+
+        <label class="flex flex-col gap-2">
+          <span class="text-xs font-bold text-secondary">{{ i18n.translate('home.servicesMap.service') }}</span>
+          <select
+            [value]="selectedServiceId()"
+            (change)="selectService($any($event.target).value)"
+            class="w-full rounded-xl border border-border bg-background px-3 py-3 text-sm font-bold text-secondary focus:border-primary focus:outline-none"
+          >
+            @for (service of servicesInCategory(); track service.id) {
+              <option [value]="service.id">{{ serviceName(service) }}</option>
+            }
+          </select>
+        </label>
+
+        @if (showsJawToggle()) {
+          <div class="flex flex-col gap-3">
+            <span class="text-xs font-bold text-secondary">{{ i18n.translate('home.servicesMap.jaw') }}</span>
+            <div class="grid grid-cols-3 gap-2" role="group" aria-label="اختيار الفك">
+              <button type="button" (click)="setJaw('upper')" [attr.aria-pressed]="selectedJaw() === 'upper'" [class.bg-primary]="selectedJaw() === 'upper'" [class.text-white]="selectedJaw() === 'upper'" [class.text-text-secondary]="selectedJaw() !== 'upper'" class="rounded-xl border border-border px-2 py-2 text-xs font-bold transition hover:border-primary">{{ i18n.translate('home.servicesMap.upper') }}</button>
+              <button type="button" (click)="setJaw('lower')" [attr.aria-pressed]="selectedJaw() === 'lower'" [class.bg-primary]="selectedJaw() === 'lower'" [class.text-white]="selectedJaw() === 'lower'" [class.text-text-secondary]="selectedJaw() !== 'lower'" class="rounded-xl border border-border px-2 py-2 text-xs font-bold transition hover:border-primary">{{ i18n.translate('home.servicesMap.lower') }}</button>
+              <button type="button" (click)="setJaw('both')" [attr.aria-pressed]="selectedJaw() === 'both'" [class.bg-primary]="selectedJaw() === 'both'" [class.text-white]="selectedJaw() === 'both'" [class.text-text-secondary]="selectedJaw() !== 'both'" class="rounded-xl border border-border px-2 py-2 text-xs font-bold transition hover:border-primary">{{ i18n.translate('home.servicesMap.both') }}</button>
+            </div>
+          </div>
+        }
+
+        @if (showsToothSlider()) {
+          <label class="flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-secondary">{{ i18n.translate('home.servicesMap.toothCount') }}</span>
+              <span class="text-sm font-black text-primary">{{ toothCount() }}</span>
+            </div>
+            <input type="range" min="1" [max]="16" [value]="toothCount()" (input)="setToothCount(+$any($event.target).value)" class="w-full accent-primary" />
+            <div class="flex justify-between text-[10px] text-text-secondary"><span>1</span><span>16</span></div>
+          </label>
+        }
+
+        @if (pricingKind() === 'assessment') {
+          <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-800">
+            <i class="bi bi-clipboard2-pulse me-2"></i>
+            {{ i18n.translate('home.servicesMap.assessmentPrice') }}
+          </div>
+        } @else {
+          <div class="rounded-2xl bg-primary/5 border border-primary/15 p-4 grid grid-cols-2 gap-3" aria-live="polite">
+            @if (showsUnitBreakdown()) {
+              <div>
+                <span class="block text-[10px] text-text-secondary">{{ i18n.translate('home.servicesMap.units') }}</span>
+                <strong class="text-lg text-secondary">{{ unitCount() }}</strong>
+              </div>
+              <div>
+                <span class="block text-[10px] text-text-secondary">{{ i18n.translate('home.servicesMap.estimatedTime') }}</span>
+                <strong class="text-sm text-secondary">{{ formatHours(estimatedHours()) }}</strong>
+              </div>
+            } @else {
+              <div class="col-span-2">
+                <span class="block text-[10px] text-text-secondary">{{ i18n.translate('home.servicesMap.estimatedTime') }}</span>
+                <strong class="text-sm text-secondary">{{ formatHours(estimatedHours()) }}</strong>
+              </div>
+            }
+            <div class="col-span-2 border-t border-primary/10 pt-3">
+              <span class="block text-[10px] text-text-secondary">{{ i18n.translate('home.servicesMap.estimatedTotal') }}</span>
+              <strong class="text-2xl text-primary">{{ totalPrice() | number:'1.0-2' }} <span class="text-xs">SAR</span></strong>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</section>

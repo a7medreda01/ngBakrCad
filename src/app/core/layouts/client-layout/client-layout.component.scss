@@ -21,3 +21,32 @@ aside {
     opacity: 1;
   }
 }
+
+.avatar-border-gold {
+  border: 2.5px solid #FFD700 !important;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.7), inset 0 0 4px rgba(255, 215, 0, 0.5);
+  animation: gold-glow 2s infinite alternate;
+}
+.avatar-border-silver {
+  border: 2.5px solid #C0C0C0 !important;
+  box-shadow: 0 0 8px rgba(192, 192, 192, 0.7), inset 0 0 4px rgba(192, 192, 192, 0.5);
+  animation: silver-glow 2s infinite alternate;
+}
+.avatar-border-bronze {
+  border: 2.5px solid #CD7F32 !important;
+  box-shadow: 0 0 8px rgba(205, 127, 50, 0.7), inset 0 0 4px rgba(205, 127, 50, 0.5);
+  animation: bronze-glow 2s infinite alternate;
+}
+
+@keyframes gold-glow {
+  0% { box-shadow: 0 0 3px rgba(255, 215, 0, 0.4); }
+  100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.9); }
+}
+@keyframes silver-glow {
+  0% { box-shadow: 0 0 3px rgba(192, 192, 192, 0.4); }
+  100% { box-shadow: 0 0 10px rgba(192, 192, 192, 0.9); }
+}
+@keyframes bronze-glow {
+  0% { box-shadow: 0 0 3px rgba(205, 127, 50, 0.4); }
+  100% { box-shadow: 0 0 10px rgba(205, 127, 50, 0.9); }
+}

@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { CatalogService } from '../../../core/services/catalog-service.service';
 import { AdminService } from '../../../core/services/admin.service';
 import { TranslationService } from '../../../core/services/translation.service';
@@ -35,6 +36,7 @@ interface DesignerPricing {
 export class CustomPricingComponent implements OnInit {
   private readonly catalogService = inject(CatalogService);
   private readonly adminService = inject(AdminService);
+  private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
   readonly i18n = inject(TranslationService);
   private readonly toast = inject(ToastService);
@@ -76,8 +78,8 @@ export class CustomPricingComponent implements OnInit {
 
   readonly pricingMethods = [
     { value: 'PerTooth', label: 'لكل سن', numValue: 0 },
-    { value: 'PerArch', label: 'لكل قوس', numValue: 1 },
-    { value: 'PerHole', label: 'لكل فتحة', numValue: 2 },
+    { value: 'PerArch', label: 'لكل فك واحد', numValue: 1 },
+    { value: 'PerHole', label: 'لكل زرعة (فتحة)', numValue: 2 },
     { value: 'FixedCase', label: 'سعر ثابت للحالة', numValue: 3 },
     { value: 'Quotation', label: 'تسعير بالطلب', numValue: 4 }
   ];
@@ -101,6 +103,25 @@ export class CustomPricingComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadServices();
+    this.route.queryParams.subscribe(params => {
+      const userId = params['userId'];
+      const name = params['name'];
+      const role = params['role'];
+      if (role === 'Designer' || role === 'Lab') {
+        this.switchTab('designer');
+      } else if (role === 'Doctor') {
+        this.switchTab('doctor');
+      }
+
+      if (userId && name && role) {
+        const user = { id: userId, fullName: name };
+        if (role === 'Designer' || role === 'Lab') {
+          this.selectDesigner(user);
+        } else {
+          this.selectDoctor(user);
+        }
+      }
+    });
   }
 
   switchTab(tab: 'doctor' | 'designer'): void {
@@ -196,9 +217,35 @@ export class CustomPricingComponent implements OnInit {
 
     const existing = this.doctorPricings().find(p => p.serviceId === service.id);
     this.form.patchValue({
-      customPrice: existing?.customPrice || service.price
+      doctorId: doctor.id,
+      customPrice: existing?.customPrice ?? service.price
     });
     this.showModal.set(true);
+  }
+
+  openEditPriceModal(pricing: DoctorPricing): void {
+    // التحقق المبكر: إذا لم يكن هناك معرّف خدمة، نعرض خطأ ونخرج فوراً لتفادي أي أخطاء في الـ runtime
+    if (!pricing || !pricing.serviceId) {
+      this.toast.error('بيانات السعر المخصص غير مكتملة (معرّف الخدمة مفقود)');
+      return;
+    }
+
+    // --- LOGGING FOR DEBUGGING ---
+    console.log('--- DEBUG MATCHING ---');
+    console.log('Incoming pricing.serviceId:', pricing.serviceId, typeof pricing.serviceId);
+    console.log('First service ID in catalog:', this.services()[0]?.id, typeof this.services()[0]?.id);
+    
+    // مطابقة آمنة ضد القيم الفارغة (null/undefined) واختلاف الأنواع (string vs number)
+    const service = this.services().find(s => 
+      (s.id ?? '').toString().toLowerCase() === (pricing.serviceId ?? '').toString().toLowerCase()
+    );
+
+    if (service) {
+      this.openSetPriceModal(service);
+    } else {
+      console.warn('Failed to find service. All catalog IDs:', this.services().map(s => s.id));
+      this.toast.error(`لم يتم العثور على بيانات الخدمة في الكتالوج (ID: ${pricing.serviceId})`);
+    }
   }
 
   submitCustomPrice(): void {
@@ -220,12 +267,12 @@ export class CustomPricingComponent implements OnInit {
 
     this.catalogService.setCustomPrice(service.id, request).subscribe({
       next: () => {
-        this.toast.success('تم تعيين السعر المخصص بنجاح');
+        this.toast.success('تم تغيير السعر المخصص بنجاح');
         this.showModal.set(false);
         this.loadDoctorCustomPrices(doctor.id);
       },
       error: (err) => {
-        this.toast.error(err?.error?.message || 'فشل تعيين السعر المخصص');
+        this.toast.error(err?.error?.message || 'فشل تغيير السعر المخصص');
       },
       complete: () => this.isSubmitting.set(false)
     });
@@ -314,9 +361,29 @@ export class CustomPricingComponent implements OnInit {
 
     const existing = this.designerPricings().find(p => p.serviceId === service.id);
     this.profitForm.patchValue({
-      customProfit: existing?.customProfit || service.designerProfit
+      designerId: designer.id,
+      customProfit: existing?.customProfit ?? service.designerProfit
     });
     this.showProfitModal.set(true);
+  }
+
+  openEditProfitModal(pricing: DesignerPricing): void {
+    // التحقق المبكر: إذا لم يكن هناك معرّف خدمة، نعرض خطأ ونخرج فوراً
+    if (!pricing || !pricing.serviceId) {
+      this.toast.error('بيانات الربح المخصص غير مكتملة (معرّف الخدمة مفقود)');
+      return;
+    }
+
+    // مطابقة آمنة ضد القيم الفارغة واختلاف الأنواع (string vs number)
+    const service = this.services().find(s => 
+      (s.id ?? '').toString().toLowerCase() === (pricing.serviceId ?? '').toString().toLowerCase()
+    );
+
+    if (service) {
+      this.openSetProfitModal(service);
+    } else {
+      this.toast.error('لم يتم العثور على بيانات الخدمة في الكتالوج');
+    }
   }
 
   submitCustomProfit(): void {

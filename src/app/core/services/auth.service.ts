@@ -108,11 +108,37 @@ export class AuthService {
     );
   }
 
+  uploadProfilePicture(file: File): Observable<UserProfileDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.api.post<UserProfileDto>('Users/profile/picture', formData).pipe(
+      tap(profile => this.userProfile.set(profile))
+    );
+  }
+
   handleAuthSuccess(res: AuthResponse): void {
     this.tokenService.saveToken(res.token);
     this.tokenService.saveRefreshToken(res.refreshToken);
     this.currentUser.set(res);
     this.loadUserProfile().subscribe();
+  }
+
+  hasRole(expectedRoles: string | string[]): boolean {
+    const roles = this.currentUser()?.roles || this.tokenService.getUserRoles();
+    const expected = Array.isArray(expectedRoles) ? expectedRoles : [expectedRoles];
+    return roles.some(r => expected.includes(r));
+  }
+
+  hasPermission(permission: string): boolean {
+    const roles = this.currentUser()?.roles || this.tokenService.getUserRoles();
+    if (roles.includes('SuperAdmin')) return true; // SuperAdmin has full access
+
+    const permissions = this.currentUser()?.permissions || this.tokenService.getUserPermissions();
+    return permissions.includes('All') || permissions.includes(permission);
+  }
+
+  isSuperAdmin(): boolean {
+    return this.hasRole('SuperAdmin');
   }
 
   private clearSession(): void {

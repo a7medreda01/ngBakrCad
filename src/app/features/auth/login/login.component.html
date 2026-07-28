@@ -1,8 +1,16 @@
 <div class="flex flex-col gap-8">
+  <!-- Back to Home -->
+  <a routerLink="/" class="inline-flex items-center gap-2 text-xs font-bold text-text-secondary hover:text-primary transition duration-200 group w-fit">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+    </svg>
+    {{ 'auth.backHome' | translate }}
+  </a>
+
   <!-- Header -->
   <div class="flex flex-col gap-2">
     <h2 class="text-2xl font-extrabold text-secondary">{{ 'auth.login' | translate }}</h2>
-    <p class="text-sm text-text-secondary">أهلاً بك في منصة BKR CAD. سجل دخولك للمتابعة.</p>
+    <p class="text-sm text-text-secondary">{{ 'auth.welcomeLogin' | translate }}</p>
   </div>
 
   <!-- Login Form -->
@@ -19,7 +27,7 @@
         [class.border-red-400]="form.get('email')?.invalid && form.get('email')?.touched"
       />
       @if (form.get('email')?.invalid && form.get('email')?.touched) {
-        <span class="text-xs text-red-500 font-semibold">يرجى إدخال بريد إلكتروني صحيح</span>
+        <span class="text-xs text-red-500 font-semibold">{{ 'auth.emailError' | translate }}</span>
       }
     </div>
 
@@ -59,6 +67,39 @@
   <!-- Register Redirect -->
   <div class="text-center">
     <span class="text-sm text-text-secondary">{{ 'auth.noAccount' | translate }}</span>
-    <a routerLink="/auth/register" class="text-sm font-bold text-primary hover:underline ms-1">إنشاء حساب</a>
+    <a routerLink="/auth/register" class="text-sm font-bold text-primary hover:underline ms-1">{{ 'auth.createAccount' | translate }}</a>
   </div>
+
+  <!-- Doctor Single Session Conflict Modal -->
+  @if (showSessionConflictModal()) {
+    <div class="fixed inset-0 z-50 bg-secondary/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-surface border border-border rounded-3xl p-6 max-w-md w-full shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+          ⚠️
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-secondary">تنبيه أمان الحساب (جلسة واحدة)</h3>
+          <p class="text-xs text-text-secondary mt-1 leading-relaxed">
+            {{ conflictMessage() || 'حساب الطبيب مفتوح حالياً على جهاز آخر. تسجيل الدخول من هذا الجهاز سيؤدي إلى تسجيل الخروج تلقائياً من الجهاز الآخر.' }}
+          </p>
+        </div>
+        <div class="flex items-center justify-end gap-3 mt-2">
+          <button
+            type="button"
+            (click)="cancelSessionOverride()"
+            class="px-4 py-2 rounded-xl border border-border text-xs font-bold text-text-secondary hover:bg-background transition"
+          >
+            إلغاء
+          </button>
+          <button
+            type="button"
+            (click)="confirmSessionOverride()"
+            class="px-4 py-2 rounded-xl bg-primary text-white text-xs font-black shadow-md hover:opacity-90 transition"
+          >
+            تأكيد وتسجيل الدخول هنا
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

@@ -1,7 +1,17 @@
 <div class="flex flex-col gap-6">
+
+  <!-- Back to Home -->
+  <a routerLink="/" class="inline-flex items-center gap-2 text-xs font-bold text-text-secondary hover:text-primary transition duration-200 group w-fit">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+    </svg>
+    {{ 'auth.backHome' | translate }}
+  </a>
+
+  <!-- Header -->
   <div class="flex flex-col gap-2">
     <h2 class="text-2xl font-extrabold text-secondary">{{ 'auth.register' | translate }}</h2>
-    <p class="text-sm text-text-secondary">انضم إلى منصة BKR CAD واختر نوع حسابك</p>
+    <p class="text-sm text-text-secondary">{{ 'auth.welcomeRegister' | translate }}</p>
   </div>
 
   <!-- Account Type Selector -->
@@ -17,8 +27,8 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
       </svg>
       <div>
-        <p class="text-xs font-black text-secondary">طبيب / عيادة</p>
-        <p class="text-[10px] text-text-secondary">أطلب تصاميم الأسنان</p>
+        <p class="text-xs font-black text-secondary">{{ 'auth.accountTypeDoctor' | translate }}</p>
+        <p class="text-[10px] text-text-secondary">{{ 'auth.accountTypeDoctorDesc' | translate }}</p>
       </div>
     </button>
 
@@ -33,8 +43,8 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0 1 12 15a9.065 9.065 0 0 1-6.23-.693L4.2 13.914" />
       </svg>
       <div>
-        <p class="text-xs font-black text-secondary">معمل تصميم</p>
-        <p class="text-[10px] text-text-secondary">قدم خدمات التصميم الرقمي</p>
+        <p class="text-xs font-black text-secondary">{{ 'auth.accountTypeLab' | translate }}</p>
+        <p class="text-[10px] text-text-secondary">{{ 'auth.accountTypeLabDesc' | translate }}</p>
       </div>
     </button>
   </div>
@@ -75,8 +85,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div class="flex flex-col gap-1.5">
         <label class="text-xs font-bold text-secondary">{{ 'auth.country' | translate }}</label>
-        <input id="reg-country" type="text" formControlName="country" placeholder="المملكة العربية السعودية"
-          class="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition duration-200" />
+        <app-country-select id="reg-country" formControlName="country" />
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-xs font-bold text-secondary">{{ 'auth.city' | translate }}</label>
@@ -98,12 +107,12 @@
     </div>
 
     <app-button type="submit" [isLoading]="isLoading()" size="lg" class="w-full mt-2">
-      إنشاء الحساب
+      {{ 'auth.submitCreate' | translate }}
     </app-button>
   </form>
 
   <div class="text-center">
     <span class="text-sm text-text-secondary">{{ 'auth.hasAccount' | translate }}</span>
-    <a routerLink="/auth/login" class="text-sm font-bold text-primary hover:underline ms-1">تسجيل الدخول</a>
+    <a routerLink="/auth/login" class="text-sm font-bold text-primary hover:underline ms-1">{{ 'auth.loginLink' | translate }}</a>
   </div>
 </div>

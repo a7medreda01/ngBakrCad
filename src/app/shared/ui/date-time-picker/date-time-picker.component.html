@@ -1,0 +1,184 @@
+<!-- Full-screen backdrop – click outside to dismiss -->
+<div
+  class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+  (click)="dismiss()"
+>
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+  <!-- ── Modal card ── -->
+  <div
+    dir="rtl"
+    class="relative w-full max-w-sm bg-surface rounded-3xl shadow-2xl border border-border overflow-hidden"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- ────────────────── HEADER ────────────────── -->
+    <div class="bg-gradient-to-l from-primary to-primary/80 px-5 pt-4 pb-5">
+      <div class="flex items-center justify-between">
+        <!-- Prev month -->
+        <button type="button" (click)="prevMonth()"
+          class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+
+        <span class="text-white font-black text-base tracking-wide">{{ monthLabel() }}</span>
+
+        <!-- Next month -->
+        <button type="button" (click)="nextMonth()"
+          class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+      </div>
+
+      <!-- Day-of-week labels -->
+      <div class="grid grid-cols-7 mt-3">
+        @for (lbl of ['ح','ن','ث','ر','خ','ج','س']; track lbl) {
+          <div class="text-center text-[10px] font-bold text-white/70 py-1 select-none">{{ lbl }}</div>
+        }
+      </div>
+
+      <!-- Calendar grid -->
+      <div class="grid grid-cols-7 gap-y-1 mt-1">
+        @for (cell of calendarCells(); track $index) {
+          @if (cell === null) {
+            <div></div>
+          } @else {
+            <button
+              type="button"
+              (click)="selectDay(cell)"
+              [disabled]="isDayDisabled(cell)"
+              class="mx-auto flex items-center justify-center w-9 h-9 rounded-full text-xs font-semibold transition-all select-none"
+              [ngClass]="{
+                'bg-white text-primary shadow-lg scale-110 font-black': isSelected(cell),
+                'ring-2 ring-white/60 text-white font-bold': isToday(cell) && !isSelected(cell),
+                'opacity-25 cursor-not-allowed': isDayDisabled(cell),
+                'text-white/80 hover:bg-white/20 cursor-pointer': !isDayDisabled(cell) && !isSelected(cell)
+              }"
+            >{{ cell }}</button>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- ────────────────── BODY ────────────────── -->
+    <div class="px-4 pt-4 pb-2 flex flex-col gap-3">
+
+      <!-- Time picker row -->
+      <div class="flex items-center justify-center gap-3">
+        <span class="text-[11px] font-bold text-text-secondary flex items-center gap-1">
+          <i class="bi bi-clock"></i> الوقت
+        </span>
+
+        <!-- Hours -->
+        <div class="flex flex-col items-center gap-1">
+          <button type="button" (click)="adjustHour(1)"
+            class="w-8 h-7 rounded-lg bg-background border border-border hover:border-primary hover:bg-primary/5 flex items-center justify-center transition">
+            <i class="bi bi-chevron-up text-primary text-xs"></i>
+          </button>
+          <div class="w-12 h-11 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary font-black text-xl select-none font-sans">
+            {{ selHour().toString().padStart(2,'0') }}
+          </div>
+          <button type="button" (click)="adjustHour(-1)"
+            class="w-8 h-7 rounded-lg bg-background border border-border hover:border-primary hover:bg-primary/5 flex items-center justify-center transition">
+            <i class="bi bi-chevron-down text-primary text-xs"></i>
+          </button>
+          <span class="text-[9px] text-text-secondary">ساعة</span>
+        </div>
+
+        <span class="text-2xl font-black text-primary mb-6 select-none">:</span>
+
+        <!-- Minutes (15-step) -->
+        <div class="flex flex-col items-center gap-1">
+          <button type="button" (click)="adjustMinute(1)"
+            class="w-8 h-7 rounded-lg bg-background border border-border hover:border-primary hover:bg-primary/5 flex items-center justify-center transition">
+            <i class="bi bi-chevron-up text-primary text-xs"></i>
+          </button>
+          <div class="w-12 h-11 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary font-black text-xl select-none font-sans">
+            {{ selMinute().toString().padStart(2,'00') }}
+          </div>
+          <button type="button" (click)="adjustMinute(-1)"
+            class="w-8 h-7 rounded-lg bg-background border border-border hover:border-primary hover:bg-primary/5 flex items-center justify-center transition">
+            <i class="bi bi-chevron-down text-primary text-xs"></i>
+          </button>
+          <span class="text-[9px] text-text-secondary">دقيقة</span>
+        </div>
+
+        <!-- AM / PM -->
+        <div class="flex flex-col gap-1.5 mb-6">
+          <button type="button" (click)="setAm()"
+            class="px-3 py-1.5 rounded-lg text-[11px] font-black transition"
+            [class.bg-primary]="selHour() < 12" [class.text-white]="selHour() < 12" [class.shadow]="selHour() < 12"
+            [class.bg-background]="selHour() >= 12" [class.text-text-secondary]="selHour() >= 12"
+            [class.border]="selHour() >= 12" [class.border-border]="selHour() >= 12">ص</button>
+          <button type="button" (click)="setPm()"
+            class="px-3 py-1.5 rounded-lg text-[11px] font-black transition"
+            [class.bg-primary]="selHour() >= 12" [class.text-white]="selHour() >= 12" [class.shadow]="selHour() >= 12"
+            [class.bg-background]="selHour() < 12" [class.text-text-secondary]="selHour() < 12"
+            [class.border]="selHour() < 12" [class.border-border]="selHour() < 12">م</button>
+        </div>
+      </div>
+
+      <!-- ── Selected date preview / Express prompt ── -->
+      @if (selDay()) {
+        @if (isBeforeMin() && !showExpressPrompt()) {
+          <!-- Warning: date before min -->
+          <div class="p-3 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <i class="bi bi-exclamation-triangle-fill text-amber-500"></i>
+              <span class="text-xs font-black text-amber-800">التاريخ قبل الحد الأدنى للإنجاز</span>
+            </div>
+            <p class="text-[10px] text-amber-700">
+              أقرب موعد إنجاز بدون استعجال: <strong>{{ formattedMin() }}</strong>
+            </p>
+            <p class="text-[10px] text-amber-600">اضغط «تأكيد» لتفعيل الشحن المستعجل أو غيّر التاريخ</p>
+          </div>
+        } @else if (showExpressPrompt()) {
+          <!-- Express confirmation prompt -->
+          <div class="p-3 rounded-2xl bg-amber-50 border border-amber-300 flex flex-col gap-3">
+            <div class="flex items-center gap-2">
+              <i class="bi bi-lightning-charge-fill text-amber-500 text-base"></i>
+              <span class="text-xs font-black text-amber-800">تأكيد الشحن المستعجل</span>
+            </div>
+            <p class="text-[10px] text-amber-700">
+              التاريخ المختار <strong>{{ formattedSelected() }}</strong> يتطلب شحناً مستعجلاً بزيادة <strong class="text-amber-800">+50%</strong> على التكلفة
+            </p>
+            <div class="flex gap-2">
+              <button type="button" (click)="cancelExpress()"
+                class="flex-1 py-2 rounded-xl border border-border text-secondary text-[10px] font-bold hover:bg-background transition">
+                <i class="bi bi-arrow-right-circle"></i> تغيير التاريخ
+              </button>
+              <button type="button" (click)="confirmWithExpress()"
+                class="flex-[2] py-2 rounded-xl bg-amber-500 text-white text-[10px] font-bold hover:bg-amber-600 transition flex items-center justify-center gap-1">
+                <i class="bi bi-lightning-charge-fill"></i> تأكيد المستعجل
+              </button>
+            </div>
+          </div>
+        } @else {
+          <!-- Normal preview -->
+          <div class="p-2.5 rounded-xl bg-primary/5 border border-primary/20 flex items-center justify-center gap-2">
+            <i class="bi bi-calendar-check-fill text-primary text-sm"></i>
+            <span class="text-xs text-primary font-bold font-sans">{{ formattedSelected() }}</span>
+          </div>
+        }
+      } @else {
+        <div class="p-2.5 rounded-xl bg-background border border-dashed border-border text-center">
+          <span class="text-[11px] text-text-secondary">
+            <i class="bi bi-calendar3 me-1"></i>اختر يوماً من التقويم
+          </span>
+        </div>
+      }
+
+      <!-- ── Footer buttons ── -->
+      <div class="flex gap-3 pt-1 pb-2">
+        <button type="button" (click)="dismiss()"
+          class="flex-1 py-2.5 rounded-xl border border-border text-secondary text-xs font-bold hover:bg-background transition">
+          إلغاء
+        </button>
+        <button type="button" (click)="tryConfirm()" [disabled]="!selDay()"
+          class="flex-[2] py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5">
+          <i class="bi bi-check-circle-fill"></i>
+          تأكيد التاريخ والوقت
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

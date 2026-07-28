@@ -9,6 +9,20 @@ import { ToastService } from '../../../core/services/toast.service';
 import { OrderDto, OrderStatus, PAUSED_STATUSES, STATUS_META, statusLabel } from '../../../core/models';
 import { AssignDesignerModalComponent, DesignerOption } from './app-assign-designer';
 
+/** Convert API status (number OR string like "Draft") → numeric OrderStatus */
+function normalizeOrderStatus(status: any): OrderStatus {
+  if (typeof status === 'number') return status as OrderStatus;
+  // string key → look up in enum
+  const key = status as keyof typeof OrderStatus;
+  if (key in OrderStatus) return OrderStatus[key] as unknown as OrderStatus;
+  return OrderStatus.Draft;
+}
+
+/** Patch a raw API order so status is always the numeric enum value */
+function normalizeOrder(o: any): OrderDto {
+  return { ...o, status: normalizeOrderStatus(o.status) } as OrderDto;
+}
+
 @Component({
   selector: 'app-admin-orders',
   standalone: true,
@@ -58,7 +72,8 @@ export class AdminOrdersComponent implements OnInit {
     if (!term) return this.orders();
     return this.orders().filter(o =>
       o.orderCode?.toLowerCase().includes(term) ||
-      o.patientName?.toLowerCase().includes(term)
+      o.patientName?.toLowerCase().includes(term) ||
+      o.clientName?.toLowerCase().includes(term)
     );
   });
 
@@ -73,9 +88,9 @@ export class AdminOrdersComponent implements OnInit {
       .getOrders(this.pageNumber(), this.pageSize(), this.statusFilter() || undefined, this.sortBy())
       .subscribe({
         next: (res: any) => {
-          const items = res?.items || res?.data || res || [];
-          this.orders.set(items);
-          this.totalCount.set(res?.totalCount ?? items.length);
+          const rawItems: any[] = res?.items || res?.data || res || [];
+          this.orders.set(rawItems.map(normalizeOrder));
+          this.totalCount.set(res?.totalCount ?? rawItems.length);
           this.isLoading.set(false);
         },
         error: () => {
