@@ -13,7 +13,17 @@ getTransactions(userId: string): Observable<PagedResultDto<WalletTransactionDto>
   return this.api.get<PagedResultDto<WalletTransactionDto>>(`Wallet/${userId}/transactions`);
 }
 
+getAllTransactions(pageNumber: number = 1, pageSize: number = 50, kind?: string): Observable<any> {
+  let url = `Wallet/admin/all-transactions?pageNumber=${pageNumber}&pageSize=${pageSize}`;
+  if (kind) url += `&kind=${kind}`;
+  return this.api.get<any>(url);
+}
+
   adjustBalance(userId: string, request: BalanceAdjustmentRequest): Observable<any> {
+    return this.api.post(`Wallet/${userId}/adjust`, request);
+  }
+
+  adjustManualBalance(userId: string, request: { amount: number; isDebit: boolean; notes: string }): Observable<any> {
     return this.api.post(`Wallet/${userId}/adjust`, request);
   }
 

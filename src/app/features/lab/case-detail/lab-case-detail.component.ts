@@ -75,6 +75,8 @@ export class LabCaseDetailComponent implements OnInit, OnDestroy {
   readonly isUploading = signal(false);
   readonly pendingFinalFiles = signal<File[]>([]);
   readonly isUploadingFinalFiles = signal(false);
+  // Pending-final selection (for bulk actions)
+  readonly pendingFinalSelected = signal<Set<File>>(new Set());
 
   // --- محلي بس (مش بيتبعت للباك إند) عشان نظهر زرار القبول/الرفض
   // بعد ما المصمم يضغط "بدء المراجعة"، من غير ما نغيّر حالة الأوردر فعليًا في الداتابيز،
@@ -424,6 +426,82 @@ export class LabCaseDetailComponent implements OnInit, OnDestroy {
 
   removePendingFinalFile(file: File): void {
     this.pendingFinalFiles.set(this.pendingFinalFiles().filter(f => f !== file));
+    // also ensure it's removed from selection set
+    const sel = new Set(this.pendingFinalSelected());
+    if (sel.has(file)) {
+      sel.delete(file);
+      this.pendingFinalSelected.set(sel);
+    }
+  }
+
+  // Toggle selection of a pending final file (for bulk actions)
+  togglePendingFinalSelection(file: File): void {
+    const sel = new Set(this.pendingFinalSelected());
+    if (sel.has(file)) sel.delete(file);
+    else sel.add(file);
+    this.pendingFinalSelected.set(sel);
+  }
+
+  isPendingFinalSelected(file: File): boolean {
+    return this.pendingFinalSelected().has(file);
+  }
+
+  // Upload all pending final files sequentially
+  uploadAllPendingFinalFiles(): void {
+    if (this.isUploadingFinalFiles() || !this.order()) return;
+    const files = [...this.pendingFinalFiles()];
+    if (files.length === 0) return;
+    this.uploadPendingFilesSequential(files, 0);
+  }
+
+  // Upload only selected pending final files sequentially
+  uploadSelectedPendingFinalFiles(): void {
+    if (this.isUploadingFinalFiles() || !this.order()) return;
+    const files = Array.from(this.pendingFinalSelected());
+    if (files.length === 0) return;
+    this.uploadPendingFilesSequential(files, 0);
+  }
+
+  // Remove selected pending final files from the queue (client-side)
+  removeSelectedPendingFinalFiles(): void {
+    const sel = this.pendingFinalSelected();
+    if (!sel || sel.size === 0) return;
+    const remaining = this.pendingFinalFiles().filter(f => !sel.has(f));
+    this.pendingFinalFiles.set(remaining);
+    this.pendingFinalSelected.set(new Set());
+  }
+
+  // Helper: upload array of pending files sequentially and remove each from pending list on success
+  private uploadPendingFilesSequential(files: File[], index: number): void {
+    if (!this.order()) return;
+    if (index >= files.length) {
+      this.isUploadingFinalFiles.set(false);
+      this.toast.success('تم رفع كافة الملفات المحددة بنجاح');
+      this.loadOrder(this.order()!.id);
+      return;
+    }
+
+    const currentFile = files[index];
+    this.isUploadingFinalFiles.set(true);
+    this.designerService.uploadDesignFile(this.order()!.id, currentFile, 'final').subscribe({
+      next: () => {
+        // remove uploaded file from pending list and selection
+        const remaining = this.pendingFinalFiles().filter(f => f !== currentFile);
+        this.pendingFinalFiles.set(remaining);
+        const sel = new Set(this.pendingFinalSelected());
+        if (sel.has(currentFile)) {
+          sel.delete(currentFile);
+          this.pendingFinalSelected.set(sel);
+        }
+        // continue with next
+        this.uploadPendingFilesSequential(files, index + 1);
+      },
+      error: (err) => {
+        this.isUploadingFinalFiles.set(false);
+        this.toast.error(err.error?.message || `فشل رفع الملف: ${currentFile.name}`);
+        this.loadOrder(this.order()!.id);
+      }
+    });
   }
 
   private uploadFilesSequentially(orderId: string, files: File[], category: 'final' | 'screenshot' | 'preview', index: number): void {
@@ -496,7 +574,11 @@ export class LabCaseDetailComponent implements OnInit, OnDestroy {
   selectFileForPreview(file: FileMetadataDto): void {
     const ext = file.fileName.split('.').pop()?.toLowerCase();
     if (ext && ['stl', 'obj', 'ply'].includes(ext)) {
-      this.selectedThreeFile.set(file);
+      if (this.selectedThreeFile()?.id === file.id) {
+        this.selectedThreeFile.set(null);
+      } else {
+        this.selectedThreeFile.set(file);
+      }
     } else {
       this.toast.error('الملف المحدد ليس بصيغة ثلاثية أبعاد صالحة للمشاهدة');
     }
@@ -541,7 +623,7 @@ export class LabCaseDetailComponent implements OnInit, OnDestroy {
 
   getStatusLabel(status: number): string {
     const labels: Record<number, string> = {
-      [OrderStatus.Draft]: 'مسودة',
+      [OrderStatus.Draft]: 'جديد',
       [OrderStatus.WaitingClientReview]: 'انتظار مراجعة الإدارة',
       [OrderStatus.AssignedToLab]: 'تم الإسناد إليك (بانتظار المراجعة)',
       [OrderStatus.LabReview]: 'قيد مراجعتك وقبولك',

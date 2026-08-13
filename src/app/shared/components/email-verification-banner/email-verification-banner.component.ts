@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
-import { WalletService } from '../../../core/services/wallet.service';
 
 @Component({
   selector: 'app-email-verification-banner',
@@ -17,7 +16,7 @@ import { WalletService } from '../../../core/services/wallet.service';
         <div class="flex items-start gap-3 w-full md:w-auto">
           <span class="text-amber-600 p-2 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex-shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
             </svg>
           </span>
           <div class="flex flex-col gap-0.5 min-w-0">
@@ -25,13 +24,7 @@ import { WalletService } from '../../../core/services/wallet.service';
               {{ i18n.isRtl() ? 'بريدك الإلكتروني غير مؤكد!' : 'Your email address is not verified!' }}
             </span>
             <span class="text-[11px] text-amber-700 font-semibold leading-relaxed">
-              @if (isDoctor()) {
-                {{ i18n.isRtl()
-                  ? 'قم بتأكيد حسابك الآن لتحصل تلقائياً على حد ائتماني بقيمة ' + welcomeBonus() + ' ريال لطلب الحالات والدفع لاحقاً.'
-                  : 'Verify your email now and get ' + welcomeBonus() + ' SAR credit limit instantly.' }}
-              } @else {
-                {{ i18n.isRtl() ? 'قم بتأكيد حسابك لتلقي الإشعارات وتحديثات الطلبات مباشرة على بريدك.' : 'Confirm your account to receive important order updates directly in your inbox.' }}
-              }
+              {{ i18n.isRtl() ? 'قم بتأكيد حسابك لتلقي الإشعارات وتحديثات الطلبات مباشرة على بريدك.' : 'Confirm your account to receive important order updates directly in your inbox.' }}
             </span>
           </div>
         </div>
@@ -50,33 +43,17 @@ import { WalletService } from '../../../core/services/wallet.service';
     }
   `]
 })
-export class EmailVerificationBannerComponent implements OnInit {
+export class EmailVerificationBannerComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
-  private readonly walletService = inject(WalletService);
   readonly i18n = inject(TranslationService);
 
   readonly isLoading = signal(false);
-  readonly welcomeBonus = signal<string>('200');
-
-  ngOnInit(): void {
-    this.walletService.getPublicSetting('WelcomeBonusAmount').subscribe({
-      next: (res: any) => {
-        if (res?.value) this.welcomeBonus.set(String(res.value));
-      },
-      error: () => {}
-    });
-  }
 
   showBanner(): boolean {
     const user = this.auth.currentUser();
     return !!user && !user.isEmailVerified;
-  }
-
-  isDoctor(): boolean {
-    const user = this.auth.currentUser();
-    return !!user && user.roles.includes('Doctor');
   }
 
   resendAndRedirect(): void {

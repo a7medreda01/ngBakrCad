@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+﻿import { Component, OnInit, signal, computed, inject, OnDestroy } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 
@@ -31,6 +31,16 @@ function normalizeOrder(o: any): OrderDto {
   return { ...o, status: normalizeOrderStatus(o.status) } as OrderDto;
 }
 
+/** Patch a raw API status-history item so oldStatus/newStatus are always numeric enum values.
+ *  Without this, statusLabel() receives raw strings (e.g. "Draft") from the API and falls back to "غير معروف". */
+function normalizeHistoryItem(h: any): OrderStatusHistoryDto {
+  return {
+    ...h,
+    oldStatus: normalizeOrderStatus(h.oldStatus),
+    newStatus: normalizeOrderStatus(h.newStatus)
+  } as OrderStatusHistoryDto;
+}
+
 
 import { AssignDesignerModalComponent, DesignerOption } from '../orders/app-assign-designer';
 import { OdontogramComponent } from '../../../shared/components/odontogram/odontogram.component';
@@ -52,7 +62,7 @@ import { ThreeViewerComponent, FileInput } from '../../../shared/components/thre
 
 })
 
-export class AdminOrderDetailComponent implements OnInit {
+export class AdminOrderDetailComponent implements OnInit, OnDestroy {
 
   private readonly route = inject(ActivatedRoute);
 
@@ -276,6 +286,75 @@ export class AdminOrderDetailComponent implements OnInit {
     return !!o.slaTracking.isBreached || Date.now() > dueTime + (o.slaTracking?.totalPausedMinutes ?? 0) * 60 * 1000;
   });
 
+  // SLA live parts for styled display
+  readonly slaRemainingText = signal<string>('');
+  readonly slaHours = signal<number>(0);
+  readonly slaMinutes = signal<number>(0);
+  readonly slaSeconds = signal<number>(0);
+  private slaIntervalId?: any;
+
+  private parseTime(value: string | null | undefined): number {
+    if (!value) return NaN;
+    const normalized = /[zZ]|[+-]\d{2}:?\d{2}$/.test(value) ? value : `${value}Z`;
+    const parsed = Date.parse(normalized);
+    return Number.isNaN(parsed) ? NaN : parsed;
+  }
+
+  private setupSlaTimer(order: OrderDto | null): void {
+    if (this.slaIntervalId) clearInterval(this.slaIntervalId);
+    this.slaRemainingText.set('');
+    this.slaHours.set(0);
+    this.slaMinutes.set(0);
+    this.slaSeconds.set(0);
+
+    if (!order || !order.slaTracking?.dueAt || order.status === OrderStatus.Completed) return;
+
+    const startTime = this.parseTime(order.slaTracking?.startedAt);
+
+    const computeExpectedTime = () => {
+      const dueTime = this.parseTime(order.slaTracking!.dueAt!);
+      if (Number.isNaN(dueTime)) return NaN;
+      const totalPausedMs = (order.slaTracking?.totalPausedMinutes ?? 0) * 60 * 1000;
+      const currentPausedMs = order.slaTracking?.pausedAt && this.isSlaPaused()
+        ? Math.max(0, Date.now() - this.parseTime(order.slaTracking.pausedAt))
+        : 0;
+      return dueTime + totalPausedMs + currentPausedMs;
+    };
+
+    const updateTimer = () => {
+      const expectedTime = computeExpectedTime();
+      if (Number.isNaN(expectedTime)) {
+        this.slaRemainingText.set('');
+        return;
+      }
+
+      const diff = expectedTime - Date.now();
+      if (diff <= 0) {
+        this.slaRemainingText.set(this.i18n.currentLang() === 'ar' ? 'انتهت المهلة' : 'Breached');
+        this.slaHours.set(0);
+        this.slaMinutes.set(0);
+        this.slaSeconds.set(0);
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+      this.slaHours.set(hours);
+      this.slaMinutes.set(mins);
+      this.slaSeconds.set(secs);
+      this.slaRemainingText.set(`${hours}h ${mins}m ${secs}s`);
+    };
+
+    updateTimer();
+    this.slaIntervalId = setInterval(updateTimer, 1000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.slaIntervalId) clearInterval(this.slaIntervalId);
+  }
+
 
   ngOnInit(): void {
 
@@ -298,6 +377,9 @@ export class AdminOrderDetailComponent implements OnInit {
       next: (order) => {
 
         this.order.set(normalizeOrder(order));
+
+        // start SLA live timer
+        this.setupSlaTimer(normalizeOrder(order));
 
         // Automatically select the first 3D previewable file (.stl, .obj, .ply) if available
         const previewableFiles = (order.files || []).filter(f => {
@@ -343,7 +425,9 @@ export class AdminOrderDetailComponent implements OnInit {
 
       next: (h) => {
 
-        this.history.set(h || []);
+        // Normalize oldStatus/newStatus (API may send string enum names like "Draft")
+        // so statusLabel() can resolve them correctly instead of showing "غير معروف".
+        this.history.set((h || []).map(normalizeHistoryItem));
 
         this.isLoadingHistory.set(false);
 
@@ -359,7 +443,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
   loadDesigners(): void {
 
-    this.adminService.getDesigners(1, 200, true).subscribe({
+    this.adminService.getDesigners(1, 200).subscribe({
 
       next: (res: any) => {
 
@@ -381,7 +465,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
             level: u.designerProfile?.level || 0,
 
-            isAvailable: u.isActive !== false
+            isAvailable: u.designerProfile?.isAvailable ?? false,
 
           }))
 
@@ -391,7 +475,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
       error: () => {
 
-        this.toast.error('Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…ØµÙ…Ù…ÙŠÙ†');
+        this.toast.error('حدث خأطأ أثناء تحميل قائمة المصممين');
 
       }
 
@@ -401,7 +485,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
 
 
-  // â”€â”€ Status actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Status actions ─────────────────────────────────────────
 
   selectAction(action: StatusAction): void {
 
@@ -435,7 +519,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
     if (action.requiresNotes && !this.actionNotes().trim()) {
 
-      this.toast.error('ÙŠØ¬Ø¨ Ø¥Ø¶Ø§ÙØ© Ù…Ù„Ø§Ø­Ø¸Ø© Ù„Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡');
+      this.toast.error('يرجى إدخال سبب التغيير');
 
       return;
 
@@ -483,7 +567,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
 
 
-  // â”€â”€ Assign / reassign designer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Assign / reassign designer ───────────────────────────
 
   openAssignModal(): void {
 
@@ -515,7 +599,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
         this.order.set(normalizeOrder(updated));
 
-        this.toast.success('ØªÙ… Ø¥Ø³Ù†Ø§Ø¯ Ø§Ù„Ø·Ù„Ø¨ Ù„Ù„Ù…ØµÙ…Ù… Ø¨Ù†Ø¬Ø§Ø­');
+        this.toast.success('تم تعيين المصمم­');
 
         this.isAssigning.set(false);
 
@@ -527,7 +611,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
       error: () => {
 
-        this.toast.error('ØªØ¹Ø°Ø± Ø¥Ø³Ù†Ø§Ø¯ Ø§Ù„Ø·Ù„Ø¨');
+        this.toast.error('حدث خأطأ أثناء تعيين المصمم');
 
         this.isAssigning.set(false);
 
@@ -564,7 +648,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
 
 
-  // â”€â”€ Redo / revision (paid or free) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Redo / revision (paid or free) ───────────────────────
 
   openRedoPanel(): void {
 
@@ -610,7 +694,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
         this.order.set(normalizeOrder(updated));
 
-        this.toast.success('ØªÙ…Øª Ø¥Ø¹Ø§Ø¯Ø© ÙØªØ­ Ø§Ù„Ø·Ù„Ø¨ Ù„Ù„ØªØµÙ…ÙŠÙ…');
+        this.toast.success('تم إعادة فتح الطلب بنجاح');
 
         this.isSubmittingRedo.set(false);
 
@@ -622,7 +706,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
       error: () => {
 
-        this.toast.error('ØªØ¹Ø°Ø± Ø¥Ø¹Ø§Ø¯Ø© ÙØªØ­ Ø§Ù„Ø·Ù„Ø¨');
+        this.toast.error('حدث خأطأ أثناء إعادة فتح الطلب');
 
         this.isSubmittingRedo.set(false);
 
@@ -634,7 +718,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
 
 
-  // â”€â”€ Files â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Files ──────────────────────────────────────────────────
 
   downloadFile(fileId: string): void {
 
@@ -642,7 +726,7 @@ export class AdminOrderDetailComponent implements OnInit {
 
       next: (res) => window.open(res.url, '_blank'),
 
-      error: () => this.toast.error('ØªØ¹Ø°Ø± Ø§Ù„Ø­ØµÙˆÙ„ Ø¹Ù„Ù‰ Ø±Ø§Ø¨Ø· Ø§Ù„ØªØ­Ù…ÙŠÙ„')
+      error: () => this.toast.error('حدث خأطأ أثناء تحميل الملف')
 
     });
 
@@ -716,11 +800,3 @@ export class AdminOrderDetailComponent implements OnInit {
   }
 
 }
-
-
-
-
-
-
-
-

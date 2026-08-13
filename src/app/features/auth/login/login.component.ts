@@ -47,22 +47,54 @@ export class LoginComponent {
       next: (res) => {
         this.isLoading.set(false);
         this.showSessionConflictModal.set(false);
-        // Role-based redirect
+
         const roles = res.roles;
+        const isDoctorOrDesigner = roles.some(r => ['Doctor', 'Designer', 'Lab'].includes(r));
+
+        if (isDoctorOrDesigner && !res.isEmailVerified) {
+          this.toast.info(
+            this.translationService.currentLang() === 'ar'
+              ? 'يرجى تأكيد البريد الإلكتروني الخاص بك أولاً للمتابعة.'
+              : 'Please verify your email address to continue.'
+          );
+          this.router.navigate(['/auth/verify-email'], { queryParams: { email: res.email } });
+          return;
+        }
+
+        // Role-based redirect
         if (roles.some(r => ['SuperAdmin','FinancialAdmin','OperationsAdmin','QualityAdmin'].includes(r))) {
           this.router.navigate(['/admin/dashboard']);
         } else if (roles.includes('Designer')) {
-          this.router.navigate(['/lab/dashboard']);
+          this.authService.loadUserProfile().subscribe({
+            next: (profile) => {
+              if (profile?.designerProfile?.approvalStatus === 'Approved' || profile?.designerProfile?.isApproved) {
+                this.router.navigate(['/lab/dashboard']);
+              } else {
+                this.router.navigate(['/designer/application-status']);
+              }
+            },
+            error: () => {
+              this.router.navigate(['/designer/application-status']);
+            }
+          });
         } else {
           this.router.navigate(['/client/dashboard']);
         }
       },
       error: (err) => { 
         this.isLoading.set(false);
-        const errorMsg = err.error?.message || 'Login failed. Please check your credentials.';
+        const currentLang = this.translationService.currentLang();
+        const errorMsg = currentLang === 'ar'
+          ? (err.error?.messageAr || err.error?.message || 'فشل تسجيل الدخول. يرجى التحقق من البيانات.')
+          : (err.error?.messageEn || err.error?.message || 'Login failed. Please check your credentials.');
         if (errorMsg.includes('SESSION_CONFLICT')) {
           this.conflictMessage.set(errorMsg.replace('SESSION_CONFLICT: ', ''));
           this.showSessionConflictModal.set(true);
+        } else if (errorMsg.includes('DESIGNER_PENDING_APPROVAL')) {
+          const cleanMsg = currentLang === 'ar'
+            ? 'طلب انضمامك كـ مصمم قيد المراجعة والاعتماد حالياً من قبل الإدارة.'
+            : 'Your designer join request is currently under review by administration.';
+          this.toast.warning(cleanMsg);
         } else {
           this.toast.error(errorMsg);
         }

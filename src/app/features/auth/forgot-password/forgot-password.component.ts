@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { TranslationService } from '../../../core/services/translation.service';
 import { ButtonComponent } from '../../../shared/ui/button/button.component';
 
 @Component({
@@ -17,6 +18,7 @@ export class ForgotPasswordComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly toast = inject(ToastService);
+  readonly translationService = inject(TranslationService);
 
   readonly isLoading = signal(false);
   readonly isSubmitted = signal(false);
@@ -35,11 +37,18 @@ export class ForgotPasswordComponent {
       next: () => {
         this.isLoading.set(false);
         this.isSubmitted.set(true);
-        this.toast.success('تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني.');
+        const successMsg = this.translationService.currentLang() === 'ar'
+          ? 'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني.'
+          : 'A password reset link has been sent to your email.';
+        this.toast.success(successMsg);
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.toast.error(err.error?.message || 'حدث خطأ. يرجى المحاولة لاحقاً.');
+        const currentLang = this.translationService.currentLang();
+        const errorMsg = currentLang === 'ar'
+          ? (err.error?.messageAr || err.error?.message || 'حدث خطأ. يرجى المحاولة لاحقاً.')
+          : (err.error?.messageEn || err.error?.message || 'An error occurred. Please try again later.');
+        this.toast.error(errorMsg);
       }
     });
   }

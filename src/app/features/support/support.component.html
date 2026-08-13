@@ -52,7 +52,12 @@
       <div class="rounded-3xl border border-border bg-surface p-4 shadow-card">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="text-lg font-black text-secondary">التذاكر والدعم</h2>
-          <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{{ ticketsList().length }}</span>
+          <div class="flex items-center gap-2">
+            <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{{ ticketsList().length }}</span>
+            @if (!isAdmin()) {
+              <button type="button" (click)="activeTab.set('faqs')" class="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">تذكرة جديدة</button>
+            }
+          </div>
         </div>
         <div class="space-y-3">
           @for (ticket of ticketsList(); track ticket.publicId) {
@@ -99,13 +104,20 @@
                   <h3 class="text-base font-black text-secondary">{{ selectedTicket()?.title }}</h3>
                   <p class="text-xs text-text-secondary">{{ getCategoryLabel(selectedTicket()!.category) }} · {{ selectedTicket()?.ticketCode }}</p>
                 </div>
-                <span class="rounded-full px-3 py-1 text-[10px] font-black" [ngClass]="getStatusClasses(selectedTicket()!.status)">{{ getStatusLabel(selectedTicket()!.status) }}</span>
+                <div class="flex items-center gap-2">
+                  <span class="rounded-full px-3 py-1 text-[10px] font-black" [ngClass]="getStatusClasses(selectedTicket()!.status)">{{ getStatusLabel(selectedTicket()!.status) }}</span>
+                  @if (isAdmin() && selectedTicket() && selectedTicket()!.status !== 3) {
+                    <button type="button" (click)="changeTicketStatus(selectedTicket()!.id, TicketStatus.Closed)" class="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-600">إغلاق التذكرة</button>
+                  }
+                </div>
               </div>
             </div>
 
             <div class="support-chat-scroll flex flex-col gap-1 px-1 py-2">
               @for (message of selectedTicketMessages(); track message.id; let i = $index) {
-                @let isMine = message.senderCode === authService.currentUser()?.fullName;
+                @let isClientSender = message.senderUserId === selectedTicket()?.userId;
+                @let senderName = isClientSender ? selectedTicketSender() : (selectedTicketReceiver() || message.senderCode);
+                @let isMine = senderName === authService.currentUser()?.fullName;
                 @let prevMsg = i > 0 ? selectedTicketMessages()[i - 1] : null;
 
                 <!-- ── Date Separator ──────────────────────────── -->
@@ -140,7 +152,7 @@
                               text-[12px] font-black text-white shadow-sm"
                     [class.bg-primary]="isMine"
                     [class.bg-slate-400]="!isMine">
-                    {{ (message.senderCode || '?').charAt(0).toUpperCase() }}
+                    {{ (senderName || message.senderCode || '?').charAt(0).toUpperCase() }}
                   </div>
 
                   <!-- Bubble + name column -->
@@ -152,7 +164,7 @@
                     <span class="text-[11px] font-semibold px-1"
                       [class.text-primary]="isMine"
                       [class.text-slate-500]="!isMine">
-                      {{ isMine ? 'أنت' : message.senderCode }}
+                      {{ isMine ? 'أنت' : senderName }}
                     </span>
 
                     <!-- Bubble -->

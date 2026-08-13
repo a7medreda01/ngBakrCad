@@ -7,7 +7,7 @@ import { TranslationService } from '../../../core/services/translation.service';
 import { UserProfileDto } from '../../../core/models';
 import { ToastService } from '../../../core/services/toast.service';
 
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-users',
@@ -21,6 +21,7 @@ export class UsersComponent implements OnInit {
   private readonly walletService = inject(WalletService);
   readonly i18n = inject(TranslationService);
   private readonly toast = inject(ToastService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly isLoading = signal(false);
   readonly users = signal<any[]>([]);
@@ -29,6 +30,9 @@ export class UsersComponent implements OnInit {
   readonly pageNumber = signal(1);
   readonly pageSize = signal(50);
   readonly totalCount = signal(0);
+  readonly activeTab = signal<'all' | 'designerRequests'>('all');
+  readonly designerRequests = signal<any[]>([]);
+  readonly isActionLoading = signal<string | null>(null);
 
   readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize())));
   readonly startItem = computed(() => this.totalCount() === 0 ? 0 : (this.pageNumber() - 1) * this.pageSize() + 1);
@@ -44,11 +48,30 @@ export class UsersComponent implements OnInit {
   // Modals state
   readonly showAdjustModal = signal(false);
   readonly showCreditModal = signal(false);
+  readonly showUserDetailsModal = signal(false);
+  readonly showRejectModal = signal(false);
+  readonly rejectTargetUser = signal<any | null>(null);
+  readonly rejectReason = signal('');
 
   private searchDebounce: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
-    this.loadUsers();
+    const initialTab = this.route.snapshot.queryParams['tab'];
+    if (initialTab === 'designerRequests') {
+      this.setTab('designerRequests');
+    } else {
+      this.loadUsers();
+      this.loadDesignerRequests();
+    }
+  }
+
+  setTab(tab: 'all' | 'designerRequests'): void {
+    this.activeTab.set(tab);
+    if (tab === 'designerRequests') {
+      this.loadDesignerRequests();
+    } else {
+      this.loadUsers();
+    }
   }
 
   loadUsers(): void {
@@ -64,6 +87,118 @@ export class UsersComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+  }
+
+  loadDesignerRequests(): void {
+    this.adminService.getDesignerRequests(1, 50).subscribe({
+      next: (res: any) => {
+        this.designerRequests.set(res?.items || res?.data || res || []);
+      },
+      error: () => {}
+    });
+  }
+
+  private resolveDesignerRequestId(user: any): string | null {
+    if (!user) return null;
+
+    const candidates = [
+      user.publicId,
+      user.publicID,
+      user.id,
+      user.userId,
+      user.user?.id,
+      user.user?.publicId,
+      user.user?.publicID,
+      user.requestId,
+      user.request?.id,
+      user.request?.publicId,
+      user.request?.publicID
+    ];
+
+    return candidates.find((value): value is string => typeof value === 'string' && value.trim().length > 0) || null;
+  }
+
+  approveDesigner(userOrId: string | any): void {
+    const userId = typeof userOrId === 'string' ? userOrId : this.resolveDesignerRequestId(userOrId);
+    if (!userId) {
+      this.toast.error('تعذر تحديد معرف طلب المصمم');
+      return;
+    }
+
+    this.isActionLoading.set(userId);
+    this.adminService.approveDesigner(userId).subscribe({
+      next: () => {
+        this.isActionLoading.set(null);
+        this.toast.success('تمت الموافقة على طلب المصمم بنجاح!');
+        this.loadDesignerRequests();
+        this.loadUsers();
+      },
+      error: (err: any) => {
+        this.isActionLoading.set(null);
+        this.toast.error(err?.error?.message || 'فشل قبول طلب المصمم');
+      }
+    });
+  }
+
+  rejectDesigner(user: any): void {
+    this.rejectTargetUser.set(user);
+    this.rejectReason.set('');
+    this.showRejectModal.set(true);
+  }
+
+  getDesignerRequestId(user: any): string | null {
+    return this.resolveDesignerRequestId(user);
+  }
+
+  getRejectTargetId(): string | null {
+    return this.resolveDesignerRequestId(this.rejectTargetUser());
+  }
+
+  getDesignerRequestStatusLabel(req: any): string {
+    const approvalStatus = req?.designerProfile?.approvalStatus;
+
+    if (approvalStatus === 'Rejected') {
+      return 'مرفوض — بانتظار تعديل المصمم';
+    }
+
+    if (approvalStatus === 'Approved') {
+      return 'موافق عليه';
+    }
+
+    return 'قيد المراجعة';
+  }
+
+  confirmReject(): void {
+    const user = this.rejectTargetUser();
+    if (!user) return;
+
+    const userId = this.resolveDesignerRequestId(user);
+    if (!userId) {
+      this.toast.error('تعذر تحديد معرف طلب المصمم');
+      return;
+    }
+
+    const reason = this.rejectReason().trim();
+    this.isActionLoading.set(userId);
+    this.adminService.rejectDesigner(userId, reason || undefined).subscribe({
+      next: () => {
+        this.isActionLoading.set(null);
+        this.showRejectModal.set(false);
+        this.rejectTargetUser.set(null);
+        this.toast.success('تم رفض طلب الانضمام.');
+        this.loadDesignerRequests();
+        this.loadUsers();
+      },
+      error: (err: any) => {
+        this.isActionLoading.set(null);
+        this.toast.error(err?.error?.message || 'فشل رفض الطلب');
+      }
+    });
+  }
+
+  cancelReject(): void {
+    this.showRejectModal.set(false);
+    this.rejectTargetUser.set(null);
   }
 
   // يُستدعى من كل ضغطة حرف مع Debounce عشان مانديش request لكل حرف
@@ -188,13 +323,14 @@ export class UsersComponent implements OnInit {
       }
     });
   }
+  
 
-  // --- User Details Modal ---
-  readonly showUserDetailsModal = signal(false);
+  private readonly router = inject(Router);
 
   openUserDetails(user: any): void {
-    this.selectedUser.set(user);
-    this.showUserDetailsModal.set(true);
+    if (user?.id) {
+      this.router.navigate(['/admin/users', user.id]);
+    }
   }
 
   // --- Level & Rating Update Modal ---

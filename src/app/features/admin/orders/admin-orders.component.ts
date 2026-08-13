@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { OrderService } from '../../../core/services/order.service';
 import { AdminService } from '../../../core/services/admin.service';
 import { TranslationService } from '../../../core/services/translation.service';
@@ -26,7 +26,7 @@ function normalizeOrder(o: any): OrderDto {
 @Component({
   selector: 'app-admin-orders',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AssignDesignerModalComponent],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive, AssignDesignerModalComponent],
   templateUrl: './admin-orders.component.html',
   styleUrl: './admin-orders.component.scss'
 })
@@ -101,7 +101,7 @@ export class AdminOrdersComponent implements OnInit {
   }
 
   loadDesigners(): void {
-    this.adminService.getDesigners(1, 200, true).subscribe({
+    this.adminService.getDesigners(1, 200).subscribe({
       next: (res: any) => {
         const items = res?.items || res?.data || res || [];
         this.designers.set(
@@ -112,7 +112,7 @@ export class AdminOrdersComponent implements OnInit {
             specialization: u.designerProfile?.specialization || '',
             rating: u.designerProfile?.rating || 0,
             level: u.designerProfile?.level || 0,
-            isAvailable: u.isActive !== false
+            isAvailable: u.designerProfile?.isAvailable ?? false,
           }))
         );
       },

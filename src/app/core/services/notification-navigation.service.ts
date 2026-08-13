@@ -74,6 +74,26 @@ export class NotificationNavigationService {
         }
         break;
 
+      case 'DesignerRequest':
+      case 'DesignerJoin':
+        if (portalPrefix === 'admin') {
+          this.router.navigate(['/admin/users'], { queryParams: { tab: 'designerRequests' } });
+        } else {
+          this.router.navigate(['/designer/application-status']);
+        }
+        break;
+
+      case 'DesignerApproval':
+      case 'DesignerRejection':
+        if (portalPrefix === 'lab') {
+          this.router.navigate(['/designer/application-status']);
+        } else if (portalPrefix === 'admin') {
+          this.router.navigate(['/admin/users'], { queryParams: { tab: 'designerRequests' } });
+        } else {
+          this.router.navigate(['/designer/application-status']);
+        }
+        break;
+
       default:
         console.warn(`Unhandled notification target type: ${type}`);
         this.router.navigate([`/${portalPrefix}/dashboard`]);

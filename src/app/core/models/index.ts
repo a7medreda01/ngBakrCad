@@ -28,6 +28,7 @@ export interface AuthResponse {
   roles: string[];
   permissions: string[];
   isEmailVerified: boolean;
+  isPhoneVerified?: boolean;
 }
 
 export interface RefreshTokenRequest {
@@ -51,12 +52,18 @@ export interface ClientProfileDto {
 export interface DesignerProfileDto {
   userId: string;
   specialization: string | null;
+  portfolioUrl?: string | null;
+  isApproved?: boolean;
+  approvalStatus?: string;
+  rejectionReason?: string | null;
   slaStats: string | null;
   rating: number;
   level: string;
   completedCasesCount: number;
   caseCompletionRate: number;
   isAvailable?: boolean;
+    country: string | null;
+  city: string | null;
 }
 
 export interface ServiceDto {
@@ -73,6 +80,7 @@ export interface ServiceDto {
   designerProfit: number;
   minimumDeliveryHours: number;
   isActive: boolean;
+  duplicationTooth: boolean;
   originalPrice?: number | null;   // ✅ جديد: السعر العام لو فيه سعر خاص
   hasCustomPrice?: boolean;        // ✅ جديد: علامة إن السعر ده مخصص للطبيب
 }
@@ -110,6 +118,7 @@ export interface CreateServiceRequest {
   price: number;
   designerProfit: number;
   minimumDeliveryHours: number;
+  duplicationTooth: boolean;
 }
 
 export interface UpdateServiceRequest {
@@ -139,6 +148,7 @@ export interface OrderServiceSelection {
 
 export interface OrderCreateRequest {
   patientName: string;
+  patientFileNumber?: string | null;
   patientGender: string;
   patientAge: number;
   requiredDeliveryDate: string; // ISO string
@@ -151,6 +161,11 @@ export interface OrderCreateRequest {
   notes?: string;
 }
 
+/** Admin creates an order on behalf of a specific doctor */
+export interface AdminOrderCreateRequest extends OrderCreateRequest {
+  doctorId: string; // PublicId of the target doctor
+}
+
 export interface OrderDto {
   id: string;
   orderCode: string;
@@ -161,6 +176,7 @@ export interface OrderDto {
   designerCode: string | null;
   designerName: string | null;  // Full name for admin display
   patientName: string;
+  patientFileNumber?: string | null;
   patientGender: string;
   patientAge: number;
   requiredDeliveryDate: string;
@@ -239,7 +255,7 @@ export interface WalletDto {
 export interface WalletTransactionDto {
   id: string;
   amount: number;
-  type: TransactionType;
+  type: TransactionType | string;
   beforeBalance: number;
   afterBalance: number;
   referenceId: string | null;
@@ -385,6 +401,7 @@ export interface UserProfileDto {
   phoneNumber: string;
   isActive: boolean;
   isEmailVerified: boolean;
+  isPhoneVerified : boolean;
   roles: string[];
   profilePictureUrl?: string | null;
   clientProfile: ClientProfileDto | null;
@@ -444,9 +461,9 @@ export interface StatusMeta {
 }
 
 export const STATUS_META: Record<OrderStatus, StatusMeta> = {
-  [OrderStatus.Draft]: { label: 'مسودة', badge: 'bg-slate-100 text-slate-600', dot: 'bg-slate-400' },
+  [OrderStatus.Draft]: { label: 'جديد', badge: 'bg-slate-100 text-slate-600', dot: 'bg-slate-400' },
   [OrderStatus.PendingAdminReview]: { label: 'مراجعة الإدارة', badge: 'bg-amber-50 text-amber-700', dot: 'bg-amber-500' },
-  [OrderStatus.AssignedToLab]: { label: 'تم الإسناد للمصمم', badge: 'bg-blue-50 text-blue-700', dot: 'bg-blue-500' },
+  [OrderStatus.AssignedToLab]: { label: 'تم الارسال للمصمم', badge: 'bg-blue-50 text-blue-700', dot: 'bg-blue-500' },
   [OrderStatus.LabReview]: { label: 'مراجعة المصمم للحالة', badge: 'bg-blue-50 text-blue-700', dot: 'bg-blue-500' },
   [OrderStatus.LabRejected]: { label: 'رفض المصمم للحالة', badge: 'bg-red-50 text-red-700', dot: 'bg-red-500' },
   [OrderStatus.LabAccepted]: { label: 'قبل المصمم الحالة', badge: 'bg-teal-50 text-teal-700', dot: 'bg-teal-500' },
@@ -457,8 +474,8 @@ export const STATUS_META: Record<OrderStatus, StatusMeta> = {
   [OrderStatus.InDesign]: { label: 'قيد التصميم', badge: 'bg-indigo-50 text-indigo-700', dot: 'bg-indigo-500' },
   [OrderStatus.QualityReview]: { label: 'مراجعة الجودة', badge: 'bg-cyan-50 text-cyan-700', dot: 'bg-cyan-500' },
   [OrderStatus.ReturnedToDesigner]: { label: 'مرتجع للمصمم', badge: 'bg-orange-50 text-orange-700', dot: 'bg-orange-500' },
-  [OrderStatus.RejectedByQuality]: { label: 'رفض الجودة', badge: 'bg-red-50 text-red-700', dot: 'bg-red-500' },
-  [OrderStatus.ApprovedByQuality]: { label: 'قبول الجودة', badge: 'bg-green-50 text-green-700', dot: 'bg-green-500' },
+  [OrderStatus.RejectedByQuality]: { label: 'رفض التصميم', badge: 'bg-red-50 text-red-700', dot: 'bg-red-500' },
+  [OrderStatus.ApprovedByQuality]: { label: 'قبول التصميم', badge: 'bg-green-50 text-green-700', dot: 'bg-green-500' },
   [OrderStatus.DoctorReview]: { label: 'مراجعة الطبيب', badge: 'bg-purple-50 text-purple-700', dot: 'bg-purple-500' },
   [OrderStatus.DoctorRevisionRequested]: { label: 'طلب تعديل من الطبيب', badge: 'bg-rose-50 text-rose-700', dot: 'bg-rose-500' },
   [OrderStatus.ReadyForDownload]: { label: 'جاهز للتحميل', badge: 'bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500' },
@@ -511,16 +528,16 @@ const TRANSITIONS: Partial<Record<OrderStatus, StatusAction[]>> = {
   ],
 
   [OrderStatus.QualityReview]: [
-    { next: OrderStatus.ApprovedByQuality, label: 'قبول الجودة', style: 'success', requiresPreview: true },
+    { next: OrderStatus.ReadyForDownload, label: 'قبول التصميم', style: 'success', requiresPreview: true },
     { next: OrderStatus.ReturnedToDesigner, label: 'إرجاع للمصمم للتعديل', style: 'neutral', requiresNotes: true },
-    { next: OrderStatus.RejectedByQuality, label: 'رفض الجودة', style: 'danger', requiresNotes: true },
+    // { next: OrderStatus.RejectedByQuality, label: 'رفض التصميم', style: 'danger', requiresNotes: true },
   ],
   [OrderStatus.ReturnedToDesigner]: [
     { next: OrderStatus.InDesign, label: 'إعادة للتصميم', style: 'primary' },
   ],
   [OrderStatus.ApprovedByQuality]: [
-    { next: OrderStatus.DoctorReview, label: 'إرسال لمراجعة الطبيب', style: 'primary' },
-    { next: OrderStatus.WaitingClientReview, label: 'إرسال معاينة للعميل', style: 'primary' },
+    { next: OrderStatus.DoctorReview, label: 'إرسال معاينة العميل', style: 'primary' },
+    // { next: OrderStatus.WaitingClientReview, label: 'إرسال معاينة للعميل', style: 'primary' },
   ],
   [OrderStatus.WaitingClientReview]: [
     { next: OrderStatus.ReadyForDownload, label: 'موافقة العميل على المعاينة', style: 'success' },
@@ -534,8 +551,8 @@ const TRANSITIONS: Partial<Record<OrderStatus, StatusAction[]>> = {
     { next: OrderStatus.Completed, label: 'إغلاق الطلب كمكتمل', style: 'success' },
   ],
   [OrderStatus.WaitingAdminResponse]: [
-    { next: OrderStatus.InDesign, label: 'الرد وإعادة الطلب للتصميم', style: 'primary', requiresNotes: true },
-    { next: OrderStatus.ReturnedToDesigner, label: 'الموافقة وإرجاع الطلب للمصمم', style: 'success' },
+    // { next: OrderStatus.InDesign, label: 'الرد وإعادة الطلب للتصميم', style: 'primary', requiresNotes: true },
+    { next: OrderStatus.ReturnedToDesigner, label: 'الرد وإرجاع الطلب للمصمم', style: 'success' },
     // ── جديد ──
     { next: OrderStatus.WaitingClientResponse, label: 'طلب ملف ناقص من العميل', style: 'neutral', requiresNotes: true },
     { next: OrderStatus.Cancelled, label: 'إلغاء الطلب', style: 'danger', requiresNotes: true },

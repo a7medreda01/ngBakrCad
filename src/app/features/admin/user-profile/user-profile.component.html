@@ -1,0 +1,575 @@
+<div class="flex flex-col gap-6 min-h-screen" dir="rtl">
+
+  <!-- Back button + header -->
+  <div class="flex items-center justify-between border-b border-border pb-4 flex-wrap gap-4">
+    <div class="flex items-center gap-3">
+      <button (click)="goBack()"
+        class="p-2 rounded-xl bg-surface hover:bg-background border border-border transition text-secondary flex-shrink-0">
+        <i class="bi bi-arrow-right text-sm"></i>
+      </button>
+      <div>
+        <h1 class="text-xl font-black text-secondary">ملف المستخدم والشاشات المالية</h1>
+        <p class="text-xs text-text-secondary">إدارة بيانات المستخدم، الرصيد، التقييم، والمعاملات المالية في صفحة واحدة</p>
+      </div>
+    </div>
+
+    @if (profile()) {
+    <div class="flex items-center gap-2 flex-wrap">
+      <button (click)="toggleActive()"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition border flex items-center gap-1.5"
+        [class]="profile()!.isActive ? 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'">
+        <i class="bi" [class]="profile()!.isActive ? 'bi-slash-circle' : 'bi-check-circle'"></i>
+        {{ profile()!.isActive ? 'تعطيل الحساب' : 'تفعيل الحساب' }}
+      </button>
+
+      <a [routerLink]="['/admin/custom-pricing']"
+        [queryParams]="{ userId: profile()!.id, name: profile()!.fullName, role: profile()!.roles[0] }"
+        class="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-dark transition shadow-sm flex items-center gap-2">
+        <i class="bi bi-tags-fill"></i>
+        الأسعار المخصصة
+      </a>
+    </div>
+    }
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+  <div class="py-24 text-center">
+    <div class="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin mx-auto"></div>
+    <p class="text-xs text-text-secondary mt-3">جاري تحميل بيانات المستخدم...</p>
+  </div>
+  } @else if (profile()) {
+
+  <!-- Profile Hero Card -->
+  <div class="bg-gradient-to-br from-surface to-background border border-border rounded-3xl p-6 flex flex-col sm:flex-row gap-6 items-start shadow-sm relative overflow-hidden">
+    <!-- Ambient glow -->
+    <div class="absolute -top-16 -right-16 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Avatar -->
+    <div class="relative flex-shrink-0">
+      <div class="w-20 h-20 rounded-2xl overflow-hidden shadow-lg border border-border/20">
+        <img
+          [src]="profile()?.profilePictureUrl"
+          alt="Profile Picture"
+          class="w-full h-full object-cover"
+        />
+      </div>
+
+      <span class="absolute -bottom-1 -left-1 w-5 h-5 rounded-full border-2 border-surface"
+        [class]="profile()!.isActive ? 'bg-emerald-500' : 'bg-slate-400'">
+      </span>
+    </div>
+
+    <!-- Info -->
+    <div class="flex-1 min-w-0 relative z-10">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+        <h2 class="text-xl font-black text-secondary">{{ profile()!.fullName }}</h2>
+        @for (role of profile()!.roles; track role) {
+        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border w-fit"
+          [class]="getRoleBadgeClass(role)">{{ getRoleLabel(role) }}</span>
+        }
+      </div>
+      <p class="text-sm text-text-secondary flex items-center gap-1.5" dir=""><i class="bi bi-envelope text-text-secondary"></i>{{ profile()!.email }}</p>
+      <p class="text-xs text-text-secondary mt-0.5 flex items-center gap-1.5"><i class="bi bi-telephone"></i>{{ profile()!.phoneNumber }}</p>
+
+      <div class="flex flex-wrap gap-2 mt-3">
+        <!-- Email Verified -->
+        <span class="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-xl border"
+          [class]="profile()!.isEmailVerified ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'">
+          <i class="bi" [class]="profile()!.isEmailVerified ? 'bi-patch-check-fill' : 'bi-exclamation-triangle-fill'"></i>
+          {{ profile()!.isEmailVerified ? 'بريد مُفعَّل' : 'بريد غير مُفعَّل' }}
+        </span>
+        <!-- Active Status -->
+        <span class="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-xl border"
+          [class]="profile()!.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'">
+          <i class="bi bi-circle-fill text-[8px]"></i>
+          {{ profile()!.isActive ? 'حساب نشط' : 'حساب معطل' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="bg-surface rounded-2xl border border-border shadow-sm p-1.5 flex items-center gap-1">
+    <button type="button" (click)="setTab('overview')"
+      [class]="activeTab() === 'overview' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-background'"
+      class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition">
+      <i class="bi bi-person-badge"></i> نظرة عامة والتحكم
+    </button>
+    <button type="button" (click)="setTab('orders')"
+      [class]="activeTab() === 'orders' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-background'"
+      class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition">
+      <i class="bi bi-box-seam"></i> طلبات المستخدم
+    </button>
+    <button type="button" (click)="setTab('transactions')"
+      [class]="activeTab() === 'transactions' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-background'"
+      class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition">
+      <i class="bi bi-cash-stack"></i> المعاملات المالية
+    </button>
+  </div>
+
+  <!-- Overview Tab -->
+  @if (activeTab() === 'overview') {
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+    <!-- Client Profile Card -->
+    @if (profile()!.clientProfile) {
+    <div class="bg-surface border border-border rounded-2xl p-5 flex flex-col gap-3 shadow-sm col-span-1">
+      <div class="flex justify-between items-center border-b border-border pb-2">
+        <h3 class="text-sm font-black text-secondary">ملف العميل والائتمان</h3>
+        <button (click)="openCreditModal()" class="text-xs font-bold text-primary hover:underline flex items-center gap-1">تعديل الحد الائتماني <i class="bi bi-arrow-left"></i></button>
+      </div>
+      <div class="space-y-2.5 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="text-text-secondary font-semibold">رصيد المحفظة</span>
+          <div class="flex items-center gap-2">
+            <span class="font-black text-primary" dir="ltr">{{ profile()!.clientProfile!.walletBalance | number:'1.2-2' }} SAR</span>
+            <button (click)="openAdjustModal()" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 hover:bg-indigo-100">تعديل الرصيد</button>
+          </div>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-text-secondary font-semibold">الحد الائتماني</span>
+          <span class="font-bold text-secondary" dir="ltr">{{ profile()!.clientProfile!.creditLimit | number:'1.2-2' }} SAR</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-text-secondary font-semibold">رصيد سالب مسموح</span>
+          <span class="font-bold" [class]="profile()!.clientProfile!.negativeBalanceAllowed ? 'text-emerald-600' : 'text-rose-500'">
+            {{ profile()!.clientProfile!.negativeBalanceAllowed ? 'نعم' : 'لا' }}
+          </span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-text-secondary font-semibold">الحالات المنجزة</span>
+          <span class="font-bold text-secondary">{{ profile()!.clientProfile!.completedCasesCount }}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-text-secondary font-semibold">معدل إتمام الحالات</span>
+          <span class="font-bold text-emerald-600">{{ profile()!.clientProfile!.caseCompletionRate }}%</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-text-secondary font-semibold">المستوى</span>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
+              {{ profile()!.clientProfile!.level }}
+            </span>
+            <button (click)="openLevelModal()" class="text-[10px] font-bold text-primary hover:underline">تعديل المستوى</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- Designer Profile Card -->
+    @if (profile()!.designerProfile) {
+    <div class="bg-surface border border-border rounded-2xl p-5 flex flex-col gap-3 shadow-sm col-span-1">
+      <div class="flex justify-between items-center border-b border-border pb-2">
+        <h3 class="text-sm font-black text-secondary">ملف المصمم والأداء</h3>
+        <button (click)="openLevelModal()" class="text-xs font-bold text-purple-600 hover:underline flex items-center gap-1">تعديل المستوى/التقييم <i class="bi bi-arrow-left"></i></button>
+      </div>
+      <div class="space-y-2.5 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="text-text-secondary font-semibold">التخصص</span>
+          <span class="font-bold text-secondary">{{ profile()!.designerProfile!.specialization || '—' }}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-text-secondary font-semibold">التقييم</span>
+          <span class="font-bold text-amber-600 flex items-center gap-1"><i class="bi bi-star-fill"></i> {{ profile()!.designerProfile!.rating | number:'1.1-1' }}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-text-secondary font-semibold">الحالات المنجزة</span>
+          <span class="font-bold text-secondary">{{ profile()!.designerProfile!.completedCasesCount }}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-text-secondary font-semibold">معدل إتمام الحالات</span>
+          <span class="font-bold text-emerald-600">{{ profile()!.designerProfile!.caseCompletionRate }}%</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-text-secondary font-semibold">الحالة الحالية</span>
+          <span class="font-bold" [class]="profile()!.designerProfile!.isAvailable ? 'text-emerald-600' : 'text-rose-500'">
+            {{ profile()!.designerProfile!.isAvailable ? 'متاح' : 'غير متاح' }}
+          </span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-text-secondary font-semibold">المستوى</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+            {{ profile()!.designerProfile!.level }}
+          </span>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- Quick Actions Card -->
+    <div class="bg-surface border border-border rounded-2xl p-5 flex flex-col gap-3 shadow-sm col-span-1">
+      <h3 class="text-sm font-black text-secondary border-b border-border pb-2">إجراءات سريعة</h3>
+      <div class="flex flex-col gap-2">
+        <button (click)="openAdjustModal()"
+          class="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition border border-emerald-200">
+          <i class="bi bi-plus-circle"></i>
+          تعديل رصيد المحفظة (إيداع / خصم)
+        </button>
+        @if (profile()!.clientProfile) {
+        <button (click)="openCreditModal()"
+          class="flex items-center gap-2 px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition border border-indigo-200">
+          <i class="bi bi-credit-card-2-front"></i>
+          ضبط الحد الائتماني والتجاوز
+        </button>
+        }
+        <button (click)="openLevelModal()"
+          class="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold transition border border-amber-200">
+          <i class="bi bi-star"></i>
+          تحديث المستوى والتقييم
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Orders Tab -->
+  @if (activeTab() === 'orders') {
+  <div class="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
+    <div class="px-5 py-4 border-b border-border flex items-center justify-between">
+      <h3 class="text-sm font-black text-secondary">طلبات المستخدم ({{ ordersTotalCount() }})</h3>
+      <button (click)="loadProfile(userId(), ordersPageNumber())"
+        class="flex items-center gap-1.5 text-xs text-primary font-bold hover:underline">
+        <i class="bi bi-arrow-clockwise"></i>
+        تحديث
+      </button>
+    </div>
+
+    @if (orders().length === 0) {
+    <div class="py-16 text-center text-text-secondary">
+      <p class="text-sm font-bold">لا توجد طلبات لهذا المستخدم</p>
+    </div>
+    } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs">
+        <thead>
+          <tr class="bg-background border-b border-border">
+            <th class="px-4 py-3 text-right font-black text-text-secondary">كود الطلب</th>
+            <th class="px-4 py-3 text-right font-black text-text-secondary">الحالة</th>
+            <th class="px-4 py-3 text-right font-black text-text-secondary">التكلفة</th>
+            <th class="px-4 py-3 text-right font-black text-text-secondary">حالة الدفع</th>
+            <th class="px-4 py-3 text-right font-black text-text-secondary">تاريخ الإنشاء</th>
+            <th class="px-4 py-3 text-right font-black text-text-secondary">المصمم</th>
+            <th class="px-4 py-3 text-right font-black text-text-secondary">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ord of orders(); track ord.id) {
+          <tr class="border-b border-border/50 hover:bg-background/50 transition" [routerLink]="['/admin/orders/', ord.id]" type="button">
+            <td class="px-4 py-3 font-bold text-secondary font-mono">{{ ord.orderCode }}</td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-0.5 rounded-full font-bold border text-[10px] bg-primary/10 text-primary border-primary/20">
+                {{ ord.statusLabel }}
+              </span>
+            </td>
+            <td class="px-4 py-3 font-black text-secondary" dir="ltr">{{ ord.finalPrice | number:'1.2-2' }} SAR</td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-0.5 rounded-full font-bold border text-[10px]"
+                [class]="ord.isPaid ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-amber-700 bg-amber-50 border-amber-200'">
+                {{ ord.isPaid ? 'مدفوع' : 'معلق' }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-text-secondary">{{ ord.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td class="px-4 py-3 text-text-secondary font-bold">{{ ord.designerName || '—' }}</td>
+            <td class="px-4 py-3">
+              <a [routerLink]="['/admin/orders/', ord.id]"
+                class="text-primary hover:underline font-bold flex items-center gap-1">
+                عرض التفاصيل <i class="bi bi-arrow-left"></i>
+              </a>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination controls -->
+    @if (ordersTotalCount() > ordersPageSize()) {
+    <div class="px-5 py-3 border-t border-border flex items-center justify-between bg-background/50">
+      <span class="text-xs text-text-secondary">
+        عرض {{ (ordersPageNumber() - 1) * ordersPageSize() + 1 }} - {{ Math.min(ordersPageNumber() * ordersPageSize(), ordersTotalCount()) }} من {{ ordersTotalCount() }} طلب
+      </span>
+      <div class="flex items-center gap-1">
+        <button [disabled]="ordersPageNumber() === 1" (click)="changeOrdersPage(ordersPageNumber() - 1)"
+          class="px-2.5 py-1.5 rounded-lg border border-border bg-surface text-xs font-bold hover:bg-background transition disabled:opacity-50">
+          السابق
+        </button>
+        <button [disabled]="ordersPageNumber() * ordersPageSize() >= ordersTotalCount()" (click)="changeOrdersPage(ordersPageNumber() + 1)"
+          class="px-2.5 py-1.5 rounded-lg border border-border bg-surface text-xs font-bold hover:bg-background transition disabled:opacity-50">
+          التالي
+        </button>
+      </div>
+    </div>
+    }
+    }
+  </div>
+  }
+
+  <!-- Transactions Tab -->
+  @if (activeTab() === 'transactions') {
+  <div class="flex flex-col gap-4">
+
+    <!-- Summary stat cards: makes credit vs debit obvious at a glance -->
+    @if (!isLoadingTx() && transactions().length > 0) {
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-surface border border-emerald-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+          <i class="bi bi-arrow-down-left-circle-fill text-lg"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[11px] text-text-secondary font-semibold">إجمالي الإضافات</p>
+          <p class="text-sm font-black text-emerald-600" dir="ltr">+{{ txTotalCredit() | number:'1.2-2' }} SAR</p>
+        </div>
+      </div>
+      <div class="bg-surface border border-rose-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
+          <i class="bi bi-arrow-up-right-circle-fill text-lg"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[11px] text-text-secondary font-semibold">إجمالي الخصومات</p>
+          <p class="text-sm font-black text-rose-600" dir="ltr">-{{ txTotalDebit() | number:'1.2-2' }} SAR</p>
+        </div>
+      </div>
+      <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+          <i class="bi bi-wallet2 text-lg"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[11px] text-text-secondary font-semibold">صافي الحركة ({{ transactions().length }} معاملة)</p>
+          <p class="text-sm font-black" dir="ltr" [class]="txNet() >= 0 ? 'text-emerald-600' : 'text-rose-600'">
+            {{ txNet() >= 0 ? '+' : '' }}{{ txNet() | number:'1.2-2' }} SAR
+          </p>
+        </div>
+      </div>
+    </div>
+    }
+
+    <div class="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
+      <div class="px-5 py-4 border-b border-border flex items-center justify-between">
+        <h3 class="text-sm font-black text-secondary">سجل المعاملات المالية الحركي</h3>
+        <button (click)="loadTransactions()"
+          class="flex items-center gap-1.5 text-xs text-primary font-bold hover:underline">
+          <i class="bi bi-arrow-clockwise"></i>
+          تحديث
+        </button>
+      </div>
+
+      @if (isLoadingTx()) {
+      <div class="py-16 text-center">
+        <div class="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin mx-auto"></div>
+      </div>
+      } @else if (transactions().length === 0) {
+      <div class="py-16 text-center text-text-secondary">
+        <i class="bi bi-inbox text-2xl block mb-2"></i>
+        <p class="text-sm font-bold">لا توجد معاملات مالية هذا المستخدم</p>
+      </div>
+      } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="bg-background border-b border-border">
+              <th class="px-4 py-3 text-right font-black text-text-secondary">النوع</th>
+              <th class="px-4 py-3 text-right font-black text-text-secondary">الاتجاه</th>
+              <th class="px-4 py-3 text-right font-black text-text-secondary">المبلغ</th>
+              <th class="px-4 py-3 text-right font-black text-text-secondary">الرصيد قبل</th>
+              <th class="px-4 py-3 text-right font-black text-text-secondary">الرصيد بعد</th>
+              <th class="px-4 py-3 text-right font-black text-text-secondary">التاريخ</th>
+              <th class="px-4 py-3 text-right font-black text-text-secondary">ملاحظات</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tx of transactions(); track tx.id) {
+            <tr class="border-b border-border/50 hover:bg-background/50 transition"
+              [class]="isCredit(tx) ? '' : 'bg-rose-50/20'">
+              <!-- Type -->
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold border text-[10px] whitespace-nowrap"
+                  [class]="getTxTypeClass(tx.type)">
+                  <i class="bi" [class]="getTxTypeIcon(tx.type)"></i>
+                  {{ getTxTypeLabel(tx.type) }}
+                </span>
+              </td>
+              <!-- Direction: always derived from the balance movement (afterBalance vs beforeBalance),
+                   so it never conflicts with the type label and doesn't rely on amount's sign -->
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap"
+                  [class]="isCredit(tx) ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'">
+                  <i class="bi" [class]="isCredit(tx) ? 'bi-plus-circle-fill' : 'bi-dash-circle-fill'"></i>
+                  {{ isCredit(tx) ? 'إضافة' : 'خصم' }}
+                </span>
+              </td>
+              <!-- Amount: displayed from the actual balance delta, not the raw `amount` field,
+                   since `amount` is always returned positive by the API -->
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[11px]"
+                    [class]="isCredit(tx) ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'">
+                    <i class="bi" [class]="isCredit(tx) ? 'bi-arrow-down-left' : 'bi-arrow-up-right'"></i>
+                  </span>
+                  <span class="font-black" dir="ltr" [class]="isCredit(tx) ? 'text-emerald-600' : 'text-rose-500'">
+                    {{ isCredit(tx) ? '+' : '-' }}{{ Math.abs(txDelta(tx)) | number:'1.2-2' }} SAR
+                  </span>
+                </div>
+              </td>
+              <td class="px-4 py-3 text-text-secondary font-semibold" dir="ltr">{{ tx.beforeBalance | number:'1.2-2' }}</td>
+              <td class="px-4 py-3 font-bold text-secondary" dir="ltr">{{ tx.afterBalance | number:'1.2-2' }}</td>
+              <td class="px-4 py-3 text-text-secondary whitespace-nowrap">{{ tx.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="px-4 py-3 text-text-secondary max-w-[160px] truncate" [title]="tx.notes">{{ tx.notes || '—' }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  } @else if (!isLoading()) {
+  <div class="py-24 text-center">
+    <p class="text-sm font-bold text-text-secondary">لم يتم العثور على بيانات المستخدم</p>
+    <button (click)="goBack()" class="mt-3 text-xs text-primary font-bold hover:underline">العودة للقائمة</button>
+  </div>
+  }
+
+  <!-- Wallet Adjustment Modal -->
+  @if (showAdjustModal()) {
+    <div class="fixed inset-0 bg-secondary/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+      <div class="bg-surface border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4">
+        <h3 class="text-sm font-black text-secondary flex items-center gap-2"><i class="bi bi-wallet2 text-primary"></i>تعديل رصيد محفظة: {{ profile()?.fullName }}</h3>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold text-secondary">نوع العملية</label>
+          <div class="grid grid-cols-2 gap-2 bg-background p-1 rounded-xl border border-border">
+            <button type="button" (click)="adjustIsDebit.set(false)"
+              [class]="!adjustIsDebit() ? 'bg-emerald-500 text-white font-bold' : 'text-text-secondary hover:bg-slate-100'"
+              class="py-1.5 text-xs rounded-lg transition text-center flex items-center justify-center gap-1.5">
+              <i class="bi bi-plus-circle"></i> إضافة رصيد
+            </button>
+            <button type="button" (click)="adjustIsDebit.set(true)"
+              [class]="adjustIsDebit() ? 'bg-rose-500 text-white font-bold' : 'text-text-secondary hover:bg-slate-100'"
+              class="py-1.5 text-xs rounded-lg transition text-center flex items-center justify-center gap-1.5">
+              <i class="bi bi-dash-circle"></i> خصم رصيد
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-secondary">المبلغ (SAR)</label>
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            [ngModel]="adjustAmount()"
+            (ngModelChange)="adjustAmount.set($event)"
+            class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition font-bold"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-secondary">سبب أو ملاحظة العملية المالية</label>
+          <textarea
+            [ngModel]="adjustNotes()"
+            (ngModelChange)="adjustNotes.set($event)"
+            rows="3"
+            class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+          ></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2.5 mt-2">
+          <button (click)="showAdjustModal.set(false)" class="px-4 py-2 bg-background hover:bg-border rounded-xl text-xs font-bold text-secondary transition">
+            إلغاء
+          </button>
+          <button (click)="submitAdjustment()" class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+            <i class="bi bi-check2"></i> تنفيذ العملية
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Credit Limit Update Modal -->
+  @if (showCreditModal()) {
+    <div class="fixed inset-0 bg-secondary/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+      <div class="bg-surface border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4">
+        <h3 class="text-sm font-black text-secondary flex items-center gap-2"><i class="bi bi-credit-card-2-front text-primary"></i>تحديث حد الائتمان لـ: {{ profile()?.fullName }}</h3>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-secondary">قيمة السقف الائتماني (SAR)</label>
+          <input
+            type="number"
+            [ngModel]="creditLimit()"
+            (ngModelChange)="creditLimit.set($event)"
+            class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+          />
+        </div>
+
+        <label class="flex items-center gap-3 cursor-pointer p-1">
+          <input
+            type="checkbox"
+            [ngModel]="negativeAllowed()"
+            (ngModelChange)="negativeAllowed.set($event)"
+            class="rounded text-primary focus:ring-primary"
+          />
+          <span class="text-xs font-bold text-secondary">السماح بتجاوز الرصيد بالخسارة (رصيد سالب)</span>
+        </label>
+
+        <div class="flex justify-end gap-2.5 mt-2">
+          <button (click)="showCreditModal.set(false)" class="px-4 py-2 bg-background hover:bg-border rounded-xl text-xs font-bold text-secondary transition">
+            إلغاء
+          </button>
+          <button (click)="submitCreditUpdate()" class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+            <i class="bi bi-check2"></i> تحديث
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Level & Rating Update Modal -->
+  @if (showLevelModal()) {
+    <div class="fixed inset-0 bg-secondary/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+      <div class="bg-surface border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4">
+        <h3 class="text-sm font-black text-secondary flex items-center gap-2"><i class="bi bi-star text-primary"></i>تحديث المستوى والتقييم لـ: {{ profile()?.fullName }}</h3>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-secondary">المستوى (Bronze, Silver, Gold)</label>
+          <select
+            [ngModel]="updateLevelForm().level"
+            (ngModelChange)="updateLevelForm.set({level: $event, rating: updateLevelForm().rating})"
+            class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+          >
+            <option value="Bronze">Bronze</option>
+            <option value="Silver">Silver</option>
+            <option value="Gold">Gold</option>
+          </select>
+        </div>
+
+        @if (updateLevelForm().rating !== null) {
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">التقييم (مثال: 4.8)</label>
+            <input
+              type="number"
+              step="0.1"
+              max="5"
+              min="0"
+              [ngModel]="updateLevelForm().rating"
+              (ngModelChange)="updateLevelForm.set({level: updateLevelForm().level, rating: $event})"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+          </div>
+        }
+
+        <div class="flex justify-end gap-2.5 mt-2">
+          <button (click)="showLevelModal.set(false)" class="px-4 py-2 bg-background hover:bg-border rounded-xl text-xs font-bold text-secondary transition">
+            إلغاء
+          </button>
+          <button (click)="submitLevelUpdate()" class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+            <i class="bi bi-check2"></i> حفظ التغييرات
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

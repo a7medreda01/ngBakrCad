@@ -25,6 +25,9 @@ export class SupportComponent implements OnInit {
   readonly ticketsList = signal<SupportTicketListDto[]>([]);
   readonly selectedTicket = signal<SupportTicketDto | null>(null);
   readonly selectedTicketMessages = signal<SupportMessageDto[]>([]);
+  // mapped sender/receiver names for the selected ticket (from list endpoint)
+  readonly selectedTicketSender = signal<string>('');
+  readonly selectedTicketReceiver = signal<string>('');
   readonly activeTab = signal<'faqs' | 'tickets' | 'manage'>('faqs');
   readonly isLoading = signal(false);
   readonly isSubmitting = signal(false);
@@ -33,6 +36,9 @@ export class SupportComponent implements OnInit {
     const roles = this.authService.currentUser()?.roles ?? [];
     return roles.some(role => ['SuperAdmin', 'FinancialAdmin', 'OperationsAdmin', 'QualityAdmin'].includes(role));
   });
+
+  // Expose enum to template
+  readonly TicketStatus = TicketStatus;
 
   readonly newTicket = signal<CreateTicketRequest>({
     title: '',
@@ -60,6 +66,31 @@ export class SupportComponent implements OnInit {
     this.activeTab.set(this.isAdmin() ? 'tickets' : 'faqs');
   }
 
+  /** Normalize ticket status when API returns string names (e.g. "Open") or numeric */
+  private parseTicketStatus(value: any): TicketStatus {
+    if (value === null || value === undefined) return TicketStatus.Closed;
+    if (typeof value === 'number') return value as TicketStatus;
+    if (typeof value === 'string') {
+      // Try direct enum lookup (TicketStatus['Open'] === 0)
+      const key = value as keyof typeof TicketStatus;
+      if (key in TicketStatus) {
+        // enum lookup returns number | string pair; ensure number return
+        const v = (TicketStatus as any)[key];
+        if (typeof v === 'number') return v as TicketStatus;
+      }
+      // fallback common strings
+      switch (value.toLowerCase()) {
+        case 'open': return TicketStatus.Open;
+        case 'inprogress':
+        case 'in_progress':
+        case 'in progress': return TicketStatus.InProgress;
+        case 'resolved': return TicketStatus.Resolved;
+        case 'closed': return TicketStatus.Closed;
+      }
+    }
+    return TicketStatus.Closed;
+  }
+
   loadFaqs(): void {
     this.isLoading.set(true);
     this.supportService.getFaqs().subscribe({
@@ -75,7 +106,9 @@ export class SupportComponent implements OnInit {
     this.isLoading.set(true);
     this.supportService.getTicketList(1, 50).subscribe({
       next: res => {
-        this.ticketsList.set(res.items ?? []);
+        // normalize status values for each list item
+        const items = (res.items ?? []).map((it: any) => ({ ...it, status: this.parseTicketStatus(it.status) }));
+        this.ticketsList.set(items);
         this.isLoading.set(false);
       },
       error: () => this.isLoading.set(false)
@@ -104,9 +137,16 @@ export class SupportComponent implements OnInit {
   selectTicket(ticketId: string): void {
     this.supportService.getTicket(ticketId).subscribe({
       next: (ticket: any) => {
+        // normalize status on detail response
+        ticket.status = this.parseTicketStatus(ticket.status);
         this.selectedTicket.set(ticket);
         this.selectedTicketMessages.set(ticket?.messages ?? []);
-        
+
+        // Map sender/receiver names using the list entry (if available)
+        const listEntry = this.ticketsList().find(t => t.publicId === ticketId);
+        this.selectedTicketSender.set(listEntry?.senderName ?? '');
+        this.selectedTicketReceiver.set(listEntry?.receiverName ?? '');
+
         // Mark as read immediately on selection
         this.supportService.markMessagesRead(ticketId).subscribe({
           next: () => {
@@ -276,8 +316,10 @@ export class SupportComponent implements OnInit {
     for (let i = 0; i < msgs.length; i++) {
       const m = msgs[i] as any;
       if (m.isRead === false) {
+        // Map message sender name using mapped sender/receiver when possible
+        const senderName = m.senderUserId === this.selectedTicket()?.userId ? this.selectedTicketSender() : this.selectedTicketReceiver() || m.senderCode;
         // Check it's NOT sent by the current user
-        if (m.senderCode !== this.authService.currentUser()?.fullName) {
+        if (senderName !== this.authService.currentUser()?.fullName) {
           return i;
         }
       }
@@ -290,5 +332,17 @@ export class SupportComponent implements OnInit {
     if (path.startsWith('http')) return path;
     // Uploaded files are served from server root, not /api/v1
     return `${environment.serverUrl}/${path}`;
+  }
+
+  changeTicketStatus(ticketId: string, status: TicketStatus): void {
+    if (!confirm('هل تريد تغيير حالة التذكرة؟')) return;
+    this.supportService.updateTicketStatus(ticketId, status).subscribe({
+      next: () => {
+        // refresh details and list
+        this.selectTicket(ticketId);
+        this.loadTickets();
+      },
+      error: () => alert('فشل تغيير حالة التذكرة')
+    });
   }
 }

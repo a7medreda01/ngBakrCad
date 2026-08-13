@@ -17,8 +17,9 @@ export class MeetingService {
     return this.api.get<MeetingRequestDto[]>('Meetings/pending');
   }
 
-  approveMeeting(requestId: string): Observable<MeetingDto> {
-    return this.api.post<MeetingDto>(`Meetings/${requestId}/approve`);
+  approveMeeting(requestId: string, scheduledTime?: string): Observable<MeetingDto> {
+    const body = scheduledTime ? { scheduledTime } : {};
+    return this.api.post<MeetingDto>(`Meetings/${requestId}/approve`, body);
   }
 
   getMeetings(): Observable<MeetingRequestDto[]> {

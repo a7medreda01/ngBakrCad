@@ -8,6 +8,14 @@ import { AuthService } from '../../../core/services/auth.service';
 import { MeetingRequestDto, MeetingStatus } from '../../../core/models';
 import { ToastService } from '../../../core/services/toast.service';
 
+function normalizeMeetingStatus(status: any): MeetingStatus {
+  if (typeof status === 'number') return status as MeetingStatus;
+  if (status === 'Pending' || status === 'pending') return MeetingStatus.Pending;
+  if (status === 'Approved' || status === 'approved') return MeetingStatus.Approved;
+  if (status === 'Rejected' || status === 'rejected') return MeetingStatus.Rejected;
+  return MeetingStatus.Pending;
+}
+
 @Component({
   selector: 'app-meetings',
   standalone: true,
@@ -33,20 +41,20 @@ export class MeetingsComponent implements OnInit {
 
   readonly isAdmin = computed(() => {
     const roles = this.auth.currentUser()?.roles ?? [];
-    return roles.some(role => ['SuperAdmin', 'OperationsAdmin'].includes(role));
+    return roles.some(role => ['SuperAdmin', 'OperationsAdmin', 'FinancialAdmin', 'QualityAdmin'].includes(role));
   });
 
 readonly filteredMeetings = computed(() => {
-  const list = this.visibleMeetings(); // ← بدل this.meetings()
+  const list = this.visibleMeetings();
   const filter = this.activeFilter();
-  if (filter === 'pending')  return list.filter(m => m.status === MeetingStatus.Pending);
-  if (filter === 'approved') return list.filter(m => m.status === MeetingStatus.Approved);
-  if (filter === 'rejected') return list.filter(m => m.status === MeetingStatus.Rejected);
+  if (filter === 'pending')  return list.filter(m => m.status === MeetingStatus.Pending || Number(m.status) === 0);
+  if (filter === 'approved') return list.filter(m => m.status === MeetingStatus.Approved || Number(m.status) === 1);
+  if (filter === 'rejected') return list.filter(m => m.status === MeetingStatus.Rejected || Number(m.status) === 2);
   return list;
 });
 
-readonly pendingCount  = computed(() => this.visibleMeetings().filter(m => m.status === MeetingStatus.Pending).length);
-readonly approvedCount = computed(() => this.visibleMeetings().filter(m => m.status === MeetingStatus.Approved).length);
+readonly pendingCount  = computed(() => this.visibleMeetings().filter(m => m.status === MeetingStatus.Pending || Number(m.status) === 0).length);
+readonly approvedCount = computed(() => this.visibleMeetings().filter(m => m.status === MeetingStatus.Approved || Number(m.status) === 1).length);
   readonly isDesigner = computed(() => {
     const roles = this.auth.currentUser()?.roles ?? [];
     return roles.includes('Designer');
@@ -69,12 +77,13 @@ readonly approvedCount = computed(() => this.visibleMeetings().filter(m => m.sta
     this.isLoading.set(true);
     this.meetingService.getMeetings().subscribe({
       next: (res) => {
-        this.meetings.set(res || []);
+        const list = (res || []).map(m => ({ ...m, status: normalizeMeetingStatus(m.status) }));
+        this.meetings.set(list);
         this.isLoading.set(false);
         // Auto-open modal if meetingId query param is present
         const meetingId = this.route.snapshot.queryParamMap.get('meetingId');
         if (meetingId) {
-          const found = (res || []).find(m => m.id === meetingId || m.orderId === meetingId || m.meeting?.meetingRequestId === meetingId);
+          const found = list.find(m => m.id === meetingId || m.orderId === meetingId || m.meeting?.meetingRequestId === meetingId);
           if (found) {
             this.openModal(found);
           }
@@ -99,16 +108,51 @@ readonly approvedCount = computed(() => this.visibleMeetings().filter(m => m.sta
     document.body.style.overflow = '';
   }
 
-  approve(meeting: MeetingRequestDto): void {
-    const confirmMsg = this.i18n.isRtl()
-      ? 'هل أنت متأكد من رغبتك في الموافقة على هذا الاجتماع وجدولته على زووم؟'
-      : 'Approve this meeting and schedule it on Zoom?';
-    if (!confirm(confirmMsg)) return;
+  // ── Approval Modal state ──────────────────────────────────────────────────
+  readonly isApproveModalOpen = signal(false);
+  readonly approveTarget = signal<MeetingRequestDto | null>(null);
+  readonly approveMode = signal<'proposed' | 'custom'>('proposed');
+  readonly customTime = signal<string>('');
+
+  openApproveModal(meeting: MeetingRequestDto): void {
+    this.approveTarget.set(meeting);
+    this.approveMode.set('proposed');
+
+    if (meeting.proposedTime) {
+      const d = new Date(meeting.proposedTime);
+      const tzOffset = d.getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(d.getTime() - tzOffset)).toISOString().slice(0, 16);
+      this.customTime.set(localISOTime);
+    } else {
+      this.customTime.set('');
+    }
+
+    this.isApproveModalOpen.set(true);
+  }
+
+  closeApproveModal(): void {
+    this.isApproveModalOpen.set(false);
+    this.approveTarget.set(null);
+  }
+
+  confirmApprove(): void {
+    const target = this.approveTarget();
+    if (!target) return;
+
+    let scheduledTimeISO: string | undefined = undefined;
+    if (this.approveMode() === 'custom') {
+      if (!this.customTime()) {
+        this.toast.error(this.i18n.isRtl() ? 'يرجى اختيار الموعد الجديد' : 'Please select a custom scheduled time');
+        return;
+      }
+      scheduledTimeISO = new Date(this.customTime()).toISOString();
+    }
 
     this.isLoading.set(true);
-    this.meetingService.approveMeeting(meeting.id).subscribe({
+    this.meetingService.approveMeeting(target.id, scheduledTimeISO).subscribe({
       next: () => {
         this.toast.success(this.i18n.isRtl() ? 'تمت الموافقة وجدولة الاجتماع بنجاح' : 'Meeting approved and scheduled');
+        this.closeApproveModal();
         this.closeModal();
         this.loadMeetings();
       },

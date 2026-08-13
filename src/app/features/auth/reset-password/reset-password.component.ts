@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { TranslationService } from '../../../core/services/translation.service';
 import { ButtonComponent } from '../../../shared/ui/button/button.component';
 
 @Component({
@@ -19,6 +20,7 @@ export class ResetPasswordComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
+  readonly translationService = inject(TranslationService);
 
   readonly isLoading = signal(false);
   readonly showPassword = signal(false);
@@ -44,13 +46,18 @@ export class ResetPasswordComponent implements OnInit {
       return;
     }
     const val = this.form.getRawValue();
+    const currentLang = this.translationService.currentLang();
     if (val.newPassword !== val.confirmPassword) {
-      this.toast.error('كلمة المرور غير متطابقة');
+      const matchMsg = currentLang === 'ar' ? 'كلمة المرور غير متطابقة' : 'Passwords do not match';
+      this.toast.error(matchMsg);
       return;
     }
 
     if (!this.email || !this.token) {
-      this.toast.error('رابط غير صالح. يرجى طلب رابط جديد لاستعادة كلمة المرور.');
+      const linkMsg = currentLang === 'ar' 
+        ? 'رابط غير صالح. يرجى طلب رابط جديد لاستعادة كلمة المرور.' 
+        : 'Invalid link. Please request a new link to restore password.';
+      this.toast.error(linkMsg);
       return;
     }
 
@@ -62,12 +69,18 @@ export class ResetPasswordComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.toast.success('تم إعادة تعيين كلمة المرور بنجاح. يمكنك تسجيل الدخول الآن.');
+        const successMsg = currentLang === 'ar'
+          ? 'تم إعادة تعيين كلمة المرور بنجاح. يمكنك تسجيل الدخول الآن.'
+          : 'Password has been reset successfully. You can log in now.';
+        this.toast.success(successMsg);
         this.router.navigate(['/auth/login']);
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.toast.error(err.error?.message || 'فشل في إعادة تعيين كلمة المرور.');
+        const errorMsg = currentLang === 'ar'
+          ? (err.error?.messageAr || err.error?.message || 'فشل في إعادة تعيين كلمة المرور.')
+          : (err.error?.messageEn || err.error?.message || 'Failed to reset password.');
+        this.toast.error(errorMsg);
       }
     });
   }

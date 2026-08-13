@@ -1,69 +1,158 @@
 <div class="flex flex-col gap-6" [dir]="i18n.isRtl() ? 'rtl' : 'ltr'">
   <!-- Back Button & Status Header -->
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-border pb-4">
-    <div class="flex items-center gap-3">
+  <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-border pb-4">
+    <div class="flex items-center gap-3 min-w-0">
       <a routerLink="/client/orders"
-        class="p-2 rounded-xl bg-surface hover:bg-background border border-border transition text-secondary">
+        class="p-2 rounded-xl bg-surface hover:bg-background border border-border transition text-secondary flex-shrink-0">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
           class="w-4 h-4">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
         </svg>
       </a>
-      <div>
-        <h1 class="text-xl font-extrabold text-secondary">تفاصيل الطلب: {{ order()?.orderCode }}</h1>
-        <p class="text-xs text-text-secondary mt-1">تاريخ الإنشاء: {{ order()?.requiredDeliveryDate | date:'yyyy-MM-dd
+      <div class="min-w-0">
+        <h1 class="text-lg sm:text-xl font-extrabold text-secondary truncate">تفاصيل الطلب: {{ order()?.orderCode }}</h1>
+        <p class="text-xs text-text-secondary mt-1 truncate">تاريخ الإنشاء: {{ order()?.requiredDeliveryDate | date:'yyyy-MM-dd
           HH:mm' }}</p>
       </div>
     </div>
 
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+    <div class="flex flex-col md:flex-row items-stretch md:items-center gap-2 w-full lg:w-auto">
       @if (slaRemainingText()) {
-      <div
-        [class]="'flex flex-col gap-2 border rounded-2xl px-4 py-3 w-full sm:w-64 shadow-sm ' + slaColorClasses().badge">
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2">
-            <span
-              [class]="'w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ' + slaColorClasses().icon">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                stroke="currentColor" class="w-4 h-4">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              </svg>
-            </span>
-            <span class="text-[11px] font-bold text-secondary">الوقت المتبقي للتسليم</span>
-          </div>
-          <span class="text-[9px] font-bold text-text-secondary bg-white/60 rounded-md px-1.5 py-0.5">SLA</span>
-        </div>
+<div
+  [class]="'border rounded-2xl px-3 sm:px-4 py-2.5 w-full lg:w-[520px] shadow-sm ' + slaColorClasses().badge">
 
-        <div [class]="'text-lg font-black tracking-tight leading-none font-mono ' + slaColorClasses().value" dir="ltr">
-          {{ slaRemainingText() }}
-        </div>
+  <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3">
 
-        <div class="h-1.5 w-full rounded-full bg-black/5 overflow-hidden">
-          <div [class]="'h-full rounded-full transition-all duration-700 ease-out ' + slaColorClasses().bar"
-            [style.width.%]="slaProgressPercent()"></div>
-        </div>
+    <!-- Clock -->
+    <div
+      [class]="'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ' + slaColorClasses().icon">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           fill="none"
+           viewBox="0 0 24 24"
+           stroke-width="2"
+           stroke="currentColor"
+           class="w-5 h-5">
+        <path stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
 
-        @if (slaExpectedDueAt()) {
-        <span class="text-[10px] text-text-secondary">الموعد المتوقع: {{ slaExpectedDueAt() | date:'short' }}</span>
-        }
+    <!-- Title -->
+<div class="flex flex-col min-w-0 flex-shrink sm:flex-shrink-0 sm:min-w-[180px] lg:min-w-[220px]">
+  <span class="text-xs font-black text-secondary truncate">
+    الوقت المتبقي للتسليم
+  </span>
+
+  @if (slaExpectedDueAt()) {
+  <span
+    class="inline-flex items-center gap-1 mt-1 px-2 py-1 rounded-lg bg-white/60 text-[10px] font-bold text-text-secondary w-fit whitespace-nowrap">
+    🕒 {{ slaExpectedDueAt() | date:'dd/MM/yyyy hh:mm a' }}
+  </span>
+  }
+</div>
+
+    <!-- Time -->
+    @if (slaIsPaused() || slaIsBreached()) {
+
+    <div
+      [class]="'flex-1 basis-full sm:basis-auto text-center text-base sm:text-lg font-black font-mono ' + slaColorClasses().value">
+      {{ slaRemainingText() }}
+    </div>
+
+    } @else {
+
+    <div class="flex-1 basis-full sm:basis-auto grid grid-cols-3 gap-1.5 sm:gap-2 w-full sm:w-auto" dir="ltr">
+
+      <div class="bg-white/70 rounded-xl py-1.5 text-center">
+        <div [class]="'text-base sm:text-lg font-black leading-none ' + slaColorClasses().value">
+          {{ slaHours() }}
+        </div>
+        <div class="text-[9px] text-text-secondary font-bold">
+          HRS
+        </div>
       </div>
+
+      <div class="bg-white/70 rounded-xl py-1.5 text-center">
+        <div [class]="'text-base sm:text-lg font-black leading-none ' + slaColorClasses().value">
+          {{ slaMinutes() }}
+        </div>
+        <div class="text-[9px] text-text-secondary font-bold">
+          MIN
+        </div>
+      </div>
+
+      <div class="bg-white/70 rounded-xl py-1.5 text-center">
+        <div [class]="'text-base sm:text-lg font-black leading-none ' + slaColorClasses().value">
+          {{ slaSeconds() }}
+        </div>
+        <div class="text-[9px] text-text-secondary font-bold">
+          SEC
+        </div>
+      </div>
+
+    </div>
+
+    }
+
+  </div>
+
+  <!-- Progress -->
+  <div class="h-1 mt-2 rounded-full bg-black/5 overflow-hidden">
+    <div
+      [class]="'h-full rounded-full transition-all duration-700 ease-out ' + slaColorClasses().bar"
+      [style.width.%]="slaProgressPercent()">
+    </div>
+  </div>
+
+</div>
       }
 
-      <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0 flex-wrap">
         <button (click)="requestMeeting()"
-          class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm">
+          class="px-3 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm whitespace-nowrap">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-            class="w-4 h-4">
+            class="w-4 h-4 flex-shrink-0">
             <path stroke-linecap="round" stroke-linejoin="round"
               d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
           </svg>
-          {{ i18n.isRtl() ? 'طلب اجتماع زوم' : 'Request Zoom Meeting' }}
+          <span class="hidden xs:inline sm:inline">{{ i18n.isRtl() ? 'طلب اجتماع زوم' : 'Request Zoom Meeting' }}</span>
+          <span class="xs:hidden sm:hidden">{{ i18n.isRtl() ? 'اجتماع زوم' : 'Zoom' }}</span>
         </button>
         <app-badge [type]="getStatusBadge(order()?.status || 0)">{{ getStatusLabel(order()?.status || 0) }}</app-badge>
       </div>
     </div>
   </div>
+
+  <!-- Quick stats row: patient / teeth / status / price -->
+  @if (!isLoading() && order()) {
+  <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
+    <button type="button" (click)="activeMainTab.set('patient')" class="rounded-2xl border border-border bg-surface p-3.5 flex flex-col gap-1 min-w-0 shadow-sm text-start hover:border-primary/50 hover:shadow-md transition-all cursor-pointer">
+      <span class="text-[10px] font-bold text-text-secondary">المريض</span>
+      <span class="text-sm font-black text-secondary truncate">{{ order()?.patientName }}</span>
+      <span class="text-[10px] text-text-secondary truncate">{{ order()?.patientGender === 'Male' ? 'ذكر' : 'أنثى' }} · {{ order()?.patientAge }} سنة</span>
+      <span class="text-[10px] font-bold text-primary mt-0.5">عرض البيانات ←</span>
+    </button>
+
+    <button type="button" (click)="activeMainTab.set('services')" class="rounded-2xl border border-border bg-surface p-3.5 flex flex-col gap-1 min-w-0 shadow-sm text-start hover:border-primary/50 hover:shadow-md transition-all cursor-pointer">
+      <span class="text-[10px] font-bold text-text-secondary">الأسنان المحددة</span>
+      <span class="text-sm font-black text-secondary">{{ order()?.selectedTeeth?.length ?? 0 }} سن</span>
+      <span class="text-[10px] font-bold text-primary mt-0.5">عرض المخطط ←</span>
+    </button>
+
+    <button type="button" (click)="activeMainTab.set('files')" class="rounded-2xl border border-border bg-surface p-3.5 flex flex-col gap-1 min-w-0 shadow-sm hover:border-primary/50 hover:shadow-md transition-all cursor-pointer">
+      <span class="text-[10px] font-bold text-text-secondary">الملفات والتصاميم</span>
+      <span class="text-sm font-black text-secondary">{{ (clientFiles().length + designerFiles().length) || 0 }} ملف</span>
+      <span class="text-[10px] text-text-secondary truncate">عرض الملفات ←</span>
+    </button>
+
+    <div class="rounded-2xl border border-primary/30 bg-primary/5 p-3.5 flex flex-col gap-1 min-w-0 shadow-sm">
+      <span class="text-[10px] font-bold text-text-secondary">السعر الإجمالي</span>
+      <span class="text-lg font-black text-primary leading-tight truncate" dir="ltr">{{ order()?.finalPrice }} SAR</span>
+      <button (click)="activeMainTab.set('pricing')" class="text-[10px] font-bold text-primary hover:underline self-start">عرض الفاتورة ←</button>
+    </div>
+  </div>
+  }
 
   @if (isLoading()) {
   <div class="py-24 text-center">
@@ -71,19 +160,20 @@
     <p class="text-xs text-text-secondary mt-3">جاري تحميل تفاصيل الطلب...</p>
   </div>
   } @else if (order()) {
+
   <!-- Quotation Alert / Approval Banner -->
   @if (!order()?.isPaid) {
   <div
-    class="col-span-1 lg:col-span-3 bg-gradient-to-r from-amber-500/10 to-amber-600/5 border border-amber-500/30 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
-    <div class="flex gap-3">
-      <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-700">
+    class="bg-gradient-to-r from-amber-500/10 to-amber-600/5 border border-amber-500/30 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
+    <div class="flex gap-3 min-w-0">
+      <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-700 flex-shrink-0">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
           class="w-5 h-5">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
         </svg>
       </div>
-      <div>
+      <div class="min-w-0">
         <h4 class="text-sm font-black text-amber-800">طلب بانتظار التسعير / الاعتماد</h4>
         <p class="text-xs text-amber-700/80 mt-1">
           @if (order()?.finalPrice === 0) {
@@ -97,377 +187,443 @@
     </div>
     @if (order()?.finalPrice && order()?.finalPrice! > 0) {
     <button (click)="approveQuotation()" [disabled]="isProcessing()"
-      class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition shadow-md active:scale-95 disabled:opacity-50">
+      class="w-full sm:w-auto px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition shadow-md active:scale-95 disabled:opacity-50 flex-shrink-0">
       موافقة ودفع السعر
     </button>
     }
   </div>
   }
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="flex flex-col gap-6">
 
-    <!-- Left Column: CAD Viewer & File Details -->
-    <div class="lg:col-span-2 flex flex-col gap-6">
-      @if (selectedFiles().length > 0) {
-      <div class="bg-surface rounded-2xl p-4 border border-border shadow-card flex flex-col gap-4">
-        <div class="flex justify-between items-center">
-          <h3 class="text-sm font-extrabold text-secondary">مستعرض التصميم ثلاثي الأبعاد</h3>
-          <span class="text-xs text-text-secondary">{{ selectedFiles().length }} ملف{{ selectedFiles().length > 1 ? 'ات'
-            : '' }} مختار{{ selectedFiles().length > 1 ? 'ة' : '' }}</span>
-        </div>
-        <app-three-viewer [fileUrls]="viewerFileInputs()"></app-three-viewer>
-      </div>
-      } @else if (selectedThreeFile()) {
-      <div class="bg-surface rounded-2xl p-4 border border-border shadow-card flex flex-col gap-4">
-        <div class="flex justify-between items-center">
-          <h3 class="text-sm font-extrabold text-secondary">مستعرض التصميم ثلاثي الأبعاد</h3>
-          <span class="text-xs text-text-secondary">{{ selectedThreeFile()?.fileName }}</span>
-        </div>
-        <app-three-viewer [fileUrl]="selectedThreeFile()?.filePath ?? null"
-          [fileType]="getFileExtension(selectedThreeFile()?.fileName || '')"></app-three-viewer>
-      </div>
-      } @else {
-      <div class="bg-surface rounded-2xl p-12 border border-border shadow-card text-center text-text-secondary">
-        <p class="text-sm font-bold">لا يوجد ملف ثلاثي الأبعاد قابل للمعاينة</p>
-      </div>
-      }
+    <!-- ============ MAIN: TABBED CONTENT (full page width) ============ -->
+    <div class="flex flex-col gap-5">
 
-      <!-- Uploaded Files Section -->
-      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h3 class="text-sm font-black text-secondary">ملفات الطلب</h3>
-          <div class="inline-flex rounded-full border border-border bg-background p-1">
-            <button type="button" (click)="activeFilesTab.set('client')"
-              class="rounded-full px-3 py-1.5 text-[11px] font-bold transition"
-              [class]="activeFilesTab() === 'client' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-slate-100'">
-              ملفات العميل
+
+      <!-- ===== TAB 1: Services + Interactive Odontogram (service → right, shape → left) ===== -->
+      @if (activeMainTab() === 'services') {
+      <div class="bg-surface rounded-2xl p-4 sm:p-6 border border-border shadow-card flex flex-col gap-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <h3 class="text-sm font-black text-secondary">الخدمات المطلوبة وموضعها على الأسنان</h3>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-[10px] font-bold text-text-secondary bg-background px-2 py-0.5 rounded-lg border border-border">انقر على أي خدمة لتظليل أسنانها</span>
+            @if (selectedServiceId()) {
+            <button (click)="selectedServiceId.set(null)" class="text-[10px] font-bold text-amber-600 hover:underline whitespace-nowrap">
+              ✕ إلغاء التظليل
             </button>
-            <button type="button" (click)="activeFilesTab.set('designer')"
-              class="rounded-full px-3 py-1.5 text-[11px] font-bold transition"
-              [class]="activeFilesTab() === 'designer' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-slate-100'">
-              ملفات المصمم
-            </button>
-          </div>
-        </div>
-
-        @if (activeFilesTab() === 'client') {
-        @if (clientOrderFiles().length) {
-        <div class="space-y-3">
-          <div class="text-xs font-bold uppercase tracking-wider text-text-secondary/70 pb-1">ملفات الطلب الأصلية</div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            @for (file of clientOrderFiles(); track file.id) {
-            <div
-              class="flex justify-between items-center p-3 rounded-xl border border-border bg-background/50 hover:bg-background transition group">
-              <div class="flex items-center gap-2 min-w-0">
-                @if (file.isExternalLink) {
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                  stroke="currentColor" class="w-5 h-5 text-indigo-600 flex-shrink-0">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                </svg>
-                } @else {
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                  stroke="currentColor" class="w-5 h-5 text-primary flex-shrink-0">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                </svg>
-                }
-                <div class="flex flex-col min-w-0">
-                  <span class="text-xs font-bold text-secondary truncate max-w-[150px]">{{ file.fileName }}</span>
-                  <span class="text-[10px] text-text-secondary">
-                    @if (file.isExternalLink) { رابط خارجي } @else { {{ (file.fileSize / 1024 / 1024).toFixed(2) }} MB }
-                  </span>
-                </div>
-              </div>
-              <div class="flex gap-2 flex-shrink-0 items-center">
-                @if (!file.isExternalLink && ['stl', 'obj', 'ply'].includes(file.fileName.split('.').pop() || '')) {
-                <button (click)="selectedThreeFile.set(file)"
-                  class="text-xs text-primary font-bold hover:underline">معاينة</button>
-                }
-                @if (file.isExternalLink) {
-                <a [href]="file.externalUrl" target="_blank" rel="noopener noreferrer"
-                  class="text-xs text-indigo-600 font-bold hover:underline">فتح</a>
-                } @else {
-                <a [href]="file.filePath" target="_blank"
-                  class="text-xs text-primary font-bold hover:underline">تحميل</a>
-                }
-              </div>
-            </div>
             }
           </div>
         </div>
-        }
 
-        @if (clientResponseFiles().length) {
-        <div class="space-y-3">
-          <div class="text-xs font-bold uppercase tracking-wider text-text-secondary/70 pb-1">ملفات تم تزويدها</div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            @for (file of clientResponseFiles(); track file.id) {
-            <div
-              class="flex justify-between items-center p-3 rounded-xl border border-border bg-background/50 hover:bg-background transition">
-              <div class="flex items-center gap-2 min-w-0">
-                @if (file.isExternalLink) {
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                  stroke="currentColor" class="w-5 h-5 text-indigo-600 flex-shrink-0">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                </svg>
-                } @else {
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                  stroke="currentColor" class="w-5 h-5 text-primary flex-shrink-0">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                </svg>
-                }
-                <div class="flex flex-col min-w-0">
-                  <span class="text-xs font-bold text-secondary truncate max-w-[150px]">{{ file.fileName }}</span>
-                  <span class="text-[10px] text-text-secondary">
-                    @if (file.isExternalLink) { رابط خارجي } @else { {{ (file.fileSize / 1024 / 1024).toFixed(2) }} MB }
-                  </span>
-                </div>
-              </div>
-              <div class="flex gap-2 flex-shrink-0 items-center">
-                @if (file.isExternalLink) {
-                <a [href]="file.externalUrl" target="_blank" rel="noopener noreferrer"
-                  class="text-xs text-indigo-600 font-bold hover:underline">فتح</a>
-                } @else {
-                <a [href]="file.filePath" target="_blank"
-                  class="text-xs text-primary font-bold hover:underline">تحميل</a>
-                }
-              </div>
-            </div>
-            }
-          </div>
-        </div>
-        }
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 items-start">
 
-        @if (!clientOrderFiles().length && !clientResponseFiles().length) {
-        <div
-          class="rounded-2xl border border-dashed border-border/70 bg-background/50 p-6 text-center text-xs text-text-secondary">
-          لا توجد ملفات للعميل بعد
-        </div>
-        }
-        } @else {
-        <!-- Designer Files Tab -->
-        <!-- ملفات المعاينة: تظهر للعميل فقط في الحالات المسموح بها -->
-        @if (canShowDesignerFiles() && designerPreviewFiles().length) {
-        <div class="space-y-3">
-          <div class="text-xs font-bold uppercase tracking-wider text-text-secondary/70 pb-1">معاينة المصمم</div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            @for (file of designerPreviewFiles(); track file.id) {
-            <div
-              [class]="'flex justify-between items-center p-3 rounded-xl border transition ' + (isFileSelected(file.id) ? 'border-primary bg-primary/5' : 'border-border bg-background/50 hover:bg-background')">
-              <div class="flex items-center gap-2 min-w-0 flex-1">
-                <!-- Checkbox for 3D files -->
-                @if (!file.isExternalLink && ['stl', 'obj', 'ply'].includes(file.fileName.split('.').pop() || '')) {
-                <input type="checkbox" [checked]="isFileSelected(file.id)" (change)="toggleFileSelection(file.id)"
-                  class="w-4 h-4 rounded cursor-pointer" />
-                }
-                @if (file.isExternalLink) {
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                  stroke="currentColor" class="w-5 h-5 text-indigo-600 flex-shrink-0">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                </svg>
-                } @else {
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                  stroke="currentColor" class="w-5 h-5 text-primary flex-shrink-0">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                </svg>
-                }
-                <div class="flex flex-col min-w-0">
-                  <span class="text-xs font-bold text-secondary truncate max-w-[150px]">{{ file.fileName }}</span>
-                  <span class="text-[10px] text-text-secondary">@if (file.isExternalLink) { رابط خارجي } @else { {{
-                    (file.fileSize / 1024 / 1024).toFixed(2) }} MB }</span>
-                </div>
+          <!-- Services list: renders on the RIGHT in RTL since it is first in source order -->
+          <div class="lg:col-span-2 flex flex-col gap-2">
+            @for (service of order()?.services; track service.serviceId) {
+            <div (click)="toggleServiceSelection(service.serviceId)"
+              [class]="selectedServiceId() === service.serviceId ? 'bg-amber-500/10 border-amber-500/40 text-amber-900 shadow-sm' : 'border-border/50 hover:bg-background/80'"
+              class="p-3 rounded-xl border transition-all cursor-pointer flex flex-col gap-1.5">
+              <div class="flex justify-between items-center text-secondary gap-2">
+                <span class="font-black text-xs flex items-center gap-1.5 min-w-0">
+                  <span class="w-2 h-2 rounded-full flex-shrink-0"
+                    [class.bg-amber-500]="selectedServiceId() === service.serviceId"
+                    [class.bg-primary]="selectedServiceId() !== service.serviceId"></span>
+                  <span class="truncate">{{ i18n.currentLang() === 'ar' ? service.nameAr : service.nameEn }}</span>
+                </span>
+                <span class="font-bold text-primary flex-shrink-0" dir="ltr">{{ service.subtotal }} SAR</span>
               </div>
-              <div class="flex gap-2 flex-shrink-0 items-center">
-                @if (!file.isExternalLink && ['stl', 'obj', 'ply'].includes(file.fileName.split('.').pop() || '')) {
-                <button (click)="selectedThreeFile.set(file)"
-                  class="text-xs text-primary font-bold hover:underline">معاينة</button>
-                }
-                @if (file.isExternalLink) {
-                <a [href]="file.externalUrl" target="_blank" rel="noopener noreferrer"
-                  class="text-xs text-indigo-600 font-bold hover:underline">فتح</a>
-                } @else {
-                <a [href]="file.filePath" target="_blank"
-                  class="text-xs text-primary font-bold hover:underline">تحميل</a>
-                }
-              </div>
-            </div>
-            }
-          </div>
-        </div>
-        }
-
-        <!-- الملفات النهائية: تبقى محمية لحد "جاهز للتحميل" / "مكتمل" -->
-        @if (canDownloadFiles()) {
-        @if (designerFinalFiles().length) {
-        <div class="space-y-3">
-          <div class="text-xs font-bold uppercase tracking-wider text-text-secondary/70 pb-1">الملفات النهائية</div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            @for (file of designerFinalFiles(); track file.id) {
-            <div
-              [class]="'flex justify-between items-center p-3 rounded-xl border transition ' + (isFileSelected(file.id) ? 'border-emerald-500 bg-emerald-50' : 'border-border bg-background/50 hover:bg-background')">
-              <div class="flex items-center gap-2 min-w-0 flex-1">
-                <!-- Checkbox for 3D files -->
-                @if (!file.isExternalLink && ['stl', 'obj', 'ply'].includes(file.fileName.split('.').pop() || '')) {
-                <input type="checkbox" [checked]="isFileSelected(file.id)" (change)="toggleFileSelection(file.id)"
-                  class="w-4 h-4 rounded cursor-pointer" />
-                }
-                @if (file.isExternalLink) {
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                  stroke="currentColor" class="w-5 h-5 text-indigo-600 flex-shrink-0">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                </svg>
-                } @else {
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                  stroke="currentColor" class="w-5 h-5 text-emerald-600 flex-shrink-0">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                </svg>
-                }
-                <div class="flex flex-col min-w-0">
-                  <span class="text-xs font-bold text-secondary truncate max-w-[150px]">{{ file.fileName }}</span>
-                  <span class="text-[10px] text-text-secondary">@if (file.isExternalLink) { رابط خارجي } @else { {{
-                    (file.fileSize / 1024 / 1024).toFixed(2) }} MB }</span>
-                </div>
-              </div>
-              <div class="flex gap-2 flex-shrink-0 items-center">
-                @if (!file.isExternalLink && ['stl', 'obj', 'ply'].includes(file.fileName.split('.').pop() || '')) {
-                <button (click)="selectedThreeFile.set(file)"
-                  class="text-xs text-primary font-bold hover:underline">معاينة</button>
-                }
-                @if (file.isExternalLink) {
-                <a [href]="file.externalUrl" target="_blank" rel="noopener noreferrer"
-                  class="text-xs text-indigo-600 font-bold hover:underline">فتح</a>
-                } @else {
-                <a [href]="file.filePath" target="_blank"
-                  class="text-xs text-emerald-700 font-bold hover:underline flex items-center gap-1">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                  </svg>
-                  تحميل
-                </a>
-                }
-              </div>
-            </div>
-            }
-          </div>
-        </div>
-        } @else if (!designerPreviewFiles().length) {
-        <div
-          class="rounded-2xl border border-dashed border-border/70 bg-background/50 p-6 text-center text-xs text-text-secondary">
-          لا توجد ملفات للمصمم بعد
-        </div>
-        }
-        } @else if (!designerPreviewFiles().length) {
-        <div
-          class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border border-dashed border-border p-8 text-center flex flex-col items-center gap-3">
-          <div class="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-              stroke="currentColor" class="w-7 h-7 text-secondary/50">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-            </svg>
-          </div>
-          <p class="text-sm font-bold text-secondary">الملفات النهائية غير متاحة بعد</p>
-          <p class="text-xs text-text-secondary max-w-[240px] leading-relaxed">ستُتاح ملفات التصميم النهائية فقط عندما
-            يصبح الطلب في حالة «جاهز للتحميل»</p>
-          <div class="px-3 py-1.5 rounded-full bg-secondary/10 text-xs font-bold text-secondary/60 mt-1">🔒 محمي</div>
-        </div>
-        }
-        }
-      </div>
-    </div>
-
-    <!-- Right Column: Case Info, Pricing, Revision Actions -->
-    <div class="flex flex-col gap-6">
-      <!-- Patient Metadata Card -->
-      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4">
-        <h3 class="text-sm font-black text-secondary">معلومات المريض</h3>
-        <div class="flex flex-col gap-2.5 text-xs text-secondary">
-          <div class="flex justify-between py-1 border-b border-border/50">
-            <span class="text-text-secondary">اسم المريض</span>
-            <span class="font-bold">{{ order()?.patientName }}</span>
-          </div>
-          <div class="flex justify-between py-1 border-b border-border/50">
-            <span class="text-text-secondary">الجنس / العمر</span>
-            <span class="font-bold">{{ order()?.patientGender === 'Male' ? 'ذكر' : 'أنثى' }} / {{ order()?.patientAge }}
-              سنة</span>
-          </div>
-          <div class="flex flex-col gap-2 py-2 border-b border-border/50">
-            <div class="flex items-center justify-between">
-              <span class="text-text-secondary font-extrabold">الأسنان المحددة في الطلب</span>
-              @if (selectedServiceId()) {
-                <button (click)="selectedServiceId.set(null)" class="text-[10px] font-bold text-amber-600 hover:underline">
-                  ✕ إلغاء تظليل الخدمة
-                </button>
-              }
-            </div>
-            @if ((order()?.selectedTeeth?.length ?? 0) > 0) {
-            <app-odontogram [selectedTeeth]="order()?.selectedTeeth || []" [highlightedTeeth]="activeServiceTeeth()" [readOnly]="true"></app-odontogram>
-            } @else {
-            <span class="font-bold text-sm">لا توجد أسنان محددة</span>
-            }
-          </div>
-        </div>
-      </div>
-
-      <!-- Services & Cost Summary -->
-      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-4">
-        <div class="flex items-center justify-between">
-          <h3 class="text-sm font-black text-secondary">الخدمات وتكلفة الطلب</h3>
-          <span class="text-[10px] font-bold text-text-secondary bg-background px-2 py-0.5 rounded-lg border border-border">انقر على الخدمة لعرض أسنانها</span>
-        </div>
-        <div class="flex flex-col gap-2 text-xs">
-          @for (service of order()?.services; track service.serviceId) {
-          <div (click)="toggleServiceSelection(service.serviceId)"
-               [class]="selectedServiceId() === service.serviceId ? 'bg-amber-500/10 border-amber-500/40 text-amber-900 shadow-sm' : 'border-border/50 hover:bg-background/80'"
-               class="p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col gap-1.5">
-            <div class="flex justify-between items-center text-secondary">
-              <span class="font-black text-xs flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full" [class.bg-amber-500]="selectedServiceId() === service.serviceId" [class.bg-primary]="selectedServiceId() !== service.serviceId"></span>
-                {{ i18n.currentLang() === 'ar' ? service.nameAr : service.nameEn }}
-              </span>
-              <span class="font-bold text-primary">{{ service.subtotal }} SAR</span>
-            </div>
-            @if (service.teeth && service.teeth.length > 0) {
-              <div class="flex items-center gap-2">
+              @if (service.teeth && service.teeth.length > 0) {
+              <div class="flex items-center gap-2 flex-wrap">
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-primary/10 text-primary border border-primary/20">
-                  🦷 الأسنان: {{ service.teeth.join(', ') }}
+                  🦷 {{ service.teeth.join(', ') }}
                 </span>
                 <span class="text-[10px] text-text-secondary">الكمية: {{ service.quantity }}</span>
               </div>
+              }
+            </div>
+            }
+            @if (!order()?.services || (order()?.services?.length ?? 0) === 0) {
+            <div class="rounded-xl border border-dashed border-border/70 bg-background/50 p-6 text-center text-xs text-text-secondary">
+              لا توجد خدمات مضافة على هذا الطلب
+            </div>
             }
           </div>
-          }
-          @if (order()?.gumDesignFee) {
-          <div class="flex justify-between py-1 text-secondary mt-2">
-            <span class="text-text-secondary">رسوم اللثة</span>
-            <span class="font-bold">{{ order()?.gumDesignFee }} SAR</span>
+
+          <!-- Interactive tooth chart: renders on the LEFT in RTL, scrolls horizontally on small screens -->
+          <div class="lg:col-span-3 rounded-2xl border border-border bg-background/40 p-4 flex flex-col gap-3 min-w-0">
+
+            @if ((order()?.selectedTeeth?.length ?? 0) > 0) {
+            <div class="w-full overflow-x-auto">
+              <app-odontogram [selectedTeeth]="order()?.selectedTeeth || []" [highlightedTeeth]="activeServiceTeeth()"
+                [readOnly]="true"></app-odontogram>
+            </div>
+            } @else {
+            <div class="py-10 text-center text-xs font-bold text-text-secondary">لا توجد أسنان محددة لهذا الطلب</div>
+            }
+          </div>
+
+        </div>
+      </div>
+      }
+
+      <!-- ===== TAB 2: 3D Viewer + Files (viewer right 3/4, files left 1/4 in RTL) ===== -->
+      @if (activeMainTab() === 'files') {
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-5 items-start">
+
+        <!-- Viewer: first in source = renders on the RIGHT in RTL, spans 3 of 4 columns -->
+        <div class="lg:col-span-3 flex flex-col gap-5 min-w-0">
+
+        @if (selectedFiles().length > 0) {
+        <div class="bg-surface rounded-2xl p-4 border border-border shadow-card flex flex-col gap-4">
+          <div class="flex justify-between items-center flex-wrap gap-2">
+            <h3 class="text-sm font-extrabold text-secondary">مستعرض التصميم ثلاثي الأبعاد</h3>
+            <span class="text-xs text-text-secondary">{{ selectedFiles().length }} ملف{{ selectedFiles().length > 1 ? 'ات' : '' }} مختار{{ selectedFiles().length > 1 ? 'ة' : '' }}</span>
+          </div>
+          <app-three-viewer [fileUrls]="viewerFileInputs()"></app-three-viewer>
+        </div>
+        } @else if (selectedThreeFile()) {
+        <div class="bg-surface rounded-2xl p-4 border border-border shadow-card flex flex-col gap-4">
+          <div class="flex justify-between items-center flex-wrap gap-2">
+            <h3 class="text-sm font-extrabold text-secondary">مستعرض التصميم ثلاثي الأبعاد</h3>
+            <span class="text-xs text-text-secondary truncate max-w-full">{{ selectedThreeFile()?.fileName }}</span>
+          </div>
+          <app-three-viewer [fileUrl]="selectedThreeFile()?.filePath ?? null"
+            [fileType]="getFileExtension(selectedThreeFile()?.fileName || '')"></app-three-viewer>
+        </div>
+        } @else {
+        <div class="bg-surface rounded-2xl p-6 sm:p-10 border border-border shadow-card text-center text-text-secondary">
+          <p class="text-sm font-bold">اختر ملفاً ثلاثي الأبعاد من القائمة أدناه لمعاينته هنا</p>
+        </div>
+        }
+
+        </div>
+        <!-- File list: second in source = renders on the LEFT in RTL, 1 of 4 columns -->
+        <div class="lg:col-span-1 bg-surface rounded-2xl p-4 sm:p-6 border border-border shadow-card flex flex-col gap-4 min-w-0">
+          <div class="flex flex-col gap-3">
+            <h3 class="text-sm font-black text-secondary">ملفات الطلب</h3>
+            <div class="inline-flex rounded-full border border-border bg-background p-1 w-full">
+              <button type="button" (click)="activeFilesTab.set('client')"
+                class="flex-1 rounded-full px-3 py-1.5 text-[11px] font-bold transition"
+                [class]="activeFilesTab() === 'client' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-slate-100'">
+                ملفات الحالة
+              </button>
+              <button type="button" (click)="activeFilesTab.set('designer')"
+                class="flex-1 rounded-full px-3 py-1.5 text-[11px] font-bold transition"
+                [class]="activeFilesTab() === 'designer' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-slate-100'">
+                ملفات التصميم
+              </button>
+            </div>
+          </div>
+
+          @if (activeFilesTab() === 'client') {
+          @if (clientOrderFiles().length) {
+          <div class="space-y-3">
+            <div class="text-xs font-bold uppercase tracking-wider text-text-secondary/70 pb-1">ملفات الطلب الأصلية</div>
+            <div class="grid grid-cols-1 gap-3">
+              @for (file of clientOrderFiles(); track file.id) {
+              <div
+                class="flex justify-between items-center gap-2 p-3 rounded-xl border transition group"
+                [class.border-primary]="isFileSelected(file.id)"
+                [class.bg-primary/5]="isFileSelected(file.id)"
+                [class.border-border]="!isFileSelected(file.id)"
+                [class.bg-background/50]="!isFileSelected(file.id)">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                  @if (!file.isExternalLink && ['stl','obj','ply'].includes(file.fileName.split('.').pop() || '')) {
+                  <input type="checkbox" [checked]="isFileSelected(file.id)" 
+                    (change)="toggleFileSelection(file.id); $event.stopPropagation()" 
+                    class="w-4 h-4 rounded cursor-pointer flex-shrink-0" />
+                  }
+                  @if (file.isExternalLink) {
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-indigo-600 flex-shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                  </svg>
+                  } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-primary flex-shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                  }
+                  <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-bold text-secondary truncate">{{ file.fileName }}</span>
+                    <span class="text-[10px] text-text-secondary">
+                      @if (file.isExternalLink) { رابط خارجي } @else { {{ (file.fileSize / 1024 / 1024).toFixed(2) }} MB }
+                    </span>
+                  </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0 items-center">
+                  @if (file.isExternalLink) {
+                  <a [href]="file.externalUrl" target="_blank" rel="noopener noreferrer" class="text-xs text-indigo-600 font-bold hover:underline" (click)="$event.stopPropagation()">فتح</a>
+                  } @else {
+                  <a [href]="file.filePath" target="_blank" class="text-xs text-primary font-bold hover:underline" (click)="$event.stopPropagation()">تحميل</a>
+                  }
+                </div>
+              </div>
+              }
+            </div>
           </div>
           }
-          @if (order()?.expressFee) {
-          <div class="flex justify-between py-1 text-secondary">
-            <span class="text-text-secondary">رسوم الشحن المستعجل</span>
-            <span class="font-bold">{{ order()?.expressFee }} SAR</span>
+
+          @if (clientResponseFiles().length) {
+          <div class="space-y-3">
+            <div class="text-xs font-bold uppercase tracking-wider text-text-secondary/70 pb-1">ملفات تم تزويدها</div>
+            <div class="grid grid-cols-1 gap-3">
+              @for (file of clientResponseFiles(); track file.id) {
+              <div
+                class="flex justify-between items-center gap-2 p-3 rounded-xl border transition"
+                [class.border-primary]="isFileSelected(file.id)"
+                [class.bg-primary/5]="isFileSelected(file.id)"
+                [class.border-border]="!isFileSelected(file.id)"
+                [class.bg-background/50]="!isFileSelected(file.id)">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                  @if (!file.isExternalLink && ['stl','obj','ply'].includes(file.fileName.split('.').pop() || '')) {
+                  <input type="checkbox" [checked]="isFileSelected(file.id)" 
+                    (change)="toggleFileSelection(file.id); $event.stopPropagation()" 
+                    class="w-4 h-4 rounded cursor-pointer flex-shrink-0" />
+                  }
+                  @if (file.isExternalLink) {
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-indigo-600 flex-shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                  </svg>
+                  } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-primary flex-shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                  }
+                  <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-bold text-secondary truncate">{{ file.fileName }}</span>
+                    <span class="text-[10px] text-text-secondary">
+                      @if (file.isExternalLink) { رابط خارجي } @else { {{ (file.fileSize / 1024 / 1024).toFixed(2) }} MB }
+                    </span>
+                  </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0 items-center">
+                  @if (file.isExternalLink) {
+                  <a [href]="file.externalUrl" target="_blank" rel="noopener noreferrer" class="text-xs text-indigo-600 font-bold hover:underline" (click)="$event.stopPropagation()">فتح</a>
+                  } @else {
+                  <a [href]="file.filePath" target="_blank" class="text-xs text-primary font-bold hover:underline" (click)="$event.stopPropagation()">تحميل</a>
+                  }
+                </div>
+              </div>
+              }
+            </div>
           </div>
           }
-          <div class="flex justify-between py-2 text-secondary border-t border-border font-black text-sm mt-2">
-            <span>السعر الإجمالي</span>
-            <span class="text-primary">{{ order()?.finalPrice }} SAR</span>
+
+          @if (!clientOrderFiles().length && !clientResponseFiles().length) {
+          <div class="rounded-2xl border border-dashed border-border/70 bg-background/50 p-6 text-center text-xs text-text-secondary">
+            لا توجد ملفات للعميل بعد
+          </div>
+          }
+          } @else {
+          <!-- Designer Files Tab -->
+          @if (canShowDesignerFiles() && designerPreviewFiles().length) {
+          <div class="space-y-3">
+            <div class="text-xs font-bold uppercase tracking-wider text-text-secondary/70 pb-1">معاينة المصمم</div>
+            <div class="grid grid-cols-1 gap-3">
+              @for (file of designerPreviewFiles(); track file.id) {
+              <div (click)="!file.isExternalLink && ['stl','obj','ply'].includes(file.fileName.split('.').pop() || '') ? selectedThreeFile.set(file) : null"
+                [class]="(!file.isExternalLink && ['stl','obj','ply'].includes(file.fileName.split('.').pop() || '')) ? 'cursor-pointer' : ''"
+                class="flex justify-between items-center gap-2 p-3 rounded-xl border transition hover:bg-background"
+                [class.border-primary]="isFileSelected(file.id)"
+                [class.bg-primary\/5]="isFileSelected(file.id)"
+                [class.border-border]="!isFileSelected(file.id)"
+                [class.bg-background\/50]="!isFileSelected(file.id)">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                  @if (!file.isExternalLink && ['stl', 'obj', 'ply'].includes(file.fileName.split('.').pop() || '')) {
+                  <input type="checkbox" [checked]="isFileSelected(file.id)" (change)="toggleFileSelection(file.id); $event.stopPropagation()" (click)="$event.stopPropagation()" class="w-4 h-4 rounded cursor-pointer flex-shrink-0" />
+                  }
+                  @if (file.isExternalLink) {
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-indigo-600 flex-shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                  </svg>
+                  } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-primary flex-shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                  }
+                  <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-bold text-secondary truncate">{{ file.fileName }}</span>
+                    <span class="text-[10px] text-text-secondary">@if (file.isExternalLink) { رابط خارجي } @else { {{ (file.fileSize / 1024 / 1024).toFixed(2) }} MB }</span>
+                    @if (!file.isExternalLink && ['stl','obj','ply'].includes(file.fileName.split('.').pop() || '')) {
+                    <span class="text-[10px] text-primary font-bold mt-0.5">انقر للمعاينة · ☑ للمقارنة</span>
+                    }
+                  </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0 items-center">
+                  @if (file.isExternalLink) {
+                  <a [href]="file.externalUrl" target="_blank" rel="noopener noreferrer" class="text-xs text-indigo-600 font-bold hover:underline" (click)="$event.stopPropagation()">فتح</a>
+                  } @else {
+                  <a [href]="file.filePath" target="_blank" class="text-xs text-primary font-bold hover:underline" (click)="$event.stopPropagation()">تحميل</a>
+                  }
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+          }
+
+          @if (canDownloadFiles()) {
+          @if (designerFinalFiles().length) {
+          <div class="space-y-3">
+            <div class="text-xs font-bold uppercase tracking-wider text-text-secondary/70 pb-1">الملفات النهائية</div>
+            <div class="grid grid-cols-1 gap-3">
+              @for (file of designerFinalFiles(); track file.id) {
+              <div (click)="!file.isExternalLink && ['stl','obj','ply'].includes(file.fileName.split('.').pop() || '') ? selectedThreeFile.set(file) : null"
+                [class]="(!file.isExternalLink && ['stl','obj','ply'].includes(file.fileName.split('.').pop() || '')) ? 'cursor-pointer' : ''"
+                class="flex justify-between items-center gap-2 p-3 rounded-xl border transition hover:bg-background"
+                [class.border-emerald-500]="isFileSelected(file.id)"
+                [class.bg-emerald-50]="isFileSelected(file.id)"
+                [class.border-border]="!isFileSelected(file.id)"
+                [class.bg-background\/50]="!isFileSelected(file.id)">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                  @if (!file.isExternalLink && ['stl', 'obj', 'ply'].includes(file.fileName.split('.').pop() || '')) {
+                  <input type="checkbox" [checked]="isFileSelected(file.id)" (change)="toggleFileSelection(file.id); $event.stopPropagation()" (click)="$event.stopPropagation()" class="w-4 h-4 rounded cursor-pointer flex-shrink-0" />
+                  }
+                  @if (file.isExternalLink) {
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-indigo-600 flex-shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                  </svg>
+                  } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-emerald-600 flex-shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                  }
+                  <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-bold text-secondary truncate">{{ file.fileName }}</span>
+                    <span class="text-[10px] text-text-secondary">@if (file.isExternalLink) { رابط خارجي } @else { {{ (file.fileSize / 1024 / 1024).toFixed(2) }} MB }</span>
+                    @if (!file.isExternalLink && ['stl','obj','ply'].includes(file.fileName.split('.').pop() || '')) {
+                    <span class="text-[10px] text-emerald-700 font-bold mt-0.5">انقر للمعاينة · ☑ للمقارنة</span>
+                    }
+                  </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0 items-center">
+                  @if (file.isExternalLink) {
+                  <a [href]="file.externalUrl" target="_blank" rel="noopener noreferrer" class="text-xs text-indigo-600 font-bold hover:underline">فتح</a>
+                  } @else {
+                  <a [href]="file.filePath" target="_blank" class="text-xs text-emerald-700 font-bold hover:underline flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    تحميل
+                  </a>
+                  }
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+          } @else if (!designerPreviewFiles().length) {
+          <div class="rounded-2xl border border-dashed border-border/70 bg-background/50 p-6 text-center text-xs text-text-secondary">
+            لا توجد ملفات للمصمم بعد
+          </div>
+          }
+          } @else if (!designerPreviewFiles().length) {
+          <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border border-dashed border-border p-6 sm:p-8 text-center flex flex-col items-center gap-3">
+            <div class="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7 text-secondary/50">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+            </div>
+            <p class="text-sm font-bold text-secondary">الملفات النهائية غير متاحة بعد</p>
+            <p class="text-xs text-text-secondary max-w-[280px] leading-relaxed">ستُتاح ملفات التصميم النهائية فقط عندما يصبح الطلب في حالة «جاهز للتحميل»</p>
+            <div class="px-3 py-1.5 rounded-full bg-secondary/10 text-xs font-bold text-secondary/60 mt-1">🔒 محمي</div>
+          </div>
+          }
+          }
+        </div>
+      </div>
+      }
+
+      <!-- ===== TAB 3: Patient Info ===== -->
+      @if (activeMainTab() === 'patient') {
+      <div class="bg-surface rounded-2xl p-4 sm:p-6 border border-border shadow-card flex flex-col gap-4">
+        <h3 class="text-sm font-black text-secondary">معلومات المريض</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1 p-4 rounded-xl bg-background/50 border border-border/50 min-w-0">
+            <span class="text-[10px] font-bold text-text-secondary">اسم المريض</span>
+            <span class="text-sm font-black text-secondary truncate">{{ order()?.patientName }}</span>
+          </div>
+          <div class="flex flex-col gap-1 p-4 rounded-xl bg-background/50 border border-border/50 min-w-0">
+            <span class="text-[10px] font-bold text-text-secondary">الجنس / العمر</span>
+            <span class="text-sm font-black text-secondary truncate">{{ order()?.patientGender === 'Male' ? 'ذكر' : 'أنثى' }} / {{ order()?.patientAge }} سنة</span>
+          </div>
+          <div class="flex flex-col gap-1 p-4 rounded-xl bg-background/50 border border-border/50 min-w-0">
+            <span class="text-[10px] font-bold text-text-secondary">كود الطلب</span>
+            <span class="text-sm font-black text-secondary truncate">{{ order()?.orderCode }}</span>
+          </div>
+          <div class="flex flex-col gap-1 p-4 rounded-xl bg-background/50 border border-border/50 min-w-0">
+            <span class="text-[10px] font-bold text-text-secondary">عدد الأسنان المحددة</span>
+            <span class="text-sm font-black text-secondary truncate">{{ order()?.selectedTeeth?.length ?? 0 }} سن</span>
           </div>
         </div>
       </div>
+      }
 
-      <!-- ── قسم رفع الملف الناقص، يظهر فقط أثناء WaitingClientResponse ── -->
+      <!-- ===== TAB 4: Pricing / Invoice ===== -->
+      @if (activeMainTab() === 'pricing') {
+      <div class="bg-surface rounded-2xl border border-border shadow-card overflow-hidden">
+
+        <!-- Invoice header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 sm:px-6 py-4 bg-secondary/5 border-b border-border">
+          <div class="flex flex-col min-w-0">
+            <h3 class="text-sm font-black text-secondary">فاتورة الطلب</h3>
+            <span class="text-[11px] text-text-secondary truncate">{{ order()?.orderCode }}</span>
+          </div>
+          <span class="text-[11px] font-bold text-text-secondary flex-shrink-0">{{ order()?.requiredDeliveryDate | date:'yyyy-MM-dd' }}</span>
+        </div>
+
+        <!-- Line items -->
+        <div class="divide-y divide-border/60">
+          @for (service of order()?.services; track service.serviceId) {
+          <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-x-4 gap-y-1 px-4 sm:px-6 py-3.5 hover:bg-background/40 transition">
+            <div class="flex flex-col gap-1 min-w-0 basis-full sm:basis-auto sm:flex-1">
+              <span class="text-xs font-bold text-secondary truncate">{{ i18n.currentLang() === 'ar' ? service.nameAr : service.nameEn }}</span>
+              @if (service.teeth && service.teeth.length > 0) {
+              <span class="text-[10px] text-text-secondary truncate">🦷 {{ service.teeth.join(', ') }} · الكمية: {{ service.quantity }}</span>
+              }
+            </div>
+            <span class="text-xs font-black text-primary flex-shrink-0" dir="ltr">{{ service.subtotal }} SAR</span>
+          </div>
+          }
+
+          @if (!order()?.services || (order()?.services?.length ?? 0) === 0) {
+          <div class="px-4 sm:px-6 py-6 text-center text-xs text-text-secondary">لا توجد خدمات على هذا الطلب</div>
+          }
+
+          @if (order()?.gumDesignFee) {
+          <div class="flex items-center justify-between px-4 sm:px-6 py-3 text-xs text-secondary">
+            <span class="text-text-secondary font-bold">رسوم اللثة</span>
+            <span class="font-black" dir="ltr">{{ order()?.gumDesignFee }} SAR</span>
+          </div>
+          }
+          @if (order()?.expressFee) {
+          <div class="flex items-center justify-between px-4 sm:px-6 py-3 text-xs text-secondary">
+            <span class="text-text-secondary font-bold">رسوم الشحن المستعجل</span>
+            <span class="font-black" dir="ltr">{{ order()?.expressFee }} SAR</span>
+          </div>
+          }
+        </div>
+
+        <!-- Total -->
+        <div class="flex items-center justify-between px-4 sm:px-6 py-4 bg-primary/5 border-t-2 border-primary/20">
+          <span class="text-sm font-black text-secondary">الإجمالي</span>
+          <span class="text-lg font-black text-primary" dir="ltr">{{ order()?.finalPrice }} SAR</span>
+        </div>
+      </div>
+      }
+
+    </div>
+
+    <!-- ============ ACTION ROW: upload + decisions, widened to full page width ============ -->
+    @if (order()?.status === OrderStatus.WaitingClientResponse || clientActions().length > 0) {
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Missing file upload — appears only while WaitingClientResponse -->
       @if (order()?.status === OrderStatus.WaitingClientResponse) {
-      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-3">
-        <h3 class="text-sm font-black text-secondary">مطلوب منك ملف ناقص</h3>
+      <div class="bg-surface rounded-2xl p-4 sm:p-6 border border-amber-400/50 shadow-card flex flex-col gap-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0"></span>
+          <h3 class="text-sm font-black text-secondary">مطلوب منك ملف ناقص</h3>
+        </div>
         <p class="text-xs text-text-secondary">
           الإدارة طلبت ملف أو معلومة ناقصة لإكمال طلبك. برجاء رفع الملف المطلوب ثم الإرسال للإدارة.
         </p>
@@ -475,17 +631,13 @@
         <label class="flex flex-col gap-2 text-xs">
           <span class="text-text-secondary font-bold">اختر الملف</span>
           <input type="file" (change)="onFileSelected($event)"
-            class="text-xs rounded-xl border border-border bg-background p-2 file:me-3 file:rounded-lg file:border-0 file:bg-primary file:text-white file:px-3 file:py-1.5 file:text-xs file:font-bold" />
+            class="text-xs rounded-xl border border-border bg-background p-2 w-full file:me-3 file:rounded-lg file:border-0 file:bg-primary file:text-white file:px-3 file:py-1.5 file:text-xs file:font-bold" />
         </label>
 
         @if (pendingFile() && !hasUploadedFile()) {
         <button (click)="uploadMissingFile()" [disabled]="isUploadingFile()"
           class="w-full py-2.5 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-dark transition disabled:opacity-50">
-          @if (isUploadingFile()) {
-          جاري رفع الملف...
-          } @else {
-          رفع الملف
-          }
+          @if (isUploadingFile()) { جاري رفع الملف... } @else { رفع الملف }
         </button>
         }
 
@@ -503,20 +655,25 @@
       </div>
       }
 
-      <!-- Actions Panel: ديناميكي بالكامل حسب order-status-workflow.ts -->
+      <!-- Client decision actions -->
       @if (clientActions().length > 0) {
-      <div class="bg-surface rounded-2xl p-6 border border-border shadow-card flex flex-col gap-3">
+      <div [class]="order()?.status === OrderStatus.WaitingClientResponse ? '' : 'md:col-span-2'"
+        class="bg-surface rounded-2xl p-4 sm:p-6 border border-border shadow-card flex flex-col gap-3">
         <h3 class="text-sm font-black text-secondary">التحكم بالطلب</h3>
-        <p class="text-xs text-text-secondary mb-2">يرجى مراجعة ملفات التصميم ثلاثية الأبعاد أعلاه ثم اتخاذ القرار:</p>
-        @for (action of clientActions(); track action.next) {
-        <button (click)="handleAction(action)" [disabled]="isProcessing()" [class]="getActionButtonClass(action.style)"
-          class="w-full py-2.5 rounded-xl text-xs font-bold transition duration-200 active:scale-95 disabled:opacity-50">
-          {{ action.label }}
-        </button>
-        }
+        <p class="text-xs text-text-secondary mb-1">يرجى مراجعة الخدمات وملفات التصميم ثم اتخاذ القرار:</p>
+        <div class="flex flex-col sm:flex-row flex-wrap gap-2">
+          @for (action of clientActions(); track action.next) {
+          <button (click)="handleAction(action)" [disabled]="isProcessing()" [class]="getActionButtonClass(action.style)"
+            class="flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs font-bold transition duration-200 active:scale-95 disabled:opacity-50">
+            {{ action.label }}
+          </button>
+          }
+        </div>
       </div>
       }
+
     </div>
+    }
 
   </div>
   }

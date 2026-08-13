@@ -37,8 +37,8 @@ getUsers(pageNumber: number, pageSize: number, searchTerm?: string, role?: strin
     return this.api.get<RolePermissionsSummaryDto[]>('Users/employee-roles-permissions');
   }
 
-  getDesigners(pageNumber = 1, pageSize = 50, isAvailable = true): Observable<any> {
-    return this.api.get<any>('Users/designers', { pageNumber, pageSize, isAvailable });
+  getDesigners(pageNumber = 1, pageSize = 50): Observable<any> {
+    return this.api.get<any>('Users/designers', { pageNumber, pageSize });
   }
 
   toggleActive(userId: string): Observable<{ message: string; isActive: boolean }> {
@@ -51,5 +51,21 @@ getUsers(pageNumber: number, pageSize: number, searchTerm?: string, role?: strin
 
   getAuditLogs(pageNumber = 1, pageSize = 50): Observable<any> {
     return this.api.get<any>('AuditLogs', { pageNumber, pageSize });
+  }
+
+  getDesignerRequests(pageNumber = 1, pageSize = 50): Observable<any> {
+    return this.api.get<any>('Users/designer-requests', { pageNumber, pageSize });
+  }
+
+  approveDesigner(userId: string): Observable<any> {
+    return this.api.post<any>(`Users/designers/${userId}/approve`, {});
+  }
+
+  rejectDesigner(userId: string, reason?: string): Observable<any> {
+    return this.api.post<any>(`Users/designers/${userId}/reject`, { reason: reason || null });
+  }
+
+  resubmitDesignerApplication(data: { fullName: string; phoneNumber: string; specialization: string; portfolioUrl?: string }): Observable<any> {
+    return this.api.post<any>('Users/designer-application/resubmit', data);
   }
 }

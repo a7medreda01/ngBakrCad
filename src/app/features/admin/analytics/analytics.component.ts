@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AnalyticsService, AnalyticsDto, AnalyticsQueryRequest } from '../../../core/services/analytics.service';
 import { TranslationService } from '../../../core/services/translation.service';
 
@@ -16,6 +17,7 @@ import { RecentActivityWidgetComponent } from './recent-activity-widget/recent-a
 export class AnalyticsComponent implements OnInit {
   private readonly analyticsService = inject(AnalyticsService);
   readonly i18n = inject(TranslationService);
+  private readonly router = inject(Router);
 
   readonly isLoading = signal<boolean>(true);
   readonly data = signal<AnalyticsDto | null>(null);
@@ -23,7 +25,7 @@ export class AnalyticsComponent implements OnInit {
   // Filters
   readonly selectedMonth = signal<number>(new Date().getMonth() + 1);
   readonly selectedYear = signal<number>(new Date().getFullYear());
-  readonly filterMode = signal<'month' | 'custom'>('month');
+  readonly filterMode = signal<'month' | 'year' | 'custom'>('month');
   readonly customFrom = signal<string>('');
   readonly customTo = signal<string>('');
 
@@ -171,6 +173,8 @@ export class AnalyticsComponent implements OnInit {
     if (this.filterMode() === 'month') {
       query.month = Number(this.selectedMonth());
       query.year = Number(this.selectedYear());
+    } else if (this.filterMode() === 'year') {
+      query.year = Number(this.selectedYear());
     } else if (this.customFrom() && this.customTo()) {
       query.from = this.customFrom();
       query.to = this.customTo();
@@ -186,6 +190,18 @@ export class AnalyticsComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+  }
+
+  goToFinancials(): void {
+    this.router.navigate(['/admin/transactions']);
+  }
+
+  goToOrders(): void {
+    this.router.navigate(['/admin/orders']);
+  }
+
+  goToUsers(): void {
+    this.router.navigate(['/admin/users']);
   }
 
   setMonthFilter(m: number): void {

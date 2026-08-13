@@ -51,29 +51,81 @@
 
   <!-- Registration Form -->
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-secondary">{{ 'auth.fullname' | translate }}</label>
-        <input id="reg-fullname" type="text" formControlName="fullName" placeholder="الاسم الكامل"
-          class="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition duration-200"
-          [class.border-red-400]="form.get('fullName')?.invalid && form.get('fullName')?.touched" />
-      </div>
 
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-secondary">{{ 'auth.phone' | translate }}</label>
-        <input id="reg-phone" type="tel" formControlName="phoneNumber" placeholder="+966XXXXXXXXX"
-          class="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition duration-200"
-          [class.border-red-400]="form.get('phoneNumber')?.invalid && form.get('phoneNumber')?.touched" />
-      </div>
+    <!-- الاسم الكامل -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-xs font-bold text-secondary">{{ 'auth.fullname' | translate }}</label>
+      <input id="reg-fullname" type="text" formControlName="fullName" placeholder="الاسم الكامل"
+        class="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition duration-200"
+        [class.border-red-400]="form.get('fullName')?.invalid && form.get('fullName')?.touched" />
     </div>
 
+    <!-- البريد الإلكتروني -->
     <div class="flex flex-col gap-1.5">
       <label class="text-xs font-bold text-secondary">{{ 'auth.email' | translate }}</label>
       <input id="reg-email" type="email" formControlName="email" placeholder="example@dental.com"
         class="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition duration-200"
         [class.border-red-400]="form.get('email')?.invalid && form.get('email')?.touched" />
+      @if (form.get('email')?.invalid && form.get('email')?.touched) {
+        <span class="text-[10px] text-red-500 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i> {{ getEmailErrorMessage() }}</span>
+      }
     </div>
 
+    <!-- الدولة (مع الرمز الدولي) -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-xs font-bold text-secondary">{{ 'auth.country' | translate }}</label>
+      <app-country-select
+        id="reg-country"
+        formControlName="country"
+        (countrySelected)="onCountryChange($event)" />
+    </div>
+
+    <!-- رقم الموبايل: مرتبط برمز الدولة المختارة + validation حسب طول الرقم لكل دولة -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-xs font-bold text-secondary">{{ 'auth.phone' | translate }}</label>
+      <div class="relative flex items-stretch">
+        <!-- Badge ثابت لرمز الدولة -->
+        <span
+          class="flex items-center gap-1.5 px-3 rounded-s-xl border border-e-0 border-border bg-background/60 text-sm font-bold text-secondary dir-ltr whitespace-nowrap"
+        >
+          <span class="text-base leading-none">{{ selectedCountryData().flag }}</span>
+          {{ selectedCountryData().dialCode }}
+        </span>
+        <input
+          id="reg-phone"
+          type="tel"
+          inputmode="numeric"
+          formControlName="phoneNumber"
+          [placeholder]="'5XXXXXXXX'"
+          class="w-full px-4 py-3 rounded-e-xl border border-border bg-background text-sm dir-ltr text-end focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition duration-200"
+          [class.border-red-400]="form.get('phoneNumber')?.invalid && form.get('phoneNumber')?.touched"
+        />
+      </div>
+      <div class="flex items-center justify-between">
+        @if (form.get('phoneNumber')?.invalid && form.get('phoneNumber')?.touched) {
+          <span class="text-[10px] text-red-500 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i> {{ getPhoneErrorMessage() }}</span>
+        } @else {
+          <span class="text-[10px] text-text-secondary">
+            {{ translationService.currentLang() === 'ar'
+              ? ('الرقم الكامل: ' + (fullPhoneNumber || '—'))
+              : ('Full number: ' + (fullPhoneNumber || '—')) }}
+          </span>
+        }
+      </div>
+    </div>
+
+    <!-- المدينة -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-xs font-bold text-secondary">{{ 'auth.city' | translate }}</label>
+      <input id="reg-city" type="text" formControlName="city" placeholder="الرياض"
+        class="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition duration-200"
+        [class.border-red-400]="form.get('city')?.invalid && form.get('city')?.touched" />
+      @if (form.get('city')?.invalid && form.get('city')?.touched) {
+        <span class="text-[10px] text-red-500 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i> {{ getCityErrorMessage() }}</span>
+      }
+    </div>
+
+    <!-- حقول خاصة بالعيادة -->
     @if (selectedType() === 'client') {
       <div class="flex flex-col gap-1.5">
         <label class="text-xs font-bold text-secondary">{{ 'auth.clinicName' | translate }}</label>
@@ -82,18 +134,49 @@
       </div>
     }
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-secondary">{{ 'auth.country' | translate }}</label>
-        <app-country-select id="reg-country" formControlName="country" />
+    <!-- حقول خاصة بالمعمل/المصمم -->
+    @if (selectedType() === 'lab') {
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-bold text-secondary">{{ 'auth.specialization' | translate }}</label>
+        <input id="reg-specialization" type="hidden" formControlName="specialization" />
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          @for (option of specializationOptions; track option.value) {
+            <button
+              type="button"
+              (click)="toggleSpecialization(option.value)"
+              class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition duration-200"
+              [class.border-primary]="isSpecializationSelected(option.value)"
+              [class.bg-primary/10]="isSpecializationSelected(option.value)"
+              [class.text-primary]="isSpecializationSelected(option.value)"
+              [class.border-border]="!isSpecializationSelected(option.value)"
+              [class.text-text-secondary]="!isSpecializationSelected(option.value)"
+            >
+              <span>{{ getSpecializationLabel(option) }}</span>
+              @if (isSpecializationSelected(option.value)) {
+                <i class="bi bi-check-circle-fill text-sm"></i>
+              }
+            </button>
+          }
+        </div>
+        @if (form.get('specialization')?.invalid && form.get('specialization')?.touched) {
+          <span class="text-[10px] text-red-500 flex items-center gap-1">
+            <i class="bi bi-exclamation-circle"></i>
+            {{ translationService.currentLang() === 'ar' ? 'يرجى اختيار تخصص واحد على الأقل' : 'Please select at least one specialization' }}
+          </span>
+        }
       </div>
+
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-secondary">{{ 'auth.city' | translate }}</label>
-        <input id="reg-city" type="text" formControlName="city" placeholder="الرياض"
+        <label class="text-xs font-bold text-secondary">
+          {{ translationService.currentLang() === 'ar' ? 'رابط معرض الأعمال (Portfolio)' : 'Portfolio URL' }}
+        </label>
+        <input id="reg-portfolio" type="url" formControlName="portfolioUrl"
+          placeholder="https://behance.net/username أو رابط الأعمال"
           class="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition duration-200" />
       </div>
-    </div>
+    }
 
+    <!-- كلمة المرور -->
     <div class="flex flex-col gap-1.5">
       <label class="text-xs font-bold text-secondary">{{ 'auth.password' | translate }}</label>
       <div class="relative">
@@ -104,6 +187,9 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.43 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
         </button>
       </div>
+      @if (form.get('password')?.invalid && form.get('password')?.touched) {
+        <span class="text-[10px] text-red-500 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i> {{ getPasswordErrorMessage() }}</span>
+      }
     </div>
 
     <app-button type="submit" [isLoading]="isLoading()" size="lg" class="w-full mt-2">

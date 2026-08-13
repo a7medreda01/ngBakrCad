@@ -7,6 +7,16 @@ export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   if (tokenService.getToken() && !tokenService.isTokenExpired()) {
+    const roles = tokenService.getUserRoles();
+    const isDoctorOrDesigner = roles.some(r => ['Doctor', 'Designer', 'Lab'].includes(r));
+    const decoded = tokenService.getDecodedToken();
+    const isVerified = decoded?.isEmailVerified === 'true' || decoded?.isEmailVerified === true;
+
+    if (isDoctorOrDesigner && !isVerified && !state.url.startsWith('/auth/verify-email')) {
+      const email = decoded?.email || '';
+      router.navigate(['/auth/verify-email'], { queryParams: { email } });
+      return false;
+    }
     return true;
   }
 

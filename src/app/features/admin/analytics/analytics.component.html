@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-background p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 font-sans overflow-x-hidden">
+<div class="min-h-screen bg-background p-1 sm:p-2 md:p-2 space-y-3 sm:space-y-3 font-sans overflow-x-hidden">
 
   <!-- =========================================================================
        RECENT ACTIVITY WIDGET (أحدث النشاطات - TOP OF PAGE)
@@ -41,37 +41,47 @@
     </div>
 
     <!-- Power BI Slicers & Filters Controls -->
-    <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto relative z-10 justify-between lg:justify-end">
+<!-- Power BI Slicers & Filters Controls -->
+<div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-3 w-full lg:w-auto relative z-10">
 
-      <!-- Month & Year Slicer -->
-      <div class="flex items-center gap-1 bg-background border border-border rounded-xl sm:rounded-2xl p-1 shadow-inner w-full sm:w-auto justify-between sm:justify-start">
-        <select [ngModel]="selectedMonth()" (ngModelChange)="setMonthFilter($event)"
-                class="bg-transparent text-xs font-bold text-text-primary px-2.5 py-1.5 focus:outline-none cursor-pointer">
-          @for (m of months; track m.value) {
-            <option [value]="m.value" class="bg-surface text-text-primary">
-              {{ i18n.isRtl() ? m.labelAr : m.labelEn }}
-            </option>
-          }
-        </select>
+  <!-- Month & Year Slicer -->
+  <div class="flex items-center gap-1 bg-background border border-border rounded-xl sm:rounded-2xl p-1 shadow-inner w-full sm:w-auto min-w-0">
+    <button type="button" (click)="filterMode.set('month'); loadAnalytics()"
+      [class]="filterMode() === 'month' ? 'bg-primary text-white font-bold' : 'text-text-secondary hover:bg-slate-100'"
+      class="px-2.5 py-1.5 rounded-xl text-xs transition flex-shrink-0 whitespace-nowrap">شهري</button>
+    <button type="button" (click)="filterMode.set('year'); loadAnalytics()"
+      [class]="filterMode() === 'year' ? 'bg-primary text-white font-bold' : 'text-text-secondary hover:bg-slate-100'"
+      class="px-2.5 py-1.5 rounded-xl text-xs transition flex-shrink-0 whitespace-nowrap">سنة كاملة</button>
 
-        <select [ngModel]="selectedYear()" (ngModelChange)="setYearFilter($event)"
-                class="bg-transparent text-xs font-bold text-primary px-2.5 py-1.5 focus:outline-none cursor-pointer border-s border-border">
-          @for (y of years; track y) {
-            <option [value]="y" class="bg-surface text-primary">{{ y }}</option>
-          }
-        </select>
-      </div>
+    @if (filterMode() === 'month') {
+      <select [ngModel]="selectedMonth()" (ngModelChange)="setMonthFilter($event)"
+              class="bg-transparent text-xs font-bold text-text-primary px-1.5 sm:px-2.5 py-1.5 focus:outline-none cursor-pointer border-s border-border min-w-0 w-16 sm:w-auto">
+        @for (m of months; track m.value) {
+          <option [value]="m.value" class="bg-surface text-text-primary">
+            {{ i18n.isRtl() ? m.labelAr : m.labelEn }}
+          </option>
+        }
+      </select>
+    }
 
-      <!-- Live Refresh Button -->
-      <button (click)="loadAnalytics()" [disabled]="isLoading()"
-              class="w-full sm:w-auto px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-brand-gradient hover:opacity-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-primary active:scale-95 transition-all">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-             class="w-4 h-4" [class.animate-spin]="isLoading()">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-        </svg>
-        <span>{{ i18n.isRtl() ? 'تحديث البيانات' : 'Refresh' }}</span>
-      </button>
-    </div>
+    <select [ngModel]="selectedYear()" (ngModelChange)="setYearFilter($event)"
+            class="bg-transparent text-xs font-bold text-primary px-1.5 sm:px-2.5 py-1.5 focus:outline-none cursor-pointer border-s border-border min-w-0 w-16 sm:w-auto">
+      @for (y of years; track y) {
+        <option [value]="y" class="bg-surface text-primary">{{ y }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Live Refresh Button -->
+  <button (click)="loadAnalytics()" [disabled]="isLoading()"
+          class="w-full sm:w-auto px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-brand-gradient hover:opacity-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-primary active:scale-95 transition-all flex-shrink-0">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+         class="w-4 h-4" [class.animate-spin]="isLoading()">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+    </svg>
+    <span>{{ i18n.isRtl() ? 'تحديث البيانات' : 'Refresh' }}</span>
+  </button>
+</div>
   </header>
 
   <!-- Mobile Dropdown Selector (Visible on Mobile Only) -->
@@ -101,32 +111,32 @@
       <span>📊 {{ i18n.isRtl() ? 'نظرة عامة (Overview)' : 'Overview' }}</span>
     </button>
     <button (click)="activeTab.set('financials')"
-            [class]="activeTab() === 'financials' ? 'bg-primary text-white shadow-primary-sm' : 'bg-surface text-text-secondary hover:text-text-primary border border-border/80'"
+            [class]="activeTab() === 'financials' ? 'bg-secondary text-white shadow-lg' : 'bg-surface text-text-secondary hover:text-text-primary border border-border/80'"
             class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap flex-shrink-0">
       <span>💰 {{ i18n.isRtl() ? 'المالية والأرباح (Financials)' : 'Financials' }}</span>
     </button>
     <button (click)="activeTab.set('orders')"
-            [class]="activeTab() === 'orders' ? 'bg-info text-white shadow-lg' : 'bg-surface text-text-secondary hover:text-text-primary border border-border/80'"
+            [class]="activeTab() === 'orders' ? 'bg-secondary text-white shadow-lg' : 'bg-surface text-text-secondary hover:text-text-primary border border-border/80'"
             class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap flex-shrink-0">
       <span>📦 {{ i18n.isRtl() ? 'الطلبات والعمليات (Orders)' : 'Orders & Cases' }}</span>
     </button>
     <button (click)="activeTab.set('designers')"
-            [class]="activeTab() === 'designers' ? 'bg-purple-600 text-white shadow-lg' : 'bg-surface text-text-secondary hover:text-text-primary border border-border/80'"
+            [class]="activeTab() === 'designers' ? 'bg-secondary text-white shadow-lg' : 'bg-surface text-text-secondary hover:text-text-primary border border-border/80'"
             class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap flex-shrink-0">
       <span>🎨 {{ i18n.isRtl() ? 'المصممون (Designers)' : 'Designers' }}</span>
     </button>
     <button (click)="activeTab.set('sla')"
-            [class]="activeTab() === 'sla' ? 'bg-success text-white shadow-lg' : 'bg-surface text-text-secondary hover:text-text-primary border border-border/80'"
+            [class]="activeTab() === 'sla' ? 'bg-secondary text-white shadow-lg' : 'bg-surface text-text-secondary hover:text-text-primary border border-border/80'"
             class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap flex-shrink-0">
       <span>⏱️ {{ i18n.isRtl() ? 'سرعة التوصيل SLA' : 'SLA Performance' }}</span>
     </button>
   </div>
 
-  <!-- Loading Spinner -->
+  <!-- Loading State Indicator -->
   @if (isLoading()) {
-    <div class="h-80 flex flex-col items-center justify-center gap-4 bg-surface rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm p-4 text-center">
-      <div class="w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-      <p class="text-xs font-bold text-text-secondary animate-pulse">
+    <div class="py-24 text-center bg-surface border border-border/80 rounded-3xl p-8 shadow-sm">
+      <div class="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin mx-auto"></div>
+      <p class="text-xs text-text-secondary mt-3 font-semibold">
         {{ i18n.isRtl() ? 'جاري تحميل وحساب البيانات الإحصائية...' : 'Processing Power BI Analytics Pipeline...' }}
       </p>
     </div>
@@ -141,7 +151,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         
         <!-- Tile 1: Total Revenue -->
-        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-primary/50 transition-all shadow-sm">
+        <div (click)="goToFinancials()" class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-primary/50 cursor-pointer hover:scale-[1.02] transition-all shadow-sm">
           <div class="flex items-center justify-between text-text-secondary text-xs font-bold mb-1.5">
             <span>{{ i18n.isRtl() ? 'إجمالي الإيرادات' : 'Total Revenue' }}</span>
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
@@ -156,7 +166,7 @@
         </div>
 
         <!-- Tile 2: Total Orders -->
-        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-info/50 transition-all shadow-sm">
+        <div (click)="goToOrders()" class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-info/50 cursor-pointer hover:scale-[1.02] transition-all shadow-sm">
           <div class="flex items-center justify-between text-text-secondary text-xs font-bold mb-1.5">
             <span>{{ i18n.isRtl() ? 'إجمالي الطلبات' : 'Total Orders' }}</span>
             <span class="px-2 py-0.5 rounded-full text-[10px] bg-info/10 text-info font-black">Active</span>
@@ -171,7 +181,7 @@
         </div>
 
         <!-- Tile 3: SLA On-Time -->
-        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-warning/50 transition-all shadow-sm">
+        <div (click)="activeTab.set('sla')" class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-warning/50 cursor-pointer hover:scale-[1.02] transition-all shadow-sm">
           <div class="flex items-center justify-between text-text-secondary text-xs font-bold mb-1.5">
             <span>{{ i18n.isRtl() ? 'معدل الالتزام بالوقت' : 'SLA On-Time Rate' }}</span>
             <span class="text-amber-500 text-xs font-bold">⏱️</span>
@@ -186,9 +196,9 @@
         </div>
 
         <!-- Tile 4: Total Clients -->
-        <div class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-purple-500/50 transition-all shadow-sm">
+        <div (click)="goToUsers()" class="bg-surface border border-border/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden group hover:border-purple-500/50 cursor-pointer hover:scale-[1.02] transition-all shadow-sm">
           <div class="flex items-center justify-between text-text-secondary text-xs font-bold mb-1.5">
-            <span>{{ i18n.isRtl() ? 'الأطباء والعملاء' : 'Doctors & Clients' }}</span>
+            <span>{{ i18n.isRtl() ? 'المصممين والعملاء' : 'Doctors & Designers' }}</span>
             <span class="text-purple-500 text-xs font-bold">👥</span>
           </div>
           <div class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
@@ -430,7 +440,7 @@
             </div>
           </div>
           <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
-            <span class="text-xs text-text-secondary font-bold">أرباح المصممين (Designer Earnings)</span>
+            <span class="text-xs text-text-secondary font-bold">أسعار المصممين (Designer Earnings)</span>
             <div class="text-2xl sm:text-3xl font-black text-purple-600 mt-2">
               {{ data()?.financials?.totalDesignerEarnings | number:'1.2-2' }} <span class="text-xs font-bold text-purple-600">SAR</span>
             </div>
@@ -530,13 +540,13 @@
             <div class="text-2xl sm:text-3xl font-black text-purple-600 mt-2">{{ data()?.users?.activeDesigners }}</div>
           </div>
           <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
-            <span class="text-xs text-text-secondary font-bold">إجمالي أرباح المصممين (Total Earnings)</span>
+            <span class="text-xs text-text-secondary font-bold">إجمالي أسعار المصممين (Total Earnings)</span>
             <div class="text-2xl sm:text-3xl font-black text-emerald-600 mt-2">
               {{ data()?.designers?.totalEarnings | number:'1.2-2' }} <span class="text-xs font-bold text-emerald-600">SAR</span>
             </div>
           </div>
           <div class="bg-surface p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border/80 shadow-sm">
-            <span class="text-xs text-text-secondary font-bold">رفض الجودة (Quality Rejections)</span>
+            <span class="text-xs text-text-secondary font-bold">رفض التصميم (Quality Rejections)</span>
             <div class="text-2xl sm:text-3xl font-black text-rose-600 mt-2">{{ data()?.designers?.totalRejectedByQuality }}</div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, ɵsetLocaleId as setLocaleId } from '@angular/core';
 
 export type Lang = 'ar' | 'en';
 
@@ -53,6 +53,7 @@ export class TranslationService {
       'nav.dashboard': 'الرئيسية',
       'nav.createOrder': 'طلب جديد',
       'nav.orders': 'الطلبات',
+      'nav.createDoctorOrder': 'إنشاء طلب للطبيب',
       'nav.wallet': 'المحفظة',
       'nav.support': 'الدعم الفني',
       'nav.settings': 'الإعدادات',
@@ -62,6 +63,7 @@ export class TranslationService {
       'nav.invoices': 'الفواتير',
       'nav.meetings': 'الاجتماعات الاستشارية',
       'nav.auditLogs': 'سجلات النظام',
+      'nav.transactions': 'العمليات المالية',
       
       'dashboard.activeOrders': 'الطلبات النشطة',
       'dashboard.pending': 'في انتظار المراجعة',
@@ -130,7 +132,7 @@ export class TranslationService {
       'home.howItWorks': 'شاهد كيف تعمل',
       'home.deliveredCases': 'حالة تم تسليمها',
       'home.averageDelivery': 'متوسط وقت التسليم',
-      'home.qualityRate': 'نسبة قبول الجودة',
+      'home.qualityRate': 'نسبة قبول التصميم',
       'home.partnerClinics': 'عيادة ومختبر شريك',
       'home.hoursShort': ' د',
       'home.badgeTurnaroundLabel': 'وقت التسليم',
@@ -362,6 +364,7 @@ export class TranslationService {
       'nav.dashboard': 'Dashboard',
       'nav.createOrder': 'New Request',
       'nav.orders': 'Orders',
+      'nav.createDoctorOrder': 'Create Order for Doctor',
       'nav.wallet': 'Wallet',
       'nav.support': 'Support',
       'nav.settings': 'Settings',
@@ -371,6 +374,7 @@ export class TranslationService {
       'nav.invoices': 'Invoices',
       'nav.meetings': 'Consultations',
       'nav.auditLogs': 'Audit Logs',
+      'nav.transactions': 'Transactions',
       
       'dashboard.activeOrders': 'Active Orders',
       'dashboard.pending': 'Pending Review',
@@ -647,10 +651,19 @@ export class TranslationService {
     const storedLanguage = localStorage.getItem(this.languageStorageKey);
     return storedLanguage === 'en' || storedLanguage === 'ar' ? storedLanguage : 'ar';
   }
-
+ 
+  private getLocaleId(lang: Lang): string {
+    const browserLocale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+    if (lang === 'ar') {
+      return browserLocale.toLowerCase().startsWith('ar') ? browserLocale : 'ar-EG';
+    }
+    return browserLocale.toLowerCase().startsWith('en') ? browserLocale : 'en-US';
+  }
+ 
   private applyDocumentLanguage(lang: Lang): void {
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
+    setLocaleId(this.getLocaleId(lang));
   }
 
   translate(key: string): string {

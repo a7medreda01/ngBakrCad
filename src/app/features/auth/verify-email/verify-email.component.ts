@@ -3,10 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { TokenService } from '../../../core/services/token.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
-import { WalletService } from '../../../core/services/wallet.service';
-import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { ButtonComponent } from '../../../shared/ui/button/button.component';
 
 @Component({
@@ -19,7 +18,7 @@ import { ButtonComponent } from '../../../shared/ui/button/button.component';
 export class VerifyEmailComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
-  private readonly walletService = inject(WalletService);
+  private readonly tokenService = inject(TokenService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
@@ -28,41 +27,35 @@ export class VerifyEmailComponent implements OnInit {
   readonly isLoading = signal(false);
   readonly isSending = signal(false);
   readonly email = signal<string>('');
-
   readonly isDoctor = signal<boolean>(false);
-  readonly welcomeBonus = signal<string>('200');
+  readonly isDesigner = signal<boolean>(false); // 👈 جديد
 
   form = this.fb.nonNullable.group({
     code: ['', [Validators.required, Validators.pattern('^[0-9]{6}$')]]
   });
 
   ngOnInit(): void {
-    // Fetch dynamic welcome bonus
-    this.walletService.getPublicSetting('WelcomeBonusAmount').subscribe({
-      next: (res: any) => {
-        if (res && res.value) {
-          this.welcomeBonus.set(res.value);
-        }
-      },
-      error: () => {}
-    });
-
-    // Attempt to get email from query params or current user signal
     const queryEmail = this.route.snapshot.queryParams['email'];
     const currentUser = this.authService.currentUser();
-
+  console.log('currentUser:', currentUser);
+  console.log('currentUser roles:', currentUser?.roles);
+  console.log('tokenService roles:', this.tokenService.getUserRoles());
     if (queryEmail) {
       this.email.set(queryEmail);
     } else if (currentUser) {
       this.email.set(currentUser.email);
     } else {
-      // If no email, redirect back to login
       this.router.navigate(['/auth/login']);
       return;
     }
 
-    if (currentUser) {
-      this.isDoctor.set(currentUser.roles.includes('Doctor'));
+    const roles = currentUser?.roles?.length ? currentUser.roles : this.tokenService.getUserRoles();
+
+    if (roles.includes('Doctor')) {
+      this.isDoctor.set(true);
+    }
+    if (roles.some((r: string) => ['Designer', 'Lab'].includes(r))) {
+      this.isDesigner.set(true); // 👈 نلقط الدور من هنا، قبل ما الـ token يتغيّر
     }
   }
 
@@ -76,39 +69,53 @@ export class VerifyEmailComponent implements OnInit {
     const code = this.form.getRawValue().code;
 
     this.authService.verifyEmail(this.email(), code).subscribe({
-      next: (res: any) => {
+      next: (res) => {
+          console.log('verifyEmail response:', res);
+  console.log('roles from token after verify:', this.tokenService.getUserRoles());
         this.isLoading.set(false);
-        
-        let successMsg = this.i18n.isRtl() 
-          ? 'تم تأكيد البريد الإلكتروني بنجاح!' 
-          : 'Email verified successfully!';
-        
-        if (res.isDoctorCreditGranted) {
-          successMsg += this.i18n.isRtl()
-            ? ` وحصلت على حد ائتماني بقيمة ${res.creditGranted} ريال.`
-            : ` You received a credit limit of ${res.creditGranted} SAR.`;
+        this.toast.success(
+          this.i18n.isRtl()
+            ? 'تم تأكيد البريد الإلكتروني بنجاح!'
+            : 'Email verified successfully!'
+        );
+
+        const roles = this.tokenService.getUserRoles();
+        const responseRoles = Array.isArray(res?.roles) ? res.roles : [];
+
+        const isDesignerFlow = this.isDesigner() // 👈 الاعتماد الأساسي بقى على الحالة اللي اتقاطت في ngOnInit
+          || roles.some((r: string) => ['Designer', 'Lab'].includes(r))
+          || responseRoles.some((r: string) => ['Designer', 'Lab'].includes(r));
+
+        if (isDesignerFlow) {
+          this.router.navigate(['/designer/application-status']);
+          return;
         }
 
-        this.toast.success(successMsg);
+        if (this.isDoctor() || roles.includes('Doctor') || responseRoles.includes('Doctor')) {
+          this.router.navigate(['/auth/verify-phone']);
+          return;
+        }
 
-        // Redirect based on roles
-        const currentUser = this.authService.currentUser();
-        if (currentUser) {
-          const roles = currentUser.roles;
-          if (roles.some(r => ['SuperAdmin','FinancialAdmin','OperationsAdmin','QualityAdmin'].includes(r))) {
-            this.router.navigate(['/admin/dashboard']);
-          } else if (roles.includes('Designer')) {
-            this.router.navigate(['/lab/dashboard']);
-          } else {
-            this.router.navigate(['/client/dashboard']);
-          }
-        } else {
+        if (roles.some((r: string) => ['SuperAdmin','FinancialAdmin','OperationsAdmin','QualityAdmin'].includes(r))
+          || responseRoles.some((r: string) => ['SuperAdmin','FinancialAdmin','OperationsAdmin','QualityAdmin'].includes(r))) {
+          this.router.navigate(['/admin/dashboard']);
+          return;
+        }
+
+        if (roles.length === 0 && responseRoles.length === 0) {
           this.router.navigate(['/auth/login']);
+          return;
         }
+
+        this.router.navigate(['/client/dashboard']);
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.toast.error(err.error?.message || (this.i18n.isRtl() ? 'رمز التحقق غير صحيح أو منتهي الصلاحية' : 'Invalid or expired verification code'));
+        const lang = this.i18n.currentLang();
+        const msg = lang === 'ar'
+          ? (err.error?.messageAr || err.error?.message || 'رمز التحقق غير صحيح أو منتهي الصلاحية')
+          : (err.error?.messageEn || err.error?.message || 'Invalid or expired verification code');
+        this.toast.error(msg);
       }
     });
   }
@@ -118,13 +125,19 @@ export class VerifyEmailComponent implements OnInit {
     this.authService.sendVerificationEmail(this.email()).subscribe({
       next: () => {
         this.isSending.set(false);
-        this.toast.success(this.i18n.isRtl() 
-          ? 'تم إرسال رمز التحقق الجديد إلى بريدك الإلكتروني.' 
-          : 'A new verification code has been sent to your email.');
+        this.toast.success(
+          this.i18n.isRtl()
+            ? 'تم إرسال رمز التحقق الجديد إلى بريدك الإلكتروني.'
+            : 'A new verification code has been sent to your email.'
+        );
       },
       error: (err) => {
         this.isSending.set(false);
-        this.toast.error(err.error?.message || 'Failed to resend code');
+        const lang = this.i18n.currentLang();
+        const msg = lang === 'ar'
+          ? (err.error?.messageAr || err.error?.message || 'فشل في إعادة إرسال الرمز.')
+          : (err.error?.messageEn || err.error?.message || 'Failed to resend code.');
+        this.toast.error(msg);
       }
     });
   }

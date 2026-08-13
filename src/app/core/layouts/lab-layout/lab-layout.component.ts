@@ -9,12 +9,13 @@ import { DesignerService } from '../../services/designer.service';
 import { SupportService } from '../../services/support.service';
 
 import { EmailVerificationBannerComponent } from '../../../shared/components/email-verification-banner/email-verification-banner.component';
+import { PhoneVerificationBannerComponent } from '../../../shared/components/phone-verification-banner/phone-verification-banner.component';
 import { NotificationNavigationService } from '../../services/notification-navigation.service';
 
 @Component({
   selector: 'app-lab-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe, EmailVerificationBannerComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe, EmailVerificationBannerComponent, PhoneVerificationBannerComponent],
   templateUrl: './lab-layout.component.html',
   styleUrl: './lab-layout.component.scss'
 })
@@ -95,7 +96,9 @@ export class LabLayoutComponent {
               level: 'Bronze',
               completedCasesCount: 0,
               caseCompletionRate: 0,
-              isAvailable: nextVal
+              isAvailable: nextVal,
+              country: null,
+              city: null
             };
           } else {
             profile.designerProfile.isAvailable = nextVal;

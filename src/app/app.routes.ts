@@ -3,6 +3,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { permissionGuard } from './core/guards/permission.guard';
+import { designerApprovalGuard } from './core/guards/designer-approval.guard';
 
 export const routes: Routes = [
   // ─── Public: Auth ────────────────────────────────────────────────────────
@@ -15,9 +16,16 @@ export const routes: Routes = [
       { path: 'login',    loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent) },
       { path: 'register', loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent) },
       { path: 'verify-email', loadComponent: () => import('./features/auth/verify-email/verify-email.component').then(m => m.VerifyEmailComponent) },
+      { path: 'verify-phone', loadComponent: () => import('./features/auth/verify-phone/verify-phone.component').then(m => m.VerifyPhoneComponent) },
       { path: 'forgot-password', loadComponent: () => import('./features/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent) },
       { path: 'reset-password', loadComponent: () => import('./features/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
     ]
+  },
+
+  {
+    path: 'designer/application-status',
+    loadComponent: () => import('./features/lab/application-status/application-status.component').then(m => m.ApplicationStatusComponent),
+    canActivate: [authGuard]
   },
 
   // ─── Client Portal (Doctor + Lab roles share layout) ─────────────────────
@@ -43,7 +51,7 @@ export const routes: Routes = [
   {
     path: 'lab',
     loadComponent: () => import('./core/layouts/lab-layout/lab-layout.component').then(m => m.LabLayoutComponent),
-    canActivate: [authGuard, roleGuard],
+    canActivate: [authGuard, roleGuard, designerApprovalGuard],
     data: { expectedRoles: ['Designer'] },
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -69,7 +77,10 @@ export const routes: Routes = [
       { path: 'dashboard',     redirectTo: 'analytics', pathMatch: 'full' },
       { path: 'employees',     loadComponent: () => import('./features/admin/employees/employees.component').then(m => m.EmployeesComponent), canActivate: [permissionGuard], data: { requiredPermission: 'ManageUsers' } },
       { path: 'users',         loadComponent: () => import('./features/admin/users/users.component').then(m => m.UsersComponent), canActivate: [permissionGuard], data: { requiredPermission: 'ManageUsers' } },
+      { path: 'users/:id',     loadComponent: () => import('./features/admin/user-profile/user-profile.component').then(m => m.UserProfileComponent), canActivate: [permissionGuard], data: { requiredPermission: 'ManageUsers' } },
+      { path: 'platforms',     loadComponent: () => import('./features/admin/platforms/platforms.component').then(m => m.PlatformsComponent) },
       { path: 'orders',        loadComponent: () => import('./features/admin/orders/admin-orders.component').then(m => m.AdminOrdersComponent) },
+      { path: 'orders/create', loadComponent: () => import('./features/admin/create-order/admin-create-order.component').then(m => m.AdminCreateOrderComponent) },
       { path: 'orders/:id',   loadComponent: () => import('./features/admin/order details/app-admin-order-detail').then(m => m.AdminOrderDetailComponent) },
       { path: 'services',      loadComponent: () => import('./features/admin/services/services.component').then(m => m.ServicesComponent), canActivate: [permissionGuard], data: { requiredPermission: 'ManageServices' } },
       { path: 'custom-pricing', loadComponent: () => import('./features/admin/custom-pricing/custom-pricing.component').then(m => m.CustomPricingComponent), canActivate: [permissionGuard], data: { requiredPermission: 'ManageServices' } },

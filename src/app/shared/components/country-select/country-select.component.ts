@@ -1,4 +1,4 @@
-import { Component, forwardRef, signal, computed, ElementRef, HostListener, Input } from '@angular/core';
+import { Component, forwardRef, signal, computed, ElementRef, HostListener, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
@@ -8,120 +8,127 @@ export interface Country {
   code: string;
   flag: string;
   dialCode: string;
+  /** أقل طول لرقم الموبايل المحلي (بدون رمز الدولة) */
+  phoneMin: number;
+  /** أعلى طول لرقم الموبايل المحلي (بدون رمز الدولة) */
+  phoneMax: number;
 }
 
 export const COUNTRIES_DATA: Country[] = [
   // الدول العربية والإقليمية
-  { nameAr: 'المملكة العربية السعودية', nameEn: 'Saudi Arabia', code: 'SA', flag: '🇸🇦', dialCode: '+966' },
-  { nameAr: 'الإمارات العربية المتحدة', nameEn: 'United Arab Emirates', code: 'AE', flag: '🇦🇪', dialCode: '+971' },
-  { nameAr: 'مصر', nameEn: 'Egypt', code: 'EG', flag: '🇪🇬', dialCode: '+20' },
-  { nameAr: 'الكويت', nameEn: 'Kuwait', code: 'KW', flag: '🇰🇼', dialCode: '+965' },
-  { nameAr: 'قطر', nameEn: 'Qatar', code: 'QA', flag: '🇶🇦', dialCode: '+974' },
-  { nameAr: 'سلطنة عمان', nameEn: 'Oman', code: 'OM', flag: '🇴🇲', dialCode: '+968' },
-  { nameAr: 'البحرين', nameEn: 'Bahrain', code: 'BH', flag: '🇧🇭', dialCode: '+973' },
-  { nameAr: 'الأردن', nameEn: 'Jordan', code: 'JO', flag: '🇯🇴', dialCode: '+962' },
-  { nameAr: 'العراق', nameEn: 'Iraq', code: 'IQ', flag: '🇮🇶', dialCode: '+964' },
-  { nameAr: 'لبنان', nameEn: 'Lebanon', code: 'LB', flag: '🇱🇧', dialCode: '+961' },
-  { nameAr: 'فلسطين', nameEn: 'Palestine', code: 'PS', flag: '🇵🇸', dialCode: '+970' },
-  { nameAr: 'سوريا', nameEn: 'Syria', code: 'SY', flag: '🇸🇾', dialCode: '+963' },
-  { nameAr: 'اليمن', nameEn: 'Yemen', code: 'YE', flag: '🇾🇪', dialCode: '+967' },
-  { nameAr: 'ليبيا', nameEn: 'Libya', code: 'LY', flag: '🇱🇾', dialCode: '+218' },
-  { nameAr: 'تونس', nameEn: 'Tunisia', code: 'TN', flag: '🇹🇳', dialCode: '+216' },
-  { nameAr: 'الجزائر', nameEn: 'Algeria', code: 'DZ', flag: '🇩🇿', dialCode: '+213' },
-  { nameAr: 'المغرب', nameEn: 'Morocco', code: 'MA', flag: '🇲🇦', dialCode: '+212' },
-  { nameAr: 'السودان', nameEn: 'Sudan', code: 'SD', flag: '🇸🇩', dialCode: '+249' },
-  { nameAr: 'موريتانيا', nameEn: 'Mauritania', code: 'MR', flag: '🇲🇷', dialCode: '+222' },
-  { nameAr: 'الصومال', nameEn: 'Somalia', code: 'SO', flag: '🇸🇴', dialCode: '+252' },
-  { nameAr: 'جيبوتي', nameEn: 'Djibouti', code: 'DJ', flag: '🇩🇯', dialCode: '+253' },
-  { nameAr: 'جزر القمر', nameEn: 'Comoros', code: 'KM', flag: '🇰🇲', dialCode: '+269' },
+  { nameAr: 'المملكة العربية السعودية', nameEn: 'Saudi Arabia', code: 'SA', flag: '🇸🇦', dialCode: '+966', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'الإمارات العربية المتحدة', nameEn: 'United Arab Emirates', code: 'AE', flag: '🇦🇪', dialCode: '+971', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'مصر', nameEn: 'Egypt', code: 'EG', flag: '🇪🇬', dialCode: '+20', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'الكويت', nameEn: 'Kuwait', code: 'KW', flag: '🇰🇼', dialCode: '+965', phoneMin: 8, phoneMax: 8 },
+  { nameAr: 'قطر', nameEn: 'Qatar', code: 'QA', flag: '🇶🇦', dialCode: '+974', phoneMin: 8, phoneMax: 8 },
+  { nameAr: 'سلطنة عمان', nameEn: 'Oman', code: 'OM', flag: '🇴🇲', dialCode: '+968', phoneMin: 8, phoneMax: 8 },
+  { nameAr: 'البحرين', nameEn: 'Bahrain', code: 'BH', flag: '🇧🇭', dialCode: '+973', phoneMin: 8, phoneMax: 8 },
+  { nameAr: 'الأردن', nameEn: 'Jordan', code: 'JO', flag: '🇯🇴', dialCode: '+962', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'العراق', nameEn: 'Iraq', code: 'IQ', flag: '🇮🇶', dialCode: '+964', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'لبنان', nameEn: 'Lebanon', code: 'LB', flag: '🇱🇧', dialCode: '+961', phoneMin: 7, phoneMax: 8 },
+  { nameAr: 'فلسطين', nameEn: 'Palestine', code: 'PS', flag: '🇵🇸', dialCode: '+970', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'سوريا', nameEn: 'Syria', code: 'SY', flag: '🇸🇾', dialCode: '+963', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'اليمن', nameEn: 'Yemen', code: 'YE', flag: '🇾🇪', dialCode: '+967', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'ليبيا', nameEn: 'Libya', code: 'LY', flag: '🇱🇾', dialCode: '+218', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'تونس', nameEn: 'Tunisia', code: 'TN', flag: '🇹🇳', dialCode: '+216', phoneMin: 8, phoneMax: 8 },
+  { nameAr: 'الجزائر', nameEn: 'Algeria', code: 'DZ', flag: '🇩🇿', dialCode: '+213', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'المغرب', nameEn: 'Morocco', code: 'MA', flag: '🇲🇦', dialCode: '+212', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'السودان', nameEn: 'Sudan', code: 'SD', flag: '🇸🇩', dialCode: '+249', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'موريتانيا', nameEn: 'Mauritania', code: 'MR', flag: '🇲🇷', dialCode: '+222', phoneMin: 8, phoneMax: 8 },
+  { nameAr: 'الصومال', nameEn: 'Somalia', code: 'SO', flag: '🇸🇴', dialCode: '+252', phoneMin: 8, phoneMax: 9 },
+  { nameAr: 'جيبوتي', nameEn: 'Djibouti', code: 'DJ', flag: '🇩🇯', dialCode: '+253', phoneMin: 8, phoneMax: 8 },
+  { nameAr: 'جزر القمر', nameEn: 'Comoros', code: 'KM', flag: '🇰🇲', dialCode: '+269', phoneMin: 7, phoneMax: 7 },
 
   // آسيا والشرق الأوسط
-  { nameAr: 'تركيا', nameEn: 'Turkey', code: 'TR', flag: '🇹🇷', dialCode: '+90' },
-  { nameAr: 'إيران', nameEn: 'Iran', code: 'IR', flag: '🇮🇷', dialCode: '+98' },
-  { nameAr: 'باكستان', nameEn: 'Pakistan', code: 'PK', flag: '🇵🇰', dialCode: '+92' },
-  { nameAr: 'الهند', nameEn: 'India', code: 'IN', flag: '🇮🇳', dialCode: '+91' },
-  { nameAr: 'الصين', nameEn: 'China', code: 'CN', flag: '🇨🇳', dialCode: '+86' },
-  { nameAr: 'اليابان', nameEn: 'Japan', code: 'JP', flag: '🇯🇵', dialCode: '+81' },
-  { nameAr: 'كوريا الجنوبية', nameEn: 'South Korea', code: 'KR', flag: '🇰🇷', dialCode: '+82' },
-  { nameAr: 'إندونيسيا', nameEn: 'Indonesia', code: 'ID', flag: '🇮🇩', dialCode: '+62' },
-  { nameAr: 'ماليزيا', nameEn: 'Malaysia', code: 'MY', flag: '🇲🇾', dialCode: '+60' },
-  { nameAr: 'سنغافورة', nameEn: 'Singapore', code: 'SG', flag: '🇸🇬', dialCode: '+65' },
-  { nameAr: 'تايلاند', nameEn: 'Thailand', code: 'TH', flag: '🇹🇭', dialCode: '+66' },
-  { nameAr: 'فيتنام', nameEn: 'Vietnam', code: 'VN', flag: '🇻🇳', dialCode: '+84' },
-  { nameAr: 'الفلبين', nameEn: 'Philippines', code: 'PH', flag: '🇵🇭', dialCode: '+63' },
-  { nameAr: 'بنجلاديش', nameEn: 'Bangladesh', code: 'BD', flag: '🇧🇩', dialCode: '+880' },
-  { nameAr: 'سريلانكا', nameEn: 'Sri Lanka', code: 'LK', flag: '🇱🇰', dialCode: '+94' },
-  { nameAr: 'نيبال', nameEn: 'Nepal', code: 'NP', flag: '🇳🇵', dialCode: '+977' },
-  { nameAr: 'أفغانستان', nameEn: 'Afghanistan', code: 'AF', flag: '🇦🇫', dialCode: '+93' },
-  { nameAr: 'كازاخستان', nameEn: 'Kazakhstan', code: 'KZ', flag: '🇰🇿', dialCode: '+7' },
-  { nameAr: 'أوزبكستان', nameEn: 'Uzbekistan', code: 'UZ', flag: '🇺🇿', dialCode: '+998' },
-  { nameAr: 'أذربيجان', nameEn: 'Azerbaijan', code: 'AZ', flag: '🇦🇿', dialCode: '+994' },
-  { nameAr: 'جورجيا', nameEn: 'Georgia', code: 'GE', flag: '🇬🇪', dialCode: '+995' },
-  { nameAr: 'أرمينيا', nameEn: 'Armenia', code: 'AM', flag: '🇦🇲', dialCode: '+374' },
-  { nameAr: 'تركمانستان', nameEn: 'Turkmenistan', code: 'TM', flag: '🇹🇲', dialCode: '+993' },
-  { nameAr: 'قرغيزستان', nameEn: 'Kyrgyzstan', code: 'KG', flag: '🇰🇬', dialCode: '+996' },
-  { nameAr: 'طاجيكستان', nameEn: 'Tajikistan', code: 'TJ', flag: '🇹🇯', dialCode: '+992' },
-  { nameAr: 'قبرص', nameEn: 'Cyprus', code: 'CY', flag: '🇨🇾', dialCode: '+357' },
+  { nameAr: 'تركيا', nameEn: 'Turkey', code: 'TR', flag: '🇹🇷', dialCode: '+90', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'إيران', nameEn: 'Iran', code: 'IR', flag: '🇮🇷', dialCode: '+98', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'باكستان', nameEn: 'Pakistan', code: 'PK', flag: '🇵🇰', dialCode: '+92', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'الهند', nameEn: 'India', code: 'IN', flag: '🇮🇳', dialCode: '+91', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'الصين', nameEn: 'China', code: 'CN', flag: '🇨🇳', dialCode: '+86', phoneMin: 11, phoneMax: 11 },
+  { nameAr: 'اليابان', nameEn: 'Japan', code: 'JP', flag: '🇯🇵', dialCode: '+81', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'كوريا الجنوبية', nameEn: 'South Korea', code: 'KR', flag: '🇰🇷', dialCode: '+82', phoneMin: 9, phoneMax: 10 },
+  { nameAr: 'إندونيسيا', nameEn: 'Indonesia', code: 'ID', flag: '🇮🇩', dialCode: '+62', phoneMin: 9, phoneMax: 12 },
+  { nameAr: 'ماليزيا', nameEn: 'Malaysia', code: 'MY', flag: '🇲🇾', dialCode: '+60', phoneMin: 9, phoneMax: 10 },
+  { nameAr: 'سنغافورة', nameEn: 'Singapore', code: 'SG', flag: '🇸🇬', dialCode: '+65', phoneMin: 8, phoneMax: 8 },
+  { nameAr: 'تايلاند', nameEn: 'Thailand', code: 'TH', flag: '🇹🇭', dialCode: '+66', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'فيتنام', nameEn: 'Vietnam', code: 'VN', flag: '🇻🇳', dialCode: '+84', phoneMin: 9, phoneMax: 10 },
+  { nameAr: 'الفلبين', nameEn: 'Philippines', code: 'PH', flag: '🇵🇭', dialCode: '+63', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'بنجلاديش', nameEn: 'Bangladesh', code: 'BD', flag: '🇧🇩', dialCode: '+880', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'سريلانكا', nameEn: 'Sri Lanka', code: 'LK', flag: '🇱🇰', dialCode: '+94', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'نيبال', nameEn: 'Nepal', code: 'NP', flag: '🇳🇵', dialCode: '+977', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'أفغانستان', nameEn: 'Afghanistan', code: 'AF', flag: '🇦🇫', dialCode: '+93', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'كازاخستان', nameEn: 'Kazakhstan', code: 'KZ', flag: '🇰🇿', dialCode: '+7', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'أوزبكستان', nameEn: 'Uzbekistan', code: 'UZ', flag: '🇺🇿', dialCode: '+998', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'أذربيجان', nameEn: 'Azerbaijan', code: 'AZ', flag: '🇦🇿', dialCode: '+994', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'جورجيا', nameEn: 'Georgia', code: 'GE', flag: '🇬🇪', dialCode: '+995', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'أرمينيا', nameEn: 'Armenia', code: 'AM', flag: '🇦🇲', dialCode: '+374', phoneMin: 8, phoneMax: 8 },
+  { nameAr: 'تركمانستان', nameEn: 'Turkmenistan', code: 'TM', flag: '🇹🇲', dialCode: '+993', phoneMin: 8, phoneMax: 8 },
+  { nameAr: 'قرغيزستان', nameEn: 'Kyrgyzstan', code: 'KG', flag: '🇰🇬', dialCode: '+996', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'طاجيكستان', nameEn: 'Tajikistan', code: 'TJ', flag: '🇹🇯', dialCode: '+992', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'قبرص', nameEn: 'Cyprus', code: 'CY', flag: '🇨🇾', dialCode: '+357', phoneMin: 8, phoneMax: 8 },
 
   // أوروبا
-  { nameAr: 'المملكة المتحدة', nameEn: 'United Kingdom', code: 'GB', flag: '🇬🇧', dialCode: '+44' },
-  { nameAr: 'ألمانيا', nameEn: 'Germany', code: 'DE', flag: '🇩🇪', dialCode: '+49' },
-  { nameAr: 'فرنسا', nameEn: 'France', code: 'FR', flag: '🇫🇷', dialCode: '+33' },
-  { nameAr: 'إيطاليا', nameEn: 'Italy', code: 'IT', flag: '🇮🇹', dialCode: '+39' },
-  { nameAr: 'إسبانيا', nameEn: 'Spain', code: 'ES', flag: '🇪🇸', dialCode: '+34' },
-  { nameAr: 'هولندا', nameEn: 'Netherlands', code: 'NL', flag: '🇳🇱', dialCode: '+31' },
-  { nameAr: 'سويسرا', nameEn: 'Switzerland', code: 'CH', flag: '🇨🇭', dialCode: '+41' },
-  { nameAr: 'السويد', nameEn: 'Sweden', code: 'SE', flag: '🇸🇪', dialCode: '+46' },
-  { nameAr: 'النرويج', nameEn: 'Norway', code: 'NO', flag: '🇳🇴', dialCode: '+47' },
-  { nameAr: 'الدنمارك', nameEn: 'Denmark', code: 'DK', flag: '🇩🇰', dialCode: '+45' },
-  { nameAr: 'فنلندا', nameEn: 'Finland', code: 'FI', flag: '🇫🇮', dialCode: '+358' },
-  { nameAr: 'بلجيكا', nameEn: 'Belgium', code: 'BE', flag: '🇧🇪', dialCode: '+32' },
-  { nameAr: 'النمسا', nameEn: 'Austria', code: 'AT', flag: '🇦🇹', dialCode: '+43' },
-  { nameAr: 'بولندا', nameEn: 'Poland', code: 'PL', flag: '🇵🇱', dialCode: '+48' },
-  { nameAr: 'روسيا', nameEn: 'Russia', code: 'RU', flag: '🇷🇺', dialCode: '+7' },
-  { nameAr: 'أوكرانيا', nameEn: 'Ukraine', code: 'UA', flag: '🇺🇦', dialCode: '+380' },
-  { nameAr: 'اليونان', nameEn: 'Greece', code: 'GR', flag: '🇬🇷', dialCode: '+30' },
-  { nameAr: 'البرتغال', nameEn: 'Portugal', code: 'PT', flag: '🇵🇹', dialCode: '+351' },
-  { nameAr: 'أيرلندا', nameEn: 'Ireland', code: 'IE', flag: '🇮🇪', dialCode: '+353' },
-  { nameAr: 'رومانيا', nameEn: 'Romania', code: 'RO', flag: '🇷🇴', dialCode: '+40' },
-  { nameAr: 'جمهورية التشيك', nameEn: 'Czech Republic', code: 'CZ', flag: '🇨🇿', dialCode: '+420' },
-  { nameAr: 'المجر', nameEn: 'Hungary', code: 'HU', flag: '🇭🇺', dialCode: '+36' },
-  { nameAr: 'بلغاريا', nameEn: 'Bulgaria', code: 'BG', flag: '🇧🇬', dialCode: '+359' },
-  { nameAr: 'كرواتيا', nameEn: 'Croatia', code: 'HR', flag: '🇭🇷', dialCode: '+385' },
-  { nameAr: 'صربيا', nameEn: 'Serbia', code: 'RS', flag: '🇷🇸', dialCode: '+381' },
-  { nameAr: 'سلوفاكيا', nameEn: 'Slovakia', code: 'SK', flag: '🇸🇰', dialCode: '+421' },
-  { nameAr: 'البوسنة والهرسك', nameEn: 'Bosnia and Herzegovina', code: 'BA', flag: '🇧🇦', dialCode: '+387' },
-  { nameAr: 'ألبانيا', nameEn: 'Albania', code: 'AL', flag: '🇦🇱', dialCode: '+355' },
-  { nameAr: 'أيسلندا', nameEn: 'Iceland', code: 'IS', flag: '🇮🇸', dialCode: '+354' },
+  { nameAr: 'المملكة المتحدة', nameEn: 'United Kingdom', code: 'GB', flag: '🇬🇧', dialCode: '+44', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'ألمانيا', nameEn: 'Germany', code: 'DE', flag: '🇩🇪', dialCode: '+49', phoneMin: 10, phoneMax: 11 },
+  { nameAr: 'فرنسا', nameEn: 'France', code: 'FR', flag: '🇫🇷', dialCode: '+33', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'إيطاليا', nameEn: 'Italy', code: 'IT', flag: '🇮🇹', dialCode: '+39', phoneMin: 9, phoneMax: 10 },
+  { nameAr: 'إسبانيا', nameEn: 'Spain', code: 'ES', flag: '🇪🇸', dialCode: '+34', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'هولندا', nameEn: 'Netherlands', code: 'NL', flag: '🇳🇱', dialCode: '+31', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'سويسرا', nameEn: 'Switzerland', code: 'CH', flag: '🇨🇭', dialCode: '+41', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'السويد', nameEn: 'Sweden', code: 'SE', flag: '🇸🇪', dialCode: '+46', phoneMin: 7, phoneMax: 9 },
+  { nameAr: 'النرويج', nameEn: 'Norway', code: 'NO', flag: '🇳🇴', dialCode: '+47', phoneMin: 8, phoneMax: 8 },
+  { nameAr: 'الدنمارك', nameEn: 'Denmark', code: 'DK', flag: '🇩🇰', dialCode: '+45', phoneMin: 8, phoneMax: 8 },
+  { nameAr: 'فنلندا', nameEn: 'Finland', code: 'FI', flag: '🇫🇮', dialCode: '+358', phoneMin: 9, phoneMax: 10 },
+  { nameAr: 'بلجيكا', nameEn: 'Belgium', code: 'BE', flag: '🇧🇪', dialCode: '+32', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'النمسا', nameEn: 'Austria', code: 'AT', flag: '🇦🇹', dialCode: '+43', phoneMin: 10, phoneMax: 11 },
+  { nameAr: 'بولندا', nameEn: 'Poland', code: 'PL', flag: '🇵🇱', dialCode: '+48', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'روسيا', nameEn: 'Russia', code: 'RU', flag: '🇷🇺', dialCode: '+7', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'أوكرانيا', nameEn: 'Ukraine', code: 'UA', flag: '🇺🇦', dialCode: '+380', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'اليونان', nameEn: 'Greece', code: 'GR', flag: '🇬🇷', dialCode: '+30', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'البرتغال', nameEn: 'Portugal', code: 'PT', flag: '🇵🇹', dialCode: '+351', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'أيرلندا', nameEn: 'Ireland', code: 'IE', flag: '🇮🇪', dialCode: '+353', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'رومانيا', nameEn: 'Romania', code: 'RO', flag: '🇷🇴', dialCode: '+40', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'جمهورية التشيك', nameEn: 'Czech Republic', code: 'CZ', flag: '🇨🇿', dialCode: '+420', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'المجر', nameEn: 'Hungary', code: 'HU', flag: '🇭🇺', dialCode: '+36', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'بلغاريا', nameEn: 'Bulgaria', code: 'BG', flag: '🇧🇬', dialCode: '+359', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'كرواتيا', nameEn: 'Croatia', code: 'HR', flag: '🇭🇷', dialCode: '+385', phoneMin: 8, phoneMax: 9 },
+  { nameAr: 'صربيا', nameEn: 'Serbia', code: 'RS', flag: '🇷🇸', dialCode: '+381', phoneMin: 8, phoneMax: 9 },
+  { nameAr: 'سلوفاكيا', nameEn: 'Slovakia', code: 'SK', flag: '🇸🇰', dialCode: '+421', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'البوسنة والهرسك', nameEn: 'Bosnia and Herzegovina', code: 'BA', flag: '🇧🇦', dialCode: '+387', phoneMin: 8, phoneMax: 9 },
+  { nameAr: 'ألبانيا', nameEn: 'Albania', code: 'AL', flag: '🇦🇱', dialCode: '+355', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'أيسلندا', nameEn: 'Iceland', code: 'IS', flag: '🇮🇸', dialCode: '+354', phoneMin: 7, phoneMax: 7 },
 
   // الأمريكتان
-  { nameAr: 'الولايات المتحدة الأمريكية', nameEn: 'United States', code: 'US', flag: '🇺🇸', dialCode: '+1' },
-  { nameAr: 'كندا', nameEn: 'Canada', code: 'CA', flag: '🇨🇦', dialCode: '+1' },
-  { nameAr: 'المكسيك', nameEn: 'Mexico', code: 'MX', flag: '🇲🇽', dialCode: '+52' },
-  { nameAr: 'البرازيل', nameEn: 'Brazil', code: 'BR', flag: '🇧🇷', dialCode: '+55' },
-  { nameAr: 'الأرجنتين', nameEn: 'Argentina', code: 'AR', flag: '🇦🇷', dialCode: '+54' },
-  { nameAr: 'كولومبيا', nameEn: 'Colombia', code: 'CO', flag: '🇨🇴', dialCode: '+57' },
-  { nameAr: 'تشيلي', nameEn: 'Chile', code: 'CL', flag: '🇨🇱', dialCode: '+56' },
-  { nameAr: 'بيرو', nameEn: 'Peru', code: 'PE', flag: '🇵🇪', dialCode: '+51' },
-  { nameAr: 'فنزويلا', nameEn: 'Venezuela', code: 'VE', flag: '🇻🇪', dialCode: '+58' },
-  { nameAr: 'إكوادور', nameEn: 'Ecuador', code: 'EC', flag: '🇪🇨', dialCode: '+593' },
+  { nameAr: 'الولايات المتحدة الأمريكية', nameEn: 'United States', code: 'US', flag: '🇺🇸', dialCode: '+1', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'كندا', nameEn: 'Canada', code: 'CA', flag: '🇨🇦', dialCode: '+1', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'المكسيك', nameEn: 'Mexico', code: 'MX', flag: '🇲🇽', dialCode: '+52', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'البرازيل', nameEn: 'Brazil', code: 'BR', flag: '🇧🇷', dialCode: '+55', phoneMin: 10, phoneMax: 11 },
+  { nameAr: 'الأرجنتين', nameEn: 'Argentina', code: 'AR', flag: '🇦🇷', dialCode: '+54', phoneMin: 10, phoneMax: 11 },
+  { nameAr: 'كولومبيا', nameEn: 'Colombia', code: 'CO', flag: '🇨🇴', dialCode: '+57', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'تشيلي', nameEn: 'Chile', code: 'CL', flag: '🇨🇱', dialCode: '+56', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'بيرو', nameEn: 'Peru', code: 'PE', flag: '🇵🇪', dialCode: '+51', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'فنزويلا', nameEn: 'Venezuela', code: 'VE', flag: '🇻🇪', dialCode: '+58', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'إكوادور', nameEn: 'Ecuador', code: 'EC', flag: '🇪🇨', dialCode: '+593', phoneMin: 9, phoneMax: 9 },
 
   // أفريقيا
-  { nameAr: 'جنوب أفريقيا', nameEn: 'South Africa', code: 'ZA', flag: '🇿🇦', dialCode: '+27' },
-  { nameAr: 'نيجيريا', nameEn: 'Nigeria', code: 'NG', flag: '🇳🇬', dialCode: '+234' },
-  { nameAr: 'كينيا', nameEn: 'Kenya', code: 'KE', flag: '🇰🇪', dialCode: '+254' },
-  { nameAr: 'إثيوبيا', nameEn: 'Ethiopia', code: 'ET', flag: '🇪🇹', dialCode: '+251' },
-  { nameAr: 'غانا', nameEn: 'Ghana', code: 'GH', flag: '🇬🇭', dialCode: '+233' },
-  { nameAr: 'السنغال', nameEn: 'Senegal', code: 'SN', flag: '🇸🇳', dialCode: '+221' },
-  { nameAr: 'ساحل العاج', nameEn: 'Ivory Coast', code: 'CI', flag: '🇨🇮', dialCode: '+225' },
-  { nameAr: 'تنزانيا', nameEn: 'Tanzania', code: 'TZ', flag: '🇹🇿', dialCode: '+255' },
-  { nameAr: 'أوغندا', nameEn: 'Uganda', code: 'UG', flag: '🇺🇬', dialCode: '+256' },
-  { nameAr: 'الكاميرون', nameEn: 'Cameroon', code: 'CM', flag: '🇨🇲', dialCode: '+237' },
+  { nameAr: 'جنوب أفريقيا', nameEn: 'South Africa', code: 'ZA', flag: '🇿🇦', dialCode: '+27', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'نيجيريا', nameEn: 'Nigeria', code: 'NG', flag: '🇳🇬', dialCode: '+234', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'كينيا', nameEn: 'Kenya', code: 'KE', flag: '🇰🇪', dialCode: '+254', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'إثيوبيا', nameEn: 'Ethiopia', code: 'ET', flag: '🇪🇹', dialCode: '+251', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'غانا', nameEn: 'Ghana', code: 'GH', flag: '🇬🇭', dialCode: '+233', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'السنغال', nameEn: 'Senegal', code: 'SN', flag: '🇸🇳', dialCode: '+221', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'ساحل العاج', nameEn: 'Ivory Coast', code: 'CI', flag: '🇨🇮', dialCode: '+225', phoneMin: 10, phoneMax: 10 },
+  { nameAr: 'تنزانيا', nameEn: 'Tanzania', code: 'TZ', flag: '🇹🇿', dialCode: '+255', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'أوغندا', nameEn: 'Uganda', code: 'UG', flag: '🇺🇬', dialCode: '+256', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'الكاميرون', nameEn: 'Cameroon', code: 'CM', flag: '🇨🇲', dialCode: '+237', phoneMin: 9, phoneMax: 9 },
 
   // أوقيانوسيا
-  { nameAr: 'أستراليا', nameEn: 'Australia', code: 'AU', flag: '🇦🇺', dialCode: '+61' },
-  { nameAr: 'نيوزيلندا', nameEn: 'New Zealand', code: 'NZ', flag: '🇳🇿', dialCode: '+64' }
+  { nameAr: 'أستراليا', nameEn: 'Australia', code: 'AU', flag: '🇦🇺', dialCode: '+61', phoneMin: 9, phoneMax: 9 },
+  { nameAr: 'نيوزيلندا', nameEn: 'New Zealand', code: 'NZ', flag: '🇳🇿', dialCode: '+64', phoneMin: 8, phoneMax: 9 }
 ];
+
+/** قيمة افتراضية تستخدم لأي دولة غير موجودة في القائمة (احتياط) */
+export const DEFAULT_PHONE_LENGTH = { phoneMin: 7, phoneMax: 12 };
 
 @Component({
   selector: 'app-country-select',
@@ -154,7 +161,7 @@ export const COUNTRIES_DATA: Country[] = [
         } @else {
           <span class="text-text-secondary font-medium">{{ placeholder }}</span>
         }
-        
+
         <svg
           class="w-4 h-4 text-text-secondary transition-transform duration-200"
           [class.rotate-180]="isOpen()"
@@ -220,10 +227,13 @@ export const COUNTRIES_DATA: Country[] = [
     }
   `]
 })
-export class CountrySelectComponent implements ControlValueAccessor {
+export class CountrySelectComponent implements ControlValueAccessor, OnInit {
   @Input() id = 'country-select';
   @Input() placeholder = 'اختر الدولة...';
   @Input() disabled = false;
+
+  /** يُطلق كل مرة يتم فيها اختيار دولة، ويحمل بيانات الدولة كاملة (رمز الاتصال + حدود طول الرقم) */
+  @Output() countrySelected = new EventEmitter<Country>();
 
   readonly countries = COUNTRIES_DATA;
   readonly isOpen = signal(false);
@@ -246,6 +256,15 @@ export class CountrySelectComponent implements ControlValueAccessor {
 
   constructor(private elementRef: ElementRef) {}
 
+  ngOnInit(): void {
+    // يبلّغ الفورم بالدولة الافتراضية عند التحميل، عشان الـ validation يتظبط من أول لحظة
+    const initial = this.selectedCountry();
+    if (initial) {
+      // نأجل الإطلاق لدورة الـ change detection التالية لتفادي مشاكل ExpressionChanged
+      queueMicrotask(() => this.countrySelected.emit(initial));
+    }
+  }
+
   @HostListener('document:click', ['$event'])
   onClickOutside(event: Event) {
     if (!this.elementRef.nativeElement.contains(event.target)) {
@@ -262,6 +281,7 @@ export class CountrySelectComponent implements ControlValueAccessor {
     this.selectedCountry.set(country);
     this.onChange(country.nameAr);
     this.onTouched();
+    this.countrySelected.emit(country);
     this.isOpen.set(false);
   }
 
@@ -282,7 +302,8 @@ export class CountrySelectComponent implements ControlValueAccessor {
         nameEn: value,
         code: 'CUSTOM',
         flag: '🌐',
-        dialCode: ''
+        dialCode: '',
+        ...DEFAULT_PHONE_LENGTH
       });
     }
   }

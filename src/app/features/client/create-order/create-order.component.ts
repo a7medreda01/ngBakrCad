@@ -62,24 +62,8 @@ export class CreateOrderComponent implements OnInit {
 
   /** Date-time picker modal visibility */
   readonly showDatePicker = signal(false);
-
-  /** Catalog filtering by scope target */
-  readonly catalogFilter = signal<'all' | 'tooth' | 'arch' | 'arch_lower' | 'case'>('all');
   /** Expanded service for description details drawer */
   readonly expandedServiceId = signal<string | null>(null);
-
-  setCatalogFilter(filter: 'all' | 'tooth' | 'arch' | 'arch_lower' | 'case'): void {
-    this.catalogFilter.set(filter);
-    if (filter === 'tooth') {
-      this.selectScope('tooth');
-    } else if (filter === 'arch') {
-      this.selectScope('upper_arch');
-    } else if (filter === 'arch_lower') {
-      this.selectScope('lower_arch');
-    } else if (filter === 'case') {
-      this.selectScope('full_case');
-    }
-  }
 
   readonly isLoading = signal(false);
   readonly services = signal<ServiceDto[]>([]);
@@ -112,25 +96,19 @@ export class CreateOrderComponent implements OnInit {
   readonly completedUploadsCount = computed(() => {
     return this.uploadStates().filter(s => s.status === 'done').length;
   });
-
+/** NEW: union of all teeth already committed to any assignment in the order.
+   *  Passed down to the odontogram so already-assigned teeth stay visibly
+   *  colored (pale red) instead of reverting to the default porcelain color
+   *  once assignServiceToActiveTarget() clears selectedTeeth(). */
+  readonly assignedTeeth = computed<number[]>(() => {
+    const set = new Set<number>();
+    this.assignments().forEach(a => a.teeth.forEach(t => set.add(t)));
+    return Array.from(set);
+  });
   readonly categorizedServices = computed<CategorizedGroup[]>(() => {
     const all = this.services();
     const isAr = this.i18n.currentLang() === 'ar';
-    const filter = this.catalogFilter();
-
-    // Filter services based on catalog filter tab
-    const filteredServices = all.filter(s => {
-      if (filter === 'tooth') {
-        return s.pricingMethod === PricingMethod.PerTooth || s.pricingMethod === PricingMethod.PerHole;
-      }
-      if (filter === 'arch' || filter === 'arch_lower') {
-        return s.pricingMethod === PricingMethod.PerArch;
-      }
-      if (filter === 'case') {
-        return s.pricingMethod === PricingMethod.Quotation || (s.pricingMethod as any) === 'FixedCase' || (s.pricingMethod as any) === 3;
-      }
-      return true;
-    });
+    const filteredServices = all;
 
     const groupsMap = new Map<string, { ar: string; en: string; color: string; services: ServiceDto[] }>();
 
@@ -187,6 +165,7 @@ export class CreateOrderComponent implements OnInit {
 
   readonly form = this.fb.group({
     patientName: ['', [Validators.required, Validators.minLength(3)]],
+    patientFileNumber: [''],
     patientGender: ['Male', [Validators.required]],
     patientAge: [30, [Validators.required, Validators.min(1)]],
     requiredDeliveryDate: ['', [Validators.required]],
@@ -265,7 +244,7 @@ export class CreateOrderComponent implements OnInit {
     });
     this.currentStep.set(1);
     this.hasRestoredDraft.set(false);
-    this.toast.info('تم مسح المسودة وتصفير كافة الحقول بنجاح');
+    this.toast.info('تم مسح الجديد وتصفير كافة الحقول بنجاح');
   }
 
   /** I18N helpers: return name/description/category in the current app language */
@@ -321,63 +300,76 @@ export class CreateOrderComponent implements OnInit {
 
   /** Assign Service to Active Scope/Tooth */
   assignServiceToActiveTarget(service: ServiceDto): void {
-    const scope = this.activeScope();
-    const tooth = this.activeTooth();
-    const currentTeeth = this.selectedTeeth();
-
-    // Conflict Guard: PerArch service must NOT be applied per individual tooth
-    if (service.pricingMethod === PricingMethod.PerArch && scope === 'tooth') {
-      this.toast.warning(
-        `خدمة "${this.serviceName(service)}" محسوبة للفك بالكامل — يرجى تغيير النطاق إلى "الفك العلوي" أو "الفك السفلي" أو "الحالة كاملة" أولاً`
-      );
+    const selectedTeeth = this.selectedTeeth();
+    const isPerToothLike = service.pricingMethod === PricingMethod.PerTooth || service.pricingMethod === PricingMethod.PerHole;
+    const isPerArch = service.pricingMethod === PricingMethod.PerArch;
+    const isQuotation = service.pricingMethod === PricingMethod.Quotation;
+ 
+    if ((isPerToothLike || isPerArch) && selectedTeeth.length === 0) {
+      this.toast.warning('يرجى تحديد سن أو أكثر من مخطط الأسنان أولاً لتطبيق هذه الخدمة');
       return;
     }
-
-    // Conflict Guard: PerTooth service must NOT be applied to full arch/case scope
-    if (
-      service.pricingMethod === PricingMethod.PerTooth &&
-      (scope === 'upper_arch' || scope === 'lower_arch' || scope === 'full_case')
-    ) {
-      this.toast.warning(
-        `خدمة "${this.serviceName(service)}" محسوبة لكل سن على حدة — يرجى تحديد الأسنان من المخطط أولاً ثم النقر على الخدمة`
-      );
-      return;
-    }
-
-    let targetTeeth: number[] = [];
-    let targetType: 'tooth' | 'upper_arch' | 'lower_arch' | 'full_case' = scope;
-
-    if (scope === 'tooth') {
-      if (tooth !== null) {
-        targetTeeth = [tooth];
-      } else if (currentTeeth.length > 0) {
-        targetTeeth = [...currentTeeth];
-      } else {
-        this.toast.warning('يرجى النقر على سن من مخطط الأسنان أولاً لتطبيق الخدمة عليه');
+ 
+    const upperTeeth = selectedTeeth.filter(t => (t >= 11 && t <= 18) || (t >= 21 && t <= 28));
+    const lowerTeeth = selectedTeeth.filter(t => (t >= 31 && t <= 38) || (t >= 41 && t <= 48));
+    const assignmentsToAdd: ServiceAssignment[] = [];
+ 
+    if (isPerToothLike) {
+      assignmentsToAdd.push({
+        id: Math.random().toString(36).substring(2, 9),
+        service,
+        targetType: 'tooth',
+        teeth: [...selectedTeeth]
+      });
+    } else if (isPerArch) {
+      if (upperTeeth.length > 0) {
+        assignmentsToAdd.push({
+          id: Math.random().toString(36).substring(2, 9),
+          service,
+          targetType: 'upper_arch',
+          teeth: [...upperTeeth]
+        });
+      }
+      if (lowerTeeth.length > 0) {
+        assignmentsToAdd.push({
+          id: Math.random().toString(36).substring(2, 9),
+          service,
+          targetType: 'lower_arch',
+          teeth: [...lowerTeeth]
+        });
+      }
+      if (assignmentsToAdd.length === 0) {
+        this.toast.warning('يرجى تحديد أسنان علوية أو سفلية قبل تطبيق خدمة محسوبة على الفك');
         return;
       }
-    } else if (scope === 'upper_arch') {
-      // All upper arch teeth (FDI: 11-18 right quadrant, 21-28 left quadrant)
-      targetTeeth = [11,12,13,14,15,16,17,18, 21,22,23,24,25,26,27,28];
-    } else if (scope === 'lower_arch') {
-      // All lower arch teeth (FDI: 31-38 left quadrant, 41-48 right quadrant)
-      targetTeeth = [31,32,33,34,35,36,37,38, 41,42,43,44,45,46,47,48];
+    } else if (isQuotation) {
+      assignmentsToAdd.push({
+        id: Math.random().toString(36).substring(2, 9),
+        service,
+        targetType: 'full_case',
+        teeth: []
+      });
     } else {
-      targetTeeth = [...currentTeeth];
+      assignmentsToAdd.push({
+        id: Math.random().toString(36).substring(2, 9),
+        service,
+        targetType: 'full_case',
+        teeth: []
+      });
     }
-
-    // Add assignment
-    const newAssignment: ServiceAssignment = {
-      id: Math.random().toString(36).substring(2, 9),
-      service,
-      targetType,
-      teeth: targetTeeth
-    };
-
-    this.assignments.update(list => [...list, newAssignment]);
+ 
+    this.assignments.update(list => [...list, ...assignmentsToAdd]);
+    if (selectedTeeth.length > 0) {
+      this.selectedTeeth.set([]);
+      this.activeTooth.set(null);
+    }
     this.saveDraftToStorage();
-    this.toast.success(`تمت إضافة "${this.serviceName(service)}" ${targetTeeth.length ? 'للسن/الأسنان المحدد' : 'للنطاق المحدد'}`);
-
+    const addedCount = assignmentsToAdd.length;
+    if (addedCount === 1) {
+      this.toast.success(`تمت إضافة "${this.serviceName(service)}" بنجاح`);
+    } else {
+      this.toast.success(`تمت إضافة "${this.serviceName(service)}" في ${addedCount} أسطر`);
+    }
   }
 
 
@@ -576,6 +568,7 @@ export class CreateOrderComponent implements OnInit {
 
     const payload: OrderCreateRequest = {
       patientName: formVal.patientName!,
+      patientFileNumber: formVal.patientFileNumber || '',
       patientGender: formVal.patientGender!,
       patientAge: formVal.patientAge!,
       requiredDeliveryDate: new Date(formVal.requiredDeliveryDate!).toISOString(),
@@ -713,14 +706,6 @@ export class CreateOrderComponent implements OnInit {
   }
 
   isServiceAvailableForScope(service: ServiceDto): boolean {
-    if (this.catalogFilter() === 'all') return true;
-    const scope = this.activeScope();
-    if (scope === 'full_case') return true;
-    if (service.pricingMethod === PricingMethod.Quotation) return true;
-    if (scope === 'tooth')
-      return service.pricingMethod === PricingMethod.PerTooth
-          || service.pricingMethod === PricingMethod.PerHole;
-    // upper_arch / lower_arch
-    return service.pricingMethod === PricingMethod.PerArch;
+    return true;
   }
 }

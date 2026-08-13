@@ -146,11 +146,11 @@
           <thead class="bg-background text-secondary font-black border-b border-border">
             <tr>
               <th class="px-6 py-4">كود الحالة</th>
-              <th class="px-6 py-4">المريض</th>
+              <th class="px-6 py-4">اسم المريض</th>
               <th class="px-6 py-4">الخدمات المطلوبة</th>
               <th class="px-6 py-4">أولوية SLA</th>
               <th class="px-6 py-4">الحالة</th>
-              <th class="px-6 py-4">تاريخ الاستلام المطلوب</th>
+              <th class="px-6 py-4">تاريخ التسليم المطلوب</th>
               <th class="px-6 py-4 text-left">أكشن</th>
             </tr>
           </thead>
@@ -182,7 +182,7 @@
                     class="px-2.5 py-1 rounded-full text-[10px] font-black inline-block"
                   >
                     @switch (c.status) {
-                       @case (OrderStatus.Draft) { مسودة }
+                       @case (OrderStatus.Draft) { جديد }
                        @case (OrderStatus.WaitingAdminResponse) { انتظار مراجعة الأدمن }
                        @case (OrderStatus.AssignedToLab) { مسندة للمصمم }
                        @case (OrderStatus.LabReview) { قيد المراجعة }
@@ -206,7 +206,7 @@
                     <a [routerLink]="['/lab/cases', c.id]" class="text-primary hover:text-primary-dark font-extrabold whitespace-nowrap">تفاصيل الحالة ←</a>
                     
                     @if (c.status === OrderStatus.AssignedToLab) {
-                      <button (click)="startReview(c.id)" class="bg-primary text-white text-[10px] px-3 py-1.5 rounded-lg font-bold hover:bg-primary-dark transition active:scale-95">بدء المراجعة</button>
+                      <!-- <button (click)="startReview(c.id)" class="bg-primary text-white text-[10px] px-3 py-1.5 rounded-lg font-bold hover:bg-primary-dark transition active:scale-95">بدء المراجعة</button> -->
                     } @else if (c.status === OrderStatus.LabReview) {
                       <button (click)="acceptOrder(c.id)" class="bg-green-600 text-white text-[10px] px-3 py-1.5 rounded-lg font-bold hover:bg-green-700 transition active:scale-95">قبول</button>
                       <button (click)="rejectOrder(c.id)" class="bg-red-500 text-white text-[10px] px-3 py-1.5 rounded-lg font-bold hover:bg-red-600 transition active:scale-95">رفض</button>

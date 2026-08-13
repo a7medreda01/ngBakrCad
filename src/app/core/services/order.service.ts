@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { ApiService } from '../api/api.service';
 import { Observable } from 'rxjs';
 import { HttpEvent, HttpEventType } from '@angular/common/http';
-import { OrderCreateRequest, OrderDto, OrderReviewRequest, RedoRequest, FileMetadataDto, OrderStatusHistoryDto } from '../models';
+import { OrderCreateRequest, AdminOrderCreateRequest, OrderDto, OrderReviewRequest, RedoRequest, FileMetadataDto, OrderStatusHistoryDto } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +12,11 @@ export class OrderService {
 
   createOrder(request: OrderCreateRequest): Observable<OrderDto> {
     return this.api.post<OrderDto>('Orders', request);
+  }
+
+  /** Admin creates an order on behalf of a doctor */
+  createOrderForDoctor(request: AdminOrderCreateRequest): Observable<OrderDto> {
+    return this.api.post<OrderDto>('Orders/for-doctor', request);
   }
 
   getOrders(pageNumber = 1, pageSize = 10, status?: string, sortBy?: string): Observable<any> {

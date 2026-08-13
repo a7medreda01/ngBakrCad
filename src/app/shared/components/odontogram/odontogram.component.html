@@ -1,208 +1,136 @@
-<div class="bg-surface rounded-3xl border border-border p-5 sm:p-7 shadow-card w-full max-w-4xl mx-auto" dir="rtl">
+<div class="bg-surface rounded-3xl border border-border p-1 sm:p-1 shadow-card w-full max-w-4xl mx-auto" dir="rtl">
   <!-- Header Bar -->
-  <div class="flex flex-row justify-between items-center gap-3 mb-5 border-b border-border pb-3">
-    <div class="flex items-center gap-2">
-      <span class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-sm">🦷</span>
-      <div>
-        <h3 class="text-sm font-black text-secondary">مخطط رسم الأسنان التشريحي (Odontogram)</h3>
-        <p class="text-[11px] text-text-secondary font-medium">نموذج تشريحي عالي الدقة وفق ترقيم FDI القياسي</p>
-      </div>
-    </div>
+  <div class="flex flex-row justify-between items-center gap-3 mb-1 border-b border-border pb-1">
+    <!-- <div class="flex items-center gap-2"> -->
+      <!-- <span class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-sm">🦷</span> -->
+      <!-- <div> -->
+        <!-- <h3 class="text-sm font-black text-secondary">مخطط الأسنان</h3> -->
+        <!-- <p class="text-[11px] text-text-secondary font-medium">نموذج تشريحي عالي الدقة وفق ترقيم FDI القياسي</p> -->
+      <!-- </div> -->
+    <!-- </div> -->
 
     @if (!readOnly()) {
       <div class="flex gap-1.5">
         <button type="button" (click)="selectUpperArch()"
           class="text-[11px] px-2.5 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 hover:bg-blue-500/20 transition duration-200 font-extrabold flex items-center gap-1"
           title="تحديد جميع أسنان الفك العلوي">
-          <span>👆 علوي</span>
+          <span>علوي</span>
         </button>
         <button type="button" (click)="selectLowerArch()"
           class="text-[11px] px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 hover:bg-emerald-500/20 transition duration-200 font-extrabold flex items-center gap-1"
           title="تحديد جميع أسنان الفك السفلي">
-          <span>👇 سفلي</span>
+          <span>سفلي</span>
         </button>
         <button type="button" (click)="clearAll()"
           class="text-[11px] px-2.5 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 hover:bg-rose-500/20 transition duration-200 font-extrabold flex items-center gap-1"
           title="إلغاء جميع التحديدات">
-          <span>✕ الغاء التحديد</span>
+          <span>✕ مسح </span>
         </button>
       </div>
     }
   </div>
 
-  <!-- Tooth Selection Banner -->
-  <div class="mb-5 p-3.5 rounded-2xl bg-background border border-border flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      <span class="w-2.5 h-2.5 rounded-full" [class.bg-emerald-500]="selectedTeeth().length > 0" [class.bg-slate-400]="selectedTeeth().length === 0"></span>
-      <p class="text-xs font-extrabold text-secondary">
-        @if (readOnly()) {
-          {{ selectedTeeth().length === 0 ? '🔍 لا توجد أسنان محددة في هذا الطلب' : 'الأسنان المطلوبة: ' + selectedTeeth().join(', ') }}
-        } @else {
-          {{ selectedTeeth().length === 0 ? '🔍 انقر على أي سن في المخطط لتحديده' : '✓ تم تحديد (' + selectedTeeth().length + ') أسنان: ' + selectedTeeth().join(', ') }}
-        }
-      </p>
-    </div>
-    @if (selectedTeeth().length > 0) {
-      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-primary/10 text-primary border border-primary/20">
-        {{ selectedTeeth().length }} سن
-      </span>
-    }
-  </div>
+  <!-- Interactive Porcelain Odontogram Canvas — real anatomical tooth outlines -->
+  <div class="odontogram-chart relative flex justify-center items-center py-1 bg-slate-900/5 rounded-3xl border border-border/60 shadow-inner overflow-hidden">
 
-  <!-- Interactive Porcelain Odontogram Canvas -->
-  <div class="odontogram-chart relative flex justify-center items-center py-5 bg-slate-900/5 rounded-3xl border border-border/60 shadow-inner overflow-hidden">
+    <svg viewBox="0 0 478.6 817.16" xmlns="http://www.w3.org/2000/svg" class="odontogram-svg w-full h-auto select-none" [style.maxHeight]="height()">
+      <!-- Side Orientation Labels — positioned like the source reference chart,
+           vertically centered along the left/right edges of the arch. -->
+      <text x="45.04" y="410.22" class="text-[26px] font-black fill-text-secondary select-none">R</text>
+      <text x="398.5" y="413.22" class="text-[26px] font-black fill-text-secondary select-none">L</text>
 
-    <svg viewBox="0 0 650 780" xmlns="http://www.w3.org/2000/svg" class="odontogram-svg w-full h-auto max-h-[660px] select-none">
-      <defs>
-        <!-- Soft ambient drop shadow for teeth -->
-        <filter id="tooth-3d-shadow" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#0f172a" flood-opacity="0.22" />
-        </filter>
+      <!-- Midline Guide Ticks -->
+      <line x1="239.3" y1="4" x2="239.3" y2="20" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.6" />
+      <line x1="239.3" y1="798" x2="239.3" y2="814" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.6" />
 
-        <!-- Selected tooth glow, tuned to the site's primary/red accent -->
-        <filter id="tooth-selected-glow" x="-40%" y="-40%" width="180%" height="180%">
-          <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#EF4444" flood-opacity="0.45" />
-        </filter>
-
-        <!-- Unselected tooth porcelain gradient -->
-        <radialGradient id="toothPorcelainBase" cx="45%" cy="38%" r="68%" fx="40%" fy="32%">
-          <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
-          <stop offset="30%" style="stop-color:#F8FAFC;stop-opacity:1" />
-          <stop offset="65%" style="stop-color:#E2E8F0;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#CBD5E1;stop-opacity:1" />
-        </radialGradient>
-
-        <!-- Gloss specular highlight -->
-        <linearGradient id="toothSpecularGloss" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.9" />
-          <stop offset="45%" style="stop-color:#FFFFFF;stop-opacity:0.2" />
-          <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0" />
-        </linearGradient>
-
-        <!-- Selected tooth gradient (site's primary/red accent) -->
-        <radialGradient id="toothGradientSelectedRed" cx="45%" cy="35%" r="70%">
-          <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
-          <stop offset="45%" style="stop-color:#EF4444;stop-opacity:1" />
-          <stop offset="85%" style="stop-color:#DC2626;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#B91C1C;stop-opacity:1" />
-        </radialGradient>
-
-        <!-- Highlighted gold gradient for services -->
-        <radialGradient id="toothGradientHighlightedGold" cx="45%" cy="35%" r="70%">
-          <stop offset="0%" style="stop-color:#FDE047;stop-opacity:1" />
-          <stop offset="50%" style="stop-color:#EAB308;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#A16207;stop-opacity:1" />
-        </radialGradient>
-      </defs>
-
-      <!-- Arch guide curves -->
-      <path d="M 158,348 C 150,160 210,80 325,80 C 440,80 500,160 492,348" fill="none" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="3,6" opacity="0.6" />
-      <path d="M 162,422 C 150,620 210,710 325,710 C 440,710 500,620 488,422" fill="none" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="3,6" opacity="0.6" />
-
-      <!-- Side Orientation Labels -->
-      <text x="32" y="45" class="text-xs font-black fill-text-secondary select-none">يمين (Right)</text>
-      <text x="618" y="45" class="text-xs font-black fill-text-secondary select-none" text-anchor="end">يسار (Left)</text>
-
-      <!-- Midline Guide Lines -->
-      <line x1="325" y1="45" x2="325" y2="75" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.6" />
-      <line x1="325" y1="715" x2="325" y2="745" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.6" />
-
-      <!-- Render All 32 Teeth in Exact Anatomical Order & Position -->
+      <!-- Render All 32 Teeth using their REAL anatomical outlines (traced reference) -->
       @for (tooth of teeth(); track trackByNum($index, tooth)) {
         <g class="tooth-item transition-all duration-200 cursor-pointer group"
            [class.selected]="isToothSelected(tooth.num)"
+           [class.committed]="isToothCommitted(tooth.num)"
            [class.read-only]="readOnly()"
            (click)="readOnly() ? null : toggleTooth(tooth.num)"
            role="button"
            [attr.tabindex]="0"
            [attr.aria-label]="'سن رقم ' + tooth.num">
 
-          <!-- Tooth Group Transform -->
-          <g [attr.transform]="'translate(' + tooth.x + ',' + tooth.y + ') rotate(' + tooth.rotation + ') scale(' + tooth.scaleX + ',' + tooth.scaleY + ')'"
-             [attr.filter]="isToothSelected(tooth.num) ? 'url(#tooth-selected-glow)' : 'url(#tooth-3d-shadow)'">
+          <!-- Anatomical Crown Group (raw traced coordinates, shared transform) —
+               flat black-and-white line art: plain black outline, white fill by
+               default, solid (non-gradient) color fill only when a tooth is
+               selected/highlighted/committed. -->
+          <g [attr.transform]="pathTransform">
 
-            <!-- 1. Main Porcelain Crown Body -->
-            <path [attr.d]="tooth.pathDef.crown"
-                  [attr.fill]="getToothGradientId(tooth.num)"
-                  [attr.stroke]="isToothSelected(tooth.num) ? '#991B1B' : '#94A3B8'"
-                  [attr.stroke-width]="isToothSelected(tooth.num) ? '1.5' : '1.1'"
-                  class="transition-all duration-300 group-hover:brightness-105">
-            </path>
-
-            <!-- 2. Cervical / Interdental Shadow -->
-            @if (tooth.pathDef.innerShadow) {
-              <path [attr.d]="tooth.pathDef.innerShadow"
-                    fill="none"
-                    [attr.stroke]="isToothSelected(tooth.num) ? 'rgba(0,0,0,0.3)' : 'rgba(100,116,139,0.3)'"
-                    stroke-width="1.5"
-                    stroke-linecap="round">
-              </path>
-            }
-
-            <!-- 3. Gloss Specular Cusp Highlight -->
-            <path [attr.d]="tooth.pathDef.highlight"
-                  fill="url(#toothSpecularGloss)"
-                  opacity="0.85">
-            </path>
-
-            <!-- 4. Occlusal Developmental Fissure Lines -->
-            <path [attr.d]="tooth.pathDef.fissure"
-                  [attr.stroke]="isToothSelected(tooth.num) ? 'rgba(255,255,255,0.85)' : '#64748B'"
-                  [attr.stroke-width]="isToothSelected(tooth.num) ? '1.4' : '1.2'"
-                  fill="none"
-                  stroke-linecap="round"
+            <!-- 1. Main Crown Outline — filled with state color -->
+            <path [attr.d]="tooth.crown"
+                  [attr.fill]="getToothFillColor(tooth.num)"
+                  stroke="#000000"
+                  [attr.stroke-width]="(isToothSelected(tooth.num) || isToothHighlighted(tooth.num) || isToothCommitted(tooth.num)) ? '1.6' : '1.1'"
                   stroke-linejoin="round"
-                  opacity="0.55">
+                  class="tooth-crown transition-all duration-300">
             </path>
 
-            <!-- 5. Occlusal Pit Depths -->
-            @if (tooth.pathDef.pits) {
-              <path [attr.d]="tooth.pathDef.pits"
-                    [attr.fill]="isToothSelected(tooth.num) ? '#FFFFFF' : '#475569'"
-                    opacity="0.55">
+            <!-- 2. Fine Anatomical Detail Lines (grooves / cusps / shading) traced from reference -->
+            @for (detail of tooth.details; track $index) {
+              <path [attr.d]="detail"
+                    fill="none"
+                    stroke="#000000"
+                    stroke-width="0.9"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    opacity="0.6">
               </path>
             }
           </g>
 
-          <!-- Tooth Number Label Printed Directly On Crown Surface -->
-          <g [attr.transform]="'translate(' + tooth.x + ',' + tooth.y + ')'"
-             class="pointer-events-none select-none">
+          <!-- Tooth Number Label — printed OUTSIDE the crown, at the same anchor
+               points used by the original traced reference chart, so numbering
+               reads like a normal odontogram (number sits beside the tooth, not
+               on top of it). Stays plain/dark regardless of selection state. -->
+          <text [attr.x]="tooth.labelX"
+                [attr.y]="tooth.labelY"
+                font-size="19"
+                font-family="ArialNarrow, Arial, system-ui, sans-serif"
+                fill="#1E293B"
+                class="pointer-events-none select-none">
+            {{ tooth.num }}
+          </text>
 
-            <text text-anchor="middle"
-                  dominant-baseline="central"
-                  font-size="11"
-                  font-family="system-ui, -apple-system, sans-serif"
-                  [attr.font-weight]="isToothSelected(tooth.num) ? '900' : '800'"
-                  [attr.fill]="isToothSelected(tooth.num) ? '#FFFFFF' : '#1E293B'"
-                  [attr.letter-spacing]="'-0.02em'"
-                  class="transition-colors duration-200">
-              {{ tooth.num }}
-            </text>
-          </g>
+          <!-- Overlap indicator — tooth is BOTH currently selected AND
+               already committed to a previous service. Dashed gold ring. -->
+          @if (isToothSelectedAndCommitted(tooth.num)) {
+            <circle [attr.cx]="tooth.cx" [attr.cy]="tooth.cy" r="24"
+                    fill="none" stroke="#FACC15" stroke-width="2.2"
+                    stroke-dasharray="4,3" opacity="0.9"
+                    class="pointer-events-none">
+            </circle>
+          }
         </g>
       }
-
-      <!-- Center Point Arch Marker -->
-      <circle cx="325" cy="385" r="3" fill="#64748B" opacity="0.4" />
     </svg>
   </div>
 
   <!-- Legend & FDI Info -->
-  <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-border text-xs">
-    <div class="flex items-center gap-5">
+  <!-- <div class="mt-4 pt-4 border-t border-border flex flex-col gap-3">
+    <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
       <div class="flex items-center gap-2">
-        <span class="w-3.5 h-3.5 rounded-full bg-red-600 border border-red-700 inline-block shadow-sm"></span>
-        <span class="font-extrabold text-secondary">السن المحدد (Selected Tooth)</span>
+        <span class="w-3.5 h-3.5 rounded-full bg-red-600 border border-red-700 inline-block shadow-sm shrink-0"></span>
+        <span class="text-xs font-extrabold text-secondary whitespace-nowrap">سن مُحدد الآن</span>
       </div>
 
       <div class="flex items-center gap-2">
-        <span class="w-3.5 h-3.5 rounded-full bg-slate-100 border border-slate-400 inline-block shadow-sm"></span>
-        <span class="font-bold text-text-secondary">سن غير محدد (Natural Ceramic)</span>
+        <span class="w-3.5 h-3.5 rounded-full bg-red-300 border border-red-400 inline-block shadow-sm shrink-0"></span>
+        <span class="text-xs font-extrabold text-secondary whitespace-nowrap">سن مضاف لخدمة في الطلب</span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 border border-emerald-700 inline-block shadow-sm shrink-0"></span>
+        <span class="text-xs font-extrabold text-secondary whitespace-nowrap">اسنان محدده للمعاينة</span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="w-3.5 h-3.5 rounded-full bg-slate-100 border border-slate-400 inline-block shadow-sm shrink-0"></span>
+        <span class="text-xs font-bold text-text-secondary whitespace-nowrap">سن غير محدد</span>
       </div>
     </div>
-
-    <div class="text-[11px] font-bold text-text-secondary bg-background border border-border px-3 py-1 rounded-full dir-ltr">
-      FDI Standard: 18-11 | 21-28 (Upper) &nbsp;•&nbsp; 48-41 | 31-38 (Lower)
-    </div>
-  </div>
+  </div> -->
 </div>

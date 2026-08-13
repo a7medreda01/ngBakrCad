@@ -59,21 +59,31 @@
             <div class="flex items-center gap-2 text-[11px]">
               <span class="text-text-secondary">القيمة الحالية:</span>
               <span class="bg-emerald-50 text-emerald-700 font-bold px-2.5 py-0.5 rounded-full">
-                {{ setting.value }} ريال
+                {{ setting.value }} {{ setting.key !== 'StorageProvider' ? 'ريال' : '' }}
               </span>
             </div>
 
             <!-- Input + Save -->
             <div class="flex gap-2">
-              <input
-                type="text"
-                inputmode="decimal"
-                min="1"
-                [(ngModel)]="editValues[setting.key]"
-                [id]="'setting-' + setting.key"
-                placeholder="القيمة الجديدة"
-                class="flex-1 bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-secondary font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 transition"
-              />
+              @if (setting.key === 'StorageProvider') {
+                <select
+                  [(ngModel)]="editValues[setting.key]"
+                  [id]="'setting-' + setting.key"
+                  class="flex-1 bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-secondary font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 transition">
+                  <option value="Local">Local (الخادم المحلي)</option>
+                  <option value="CloudflareR2">Cloudflare R2 (التخزين السحابي)</option>
+                </select>
+              } @else {
+                <input
+                  type="text"
+                  inputmode="decimal"
+                  min="1"
+                  [(ngModel)]="editValues[setting.key]"
+                  [id]="'setting-' + setting.key"
+                  placeholder="القيمة الجديدة"
+                  class="flex-1 bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-secondary font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 transition"
+                />
+              }
               <button
                 (click)="saveSetting(setting.key)"
                 [disabled]="isSaving() === setting.key"

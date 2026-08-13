@@ -16,8 +16,7 @@ interface ToastItem {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="fixed top-3 left-3 right-3 sm:left-auto sm:right-6 z-[9999] flex flex-col gap-3 max-w-md w-full pointer-events-none select-none">
-      @for (item of activeItems(); track item.notification.id) {
+<div class="fixed top-3 inset-x-3 sm:inset-x-auto sm:right-6 z-[9999] flex flex-col gap-3 sm:max-w-md sm:w-full pointer-events-none select-none">      @for (item of activeItems(); track item.notification.id) {
         <div
           (mouseenter)="pauseTimer(item)"
           (mouseleave)="resumeTimer(item)"

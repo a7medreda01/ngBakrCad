@@ -82,12 +82,18 @@
 
           @if (isGroupOpen('orders')) {
             <div class="flex flex-col gap-1 ms-3 ps-3 border-s border-white/10 animate-in slide-in-from-top-1 fade-in duration-200">
-              <a routerLink="/admin/orders"
-                 routerLinkActive="bg-white/15 text-white font-bold"
-                 class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                <span>{{ 'nav.orders' | translate }}</span>
-              </a>
+<a routerLink="/admin/orders"
+   routerLinkActive="bg-white/15 text-white font-bold"
+   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+  <span>{{ 'nav.orders' | translate }}</span>
+</a>
+<a routerLink="/admin/orders/create"
+   routerLinkActive="bg-white/15 text-white font-bold"
+   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all mt-1">
+  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+  <span>{{ 'nav.createDoctorOrder' | translate }}</span>
+</a>
 
               @if (authService.hasPermission('ScheduleMeetings')) {
                 <a routerLink="/admin/meetings"
@@ -97,6 +103,13 @@
                   <span>{{ 'nav.meetings' | translate }}</span>
                 </a>
               }
+
+              <a routerLink="/admin/platforms"
+                 routerLinkActive="bg-white/15 text-white font-bold"
+                 class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                <span>{{ translationService.isRtl() ? 'المنصات المتكاملة' : 'Integrated Platforms' }}</span>
+              </a>
             </div>
           }
         </div>
@@ -175,6 +188,13 @@
                      class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
                     <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
                     <span>{{ translationService.isRtl() ? 'أرباح وسحوبات المصممين' : 'Designer Earnings' }}</span>
+                  </a>
+
+                  <a routerLink="/admin/transactions"
+                     routerLinkActive="bg-white/15 text-white font-bold"
+                     class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-300"></span>
+                    <span>{{ 'nav.transactions' | translate }}</span>
                   </a>
                 }
               </div>
@@ -378,100 +398,174 @@
   ========================================================================== -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-    <!-- Top Toolbar Header -->
-    <header class="h-16 bg-surface/90 backdrop-blur-md border-b border-border/80 px-6 flex items-center justify-between z-20 flex-shrink-0 shadow-sm">
-      
-      <!-- Left: Mobile Menu Toggle & Portal Title -->
-      <div class="flex items-center gap-3">
-        <button (click)="toggleSidebar()" class="md:hidden p-2 rounded-xl bg-background hover:bg-border/60 text-secondary transition">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
-        </button>
-        
-        <div class="hidden sm:flex items-center gap-2 bg-background/80 px-3.5 py-1.5 rounded-full border border-border/60">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-xs font-black text-secondary">{{ 'portal.admin' | translate }}</span>
-        </div>
+<!-- Top Toolbar Header -->
+<header class="h-16 bg-surface/90 backdrop-blur-md border-b border-border/80 px-3 sm:px-6 flex items-center justify-between z-20 flex-shrink-0 shadow-sm gap-2">
+
+  <!-- Left: Mobile Menu Toggle + Logo/Title & Portal Badge -->
+  <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+    <button (click)="toggleSidebar()" class="md:hidden p-2 rounded-xl bg-background hover:bg-border/60 text-secondary transition flex-shrink-0">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5 sm:w-6 sm:h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+    </button>
+
+    <!-- Logo visible on mobile only (sidebar logo hidden there) -->
+    <a routerLink="/admin/analytics" class="flex md:hidden items-center gap-2 min-w-0">
+      <div class="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center p-1.5 flex-shrink-0">
+        <img src="/logo.png" alt="BKR CAD" class="h-4 w-auto object-contain brightness-0 invert" />
       </div>
+      <span class="text-xs font-black text-secondary truncate">BKR CAD</span>
+    </a>
 
-      <!-- Right: Controls (Language, Notifications, Profile Pill) -->
-      <div class="flex items-center gap-3">
+    <div class="hidden sm:flex items-center gap-2 bg-background/80 px-3.5 py-1.5 rounded-full border border-border/60 flex-shrink-0">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span class="text-xs font-black text-secondary">{{ 'portal.admin' | translate }}</span>
+    </div>
+  </div>
 
-        <!-- Language Switcher Button -->
-        <button (click)="translationService.toggleLanguage()"
-                class="flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20 transition duration-200 shadow-sm">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9s2.015-9 4.5-9m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m-15.686-2.253c0-.778.099-1.533.284-2.253" />
-          </svg>
-          <span>{{ translationService.currentLang() === 'ar' ? 'English' : 'عربي' }}</span>
-        </button>
+  <!-- Right: Controls (Language, Notifications, Profile Pill) -->
+  <div class="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
 
-        <!-- Notifications Bell Button -->
-        <div class="relative">
-          <button (click)="toggleNotif()" class="relative p-2.5 rounded-xl bg-background hover:bg-border/60 text-secondary transition border border-border/50 shadow-sm">
-            <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
+    <!-- Language Switcher: icon-only on mobile, full pill on larger screens -->
+    <button (click)="translationService.toggleLanguage()"
+            class="flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 rounded-xl border border-primary/20 transition duration-200 shadow-sm
+                   p-2 sm:px-3 sm:py-1.5">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 flex-shrink-0">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9s2.015-9 4.5-9m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m-15.686-2.253c0-.778.099-1.533.284-2.253" />
+      </svg>
+      <span class="hidden sm:inline">{{ translationService.currentLang() === 'ar' ? 'English' : 'عربي' }}</span>
+    </button>
+
+    <!-- Notifications Bell Button -->
+    <div class="relative">
+      <button (click)="toggleNotif()" class="relative p-2 sm:p-2.5 rounded-xl bg-background hover:bg-border/60 text-secondary transition border border-border/50 shadow-sm">
+        <svg class="w-4.5 h-4.5 sm:w-5 sm:h-5 text-secondary" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
+        @if (unreadCount() > 0) {
+          <span class="absolute -top-1 -end-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-md animate-pulse">
+            {{ unreadCount() > 9 ? '9+' : unreadCount() }}
+          </span>
+        }
+      </button>
+
+      <!-- Notifications Dropdown Panel -->
+      @if (isNotifOpen()) {
+        <div class="fixed inset-0 z-40" (click)="toggleNotif()"></div>
+<div
+  class="absolute top-full end-0 mt-2
+         w-[380px]
+         bg-surface
+         border border-border/80
+         rounded-2xl
+         shadow-2xl
+         z-50
+         overflow-hidden
+         flex flex-col
+         max-h-[32rem]
+         animate-in fade-in slide-in-from-top-2 duration-200"
+  [dir]="translationService.isRtl() ? 'rtl' : 'ltr'">          <div class="p-3.5 border-b border-border flex items-center justify-between bg-background/80">
+            <span class="font-black text-xs text-secondary tracking-wide uppercase">{{ translationService.currentLang() === 'ar' ? 'مركز الإشعارات' : 'Notifications Center' }}</span>
             @if (unreadCount() > 0) {
-              <span class="absolute -top-1 -end-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-md animate-pulse">
-                {{ unreadCount() > 9 ? '9+' : unreadCount() }}
+              <span class="px-2 py-0.5 text-[10px] font-black bg-primary/10 text-primary rounded-full">
+                {{ unreadCount() }} {{ translationService.currentLang() === 'ar' ? 'جديد' : 'new' }}
               </span>
             }
-          </button>
-
-          <!-- Notifications Dropdown Panel -->
-          @if (isNotifOpen()) {
-            <div class="fixed inset-0 z-40" (click)="toggleNotif()"></div>
-            <div class="absolute top-full end-0 mt-2 w-80 bg-surface border border-border/80 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-[28rem] animate-in fade-in slide-in-from-top-2 duration-200" [dir]="translationService.isRtl() ? 'rtl' : 'ltr'">
-              <div class="p-3.5 border-b border-border flex items-center justify-between bg-background/80">
-                <span class="font-black text-xs text-secondary tracking-wide uppercase">{{ translationService.currentLang() === 'ar' ? 'مركز الإشعارات' : 'Notifications Center' }}</span>
-                @if (unreadCount() > 0) {
-                  <span class="px-2 py-0.5 text-[10px] font-black bg-primary/10 text-primary rounded-full">
-                    {{ unreadCount() }} {{ translationService.currentLang() === 'ar' ? 'جديد' : 'new' }}
-                  </span>
-                }
-              </div>
-
-              <div class="overflow-y-auto flex-1 p-2">
-                @if (notificationService.notifications().length === 0) {
-                  <div class="p-8 text-center flex flex-col items-center gap-2">
-                    <svg class="w-8 h-8 text-secondary/20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
-                    <span class="text-xs font-bold text-secondary/40">{{ translationService.currentLang() === 'ar' ? 'لا توجد إشعارات حالياً' : 'No notifications' }}</span>
-                  </div>
-                }
-                @for (notif of notificationService.notifications(); track notif.id) {
-                  <button (click)="openNotification(notif)" class="w-full text-start p-3 rounded-xl hover:bg-background transition mb-1 flex gap-3 relative overflow-hidden group">
-                    @if (!notif.isRead) { <div class="absolute start-0 top-0 bottom-0 w-1 bg-primary rounded-e-full"></div> }
-                    <div class="flex-1 min-w-0">
-                      <p class="text-xs font-bold text-secondary mb-1 truncate" [class.text-secondary/70]="notif.isRead">
-                        {{ translationService.currentLang() === 'ar' ? notif.titleAr : notif.titleEn }}
-                      </p>
-                      <p class="text-[10px] text-text-secondary line-clamp-2 leading-relaxed" [class.opacity-60]="notif.isRead">
-                        {{ translationService.currentLang() === 'ar' ? notif.bodyAr : notif.bodyEn }}
-                      </p>
-                      <span class="text-[9px] font-bold text-secondary/40 mt-2 block uppercase tracking-wider">
-                        {{ notif.createdAt | date:'short' }}
-                      </span>
-                    </div>
-                  </button>
-                }
-              </div>
-            </div>
-          }
-        </div>
-
-        <!-- User Profile Avatar Pill -->
-        <a routerLink="/admin/profile" class="flex items-center gap-2 p-1.5 rounded-2xl hover:bg-background transition border border-transparent hover:border-border/60">
-          <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary-dark text-white flex items-center justify-center font-black text-xs shadow-md">
-            {{ authService.currentUser()?.fullName?.charAt(0) }}
           </div>
-          <span class="text-xs font-bold text-secondary hidden lg:inline">{{ authService.currentUser()?.fullName }}</span>
-        </a>
 
+          <div class="overflow-y-auto flex-1 p-2">
+            @if (notificationService.notifications().length === 0) {
+              <div class="p-8 text-center flex flex-col items-center gap-2">
+                <svg class="w-8 h-8 text-secondary/20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
+                <span class="text-xs font-bold text-secondary/40">{{ translationService.currentLang() === 'ar' ? 'لا توجد إشعارات حالياً' : 'No notifications' }}</span>
+              </div>
+            }
+            @for (notif of notificationService.notifications(); track notif.id) {
+              <button (click)="openNotification(notif)" class="w-full text-start p-3 rounded-xl hover:bg-background transition mb-1 flex gap-3 relative overflow-hidden group">
+                @if (!notif.isRead) { <div class="absolute start-0 top-0 bottom-0 w-1 bg-primary rounded-e-full"></div> }
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-bold text-secondary mb-1 truncate" [class.text-secondary/70]="notif.isRead">
+                    {{ translationService.currentLang() === 'ar' ? notif.titleAr : notif.titleEn }}
+                  </p>
+                  <p class="text-[10px] text-text-secondary line-clamp-2 leading-relaxed" [class.opacity-60]="notif.isRead">
+                    {{ translationService.currentLang() === 'ar' ? notif.bodyAr : notif.bodyEn }}
+                  </p>
+                  <span class="text-[9px] font-bold text-secondary/40 mt-2 block uppercase tracking-wider">
+                    {{ notif.createdAt | date:'short' }}
+                  </span>
+                </div>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- User Profile Avatar Pill -->
+    <a routerLink="/admin/profile" class="flex items-center gap-2 p-1 sm:p-1.5 rounded-2xl hover:bg-background transition border border-transparent hover:border-border/60">
+      <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-primary to-primary-dark text-white flex items-center justify-center font-black text-xs shadow-md flex-shrink-0">
+        {{ authService.currentUser()?.fullName?.charAt(0) }}
       </div>
-    </header>
-
-    <!-- Main Viewport Router Outlet -->
-    <main class="flex-1 overflow-y-auto p-6 sm:p-8 bg-background/50">
-      <router-outlet></router-outlet>
-    </main>
+      <span class="text-xs font-bold text-secondary hidden lg:inline">{{ authService.currentUser()?.fullName }}</span>
+    </a>
 
   </div>
+</header>
+<!-- Main Viewport Router Outlet -->
+<main class="flex-1 overflow-y-auto p-6 sm:p-8 bg-background/50 pb-32 md:pb-8">
+  <router-outlet></router-outlet>
+</main>
+  </div>
+  <!-- =========================================================================
+     MOBILE BOTTOM TOOLBAR (Quick Access - like desktop sidebar shortcuts)
+========================================================================== -->
+<nav class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-surface/95 backdrop-blur-md border-t border-border/80 shadow-2xl">
+  <div class="grid grid-cols-5 items-stretch">
+
+    <a routerLink="/admin/analytics" routerLinkActive="text-primary" #rlaAnalytics="routerLinkActive"
+       class="flex flex-col items-center justify-center gap-1 py-2.5 text-text-secondary transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+      </svg>
+      <span class="text-[10px] font-bold">{{ translationService.isRtl() ? 'الإحصائيات' : 'Analytics' }}</span>
+    </a>
+
+    <a routerLink="/admin/orders" routerLinkActive="text-primary"
+       class="flex flex-col items-center justify-center gap-1 py-2.5 text-text-secondary transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+      </svg>
+      <span class="text-[10px] font-bold">{{ translationService.isRtl() ? 'الطلبات' : 'Orders' }}</span>
+    </a>
+
+    <!-- Center: Create Order (raised action button) -->
+    <a routerLink="/admin/orders/create"
+       class="flex flex-col items-center justify-center relative">
+      <div class="absolute -top-5 w-12 h-12 rounded-2xl bg-brand-gradient shadow-primary flex items-center justify-center text-white active:scale-95 transition-transform">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+      </div>
+      <span class="text-[10px] font-bold text-text-secondary mt-6">{{ translationService.isRtl() ? 'إنشاء طلب' : 'New' }}</span>
+    </a>
+
+    <a routerLink="/admin/support" routerLinkActive="text-primary"
+       class="flex flex-col items-center justify-center gap-1 py-2.5 text-text-secondary transition-colors relative">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.75.75 0 1 0 .75.75.75.75 0 0 0-.75-.75Zm6.75 0a.75.75 0 1 0 .75.75.75.75 0 0 0-.75-.75ZM12 2.25c-5.385 0-9.75 4.365-9.75 9.75 0 1.33.33 2.588.92 3.71.56 1.07 1.38 1.96 2.4 2.57l.72 3.39 3.15-1.58a11.8 11.8 0 0 0 2.56 0l3.15 1.58-.72-3.39c1.02-.61 1.84-1.5 2.4-2.57.59-1.122.92-2.38.92-3.71 0-5.385-4.365-9.75-9.75-9.75Z" />
+      </svg>
+      @if (unreadSupportCount() > 0) {
+        <span class="absolute top-1 end-6 w-3.5 h-3.5 bg-rose-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">
+          {{ unreadSupportCount() > 9 ? '9+' : unreadSupportCount() }}
+        </span>
+      }
+      <span class="text-[10px] font-bold">{{ translationService.isRtl() ? 'الدعم' : 'Support' }}</span>
+    </a>
+
+    <button (click)="toggleSidebar()"
+       class="flex flex-col items-center justify-center gap-1 py-2.5 text-text-secondary transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </svg>
+      <span class="text-[10px] font-bold">{{ translationService.isRtl() ? 'المزيد' : 'More' }}</span>
+    </button>
+
+  </div>
+</nav>
 </div>

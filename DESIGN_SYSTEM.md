@@ -183,7 +183,7 @@ linear-gradient(135deg, #1E2A6D 0%, #2D8DB3 55%, #4AAED6 100%)
 <span class="badge-warning">قيد المراجعة</span>
 <span class="badge-error">مرفوض</span>
 <span class="badge-primary">نشط</span>
-<span class="badge-neutral">مسودة</span>
+<span class="badge-neutral">جديد</span>
 ```
 
 ```html

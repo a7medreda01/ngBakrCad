@@ -30,7 +30,8 @@ export class AuthService {
           refreshToken: this.tokenService.getRefreshToken() || '',
           roles: this.tokenService.getUserRoles(),
           permissions: this.tokenService.getUserPermissions(),
-          isEmailVerified: decoded.isEmailVerified === 'true' || decoded.isEmailVerified === true
+          isEmailVerified: decoded.isEmailVerified === 'true' || decoded.isEmailVerified === true,
+          isPhoneVerified: decoded.isPhoneVerified === 'true' || decoded.isPhoneVerified === true
         });
         this.loadUserProfile().subscribe();
       }
@@ -38,48 +39,65 @@ export class AuthService {
   }
 
   login(request: LoginRequest): Observable<AuthResponse> {
-    return this.api.post<AuthResponse>('Auth/login', request).pipe(
+    return this.api.post<AuthResponse>('Auth/login', request, { headers: { 'X-Skip-Error-Toast': 'true' } }).pipe(
       tap(res => this.handleAuthSuccess(res))
     );
   }
 
   register(request: RegisterRequest): Observable<AuthResponse> {
-    return this.api.post<AuthResponse>('Auth/register', request).pipe(
+    return this.api.post<AuthResponse>('Auth/register', request, { headers: { 'X-Skip-Error-Toast': 'true' } }).pipe(
       tap(res => this.handleAuthSuccess(res))
     );
   }
 
   forgotPassword(request: ForgotPasswordRequest): Observable<any> {
-    return this.api.post('Auth/forgot-password', request);
+    return this.api.post('Auth/forgot-password', request, { headers: { 'X-Skip-Error-Toast': 'true' } });
   }
 
   resetPassword(request: ResetPasswordRequest): Observable<any> {
-    return this.api.post('Auth/reset-password', request);
+    return this.api.post('Auth/reset-password', request, { headers: { 'X-Skip-Error-Toast': 'true' } });
   }
 
   changePassword(request: any): Observable<any> {
-    return this.api.post('Auth/change-password', request);
+    return this.api.post('Auth/change-password', request, { headers: { 'X-Skip-Error-Toast': 'true' } });
   }
 
   addEmployee(request: AddEmployeeRequest): Observable<AuthResponse> {
-    return this.api.post<AuthResponse>('Auth/add-employee', request);
+    return this.api.post<AuthResponse>('Auth/add-employee', request, { headers: { 'X-Skip-Error-Toast': 'true' } });
   }
 
   sendVerificationEmail(email: string): Observable<any> {
-    return this.api.post('Auth/send-verification-email', { email });
+    return this.api.post('Auth/send-verification-email', { email }, { headers: { 'X-Skip-Error-Toast': 'true' } });
   }
 
   verifyEmail(email: string, code: string): Observable<any> {
-    return this.api.post('Auth/verify-email', { email, code }).pipe(
-      tap(() => {
-        // Update user state to verified
-        const user = this.currentUser();
-        if (user) {
-          this.currentUser.set({
-            ...user,
-            isEmailVerified: true
-          });
+    return this.api.post<any>('Auth/verify-email', { email, code }, { headers: { 'X-Skip-Error-Toast': 'true' } }).pipe(
+      tap((res) => {
+        // Store the fresh JWT (with isEmailVerified=true) immediately so auth guard passes
+        if (res?.token) {
+          this.tokenService.saveToken(res.token);
         }
+        if (res?.refreshToken) {
+          this.tokenService.saveRefreshToken(res.refreshToken);
+        }
+        // Update the in-memory signal so UI reflects verified state
+        const user = this.currentUser();
+        if (user) this.currentUser.set({ ...user, isEmailVerified: true });
+      })
+    );
+  }
+
+  sendPhoneVerification(): Observable<any> {
+    return this.api.post('Auth/send-phone-verification', {}, { headers: { 'X-Skip-Error-Toast': 'true' } });
+  }
+
+  verifyPhone(code: string): Observable<any> {
+    return this.api.post('Auth/verify-phone', { code }, { headers: { 'X-Skip-Error-Toast': 'true' } }).pipe(
+      tap(() => {
+        const user = this.currentUser();
+        if (user) this.currentUser.set({ ...user, isPhoneVerified: true });
+        // Reload profile so wallet/credit reflects the granted bonus
+        this.loadUserProfile().subscribe();
       })
     );
   }
@@ -119,12 +137,26 @@ export class AuthService {
   handleAuthSuccess(res: AuthResponse): void {
     this.tokenService.saveToken(res.token);
     this.tokenService.saveRefreshToken(res.refreshToken);
-    this.currentUser.set(res);
+    // Decode isPhoneVerified from JWT if present
+    const decoded = this.tokenService.getDecodedToken();
+    this.currentUser.set({
+      ...res,
+      isPhoneVerified: decoded?.isPhoneVerified === 'true' || decoded?.isPhoneVerified === true
+    });
     this.loadUserProfile().subscribe();
   }
 
+  getCurrentUserRoles(): string[] {
+    const currentRoles = this.currentUser()?.roles;
+    if (currentRoles && currentRoles.length > 0) {
+      return currentRoles;
+    }
+
+    return this.tokenService.getUserRoles();
+  }
+
   hasRole(expectedRoles: string | string[]): boolean {
-    const roles = this.currentUser()?.roles || this.tokenService.getUserRoles();
+    const roles = this.getCurrentUserRoles();
     const expected = Array.isArray(expectedRoles) ? expectedRoles : [expectedRoles];
     return roles.some(r => expected.includes(r));
   }

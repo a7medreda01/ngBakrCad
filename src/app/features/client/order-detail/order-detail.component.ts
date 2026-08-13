@@ -44,6 +44,8 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
 
   readonly selectedThreeFile = signal<FileMetadataDto | null>(null);
   readonly activeFilesTab = signal<'client' | 'designer'>('client');
+  // ── جديد: التبويب الرئيسي لصفحة تفاصيل الطلب (الخدمات/الملفات/بيانات المريض/التسعير) ──
+  readonly activeMainTab = signal<'services' | 'files' | 'patient' | 'pricing'>('services');
   readonly selectedFileIds = signal<Set<string>>(new Set());  // New: track selected files
   readonly selectedServiceId = signal<string | null>(null);
 
@@ -68,6 +70,10 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
   readonly slaProgressPercent = signal<number>(0);
   readonly slaIsPaused = signal<boolean>(false);
   readonly slaIsBreached = signal<boolean>(false);
+  // Separate time parts for styled display
+  readonly slaHours = signal<number>(0);
+  readonly slaMinutes = signal<number>(0);
+  readonly slaSeconds = signal<number>(0);
   private slaIntervalId?: any;
 
   // ── جديد: حالة رفع الملف الناقص وقت WaitingClientResponse ──
@@ -114,7 +120,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
 
   readonly selectedFiles = computed(() => {
     const selectedIds = this.selectedFileIds();
-    const allFiles = [...this.designerPreviewFiles(), ...this.designerFinalFiles()];
+    const allFiles = [...this.clientFiles(), ...this.designerFiles()];
     return allFiles.filter(f => selectedIds.has(f.id));
   });
 
@@ -177,7 +183,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.order.set(normalizeOrder(res));
 
-        // الحالات اللي يُسمح فيها بعرض ملفات المصمم (نفس منطق canShowDesignerFiles)
+        // الحالات اللي يُسمح فيها بعرض ملفات التصميم (نفس منطق canShowDesignerFiles)
         const allowedDesignerFileStatuses = [
           OrderStatus.Completed,
           OrderStatus.ReadyForDownload,
@@ -202,6 +208,16 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
           autoFile = finalFile ?? previewFile ?? null;
         }
         this.selectedThreeFile.set(autoFile);
+
+        // إذا فيه ملف تلقائي للاختبار/المعاينة، ضيفه لمجموعة الملفات المحددة عشان يظهر في العارض
+        if (autoFile && autoFile.id) {
+          const s = new Set(this.selectedFileIds());
+          s.add(autoFile.id);
+          this.selectedFileIds.set(s);
+        } else {
+          // نفضي التحديد الافتراضي
+          this.selectedFileIds.set(new Set());
+        }
 
         // إعادة ضبط حالة الرفع كل ما نحمل الأوردر من جديد
         this.pendingFile.set(null);
@@ -306,6 +322,10 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
       const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
+      // update separate parts for styled display
+      this.slaHours.set(hours);
+      this.slaMinutes.set(mins);
+      this.slaSeconds.set(secs);
       this.slaRemainingText.set(`${hours}h ${mins}m ${secs}s`);
     };
 

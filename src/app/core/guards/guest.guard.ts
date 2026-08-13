@@ -6,9 +6,9 @@ export const guestGuard: CanActivateFn = (route, state) => {
   const tokenService = inject(TokenService);
   const router = inject(Router);
 
-  // اسمح للمستخدم المسجل دخول بالوصول لصفحة تأكيد البريد
-  // (حالة مستخدم مسجل دخول لكن بريده لسه مش مؤكد)
-  if (state.url.startsWith('/auth/verify-email')) {
+  // Allow authenticated users to access verify-email and verify-phone
+  // (user is logged in but hasn't verified their email/phone yet)
+  if (state.url.startsWith('/auth/verify-email') || state.url.startsWith('/auth/verify-phone')) {
     return true;
   }
 

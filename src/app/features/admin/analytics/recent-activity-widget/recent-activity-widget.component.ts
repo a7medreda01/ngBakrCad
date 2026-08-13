@@ -13,7 +13,7 @@ import { OrderDto, OrderStatus, SupportTicketDto } from '../../../../core/models
   template: `
     <div class="bg-surface rounded-3xl border border-border p-6 sm:p-7 shadow-xl mb-8 transition-all duration-300">
       <!-- Header Title & Controls -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-border">
+      <div class="flex flex-col gap-4 pb-5 border-b border-border">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black shadow-inner">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,50 +27,119 @@ import { OrderDto, OrderStatus, SupportTicketDto } from '../../../../core/models
         </div>
 
         <!-- Quick Switch Tabs -->
-        <div class="flex items-center bg-background p-1 rounded-2xl border border-border self-start sm:self-auto">
-          <button
-            (click)="activeTab.set('pending')"
-            class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center gap-2"
-            [class.bg-primary]="activeTab() === 'pending'"
-            [class.text-white]="activeTab() === 'pending'"
-            [class.shadow-md]="activeTab() === 'pending'"
-            [class.text-text-secondary]="activeTab() !== 'pending'"
-          >
-            <span>الطلبات المعلقة (انتظار إجراء)</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-black" [class.bg-white]="activeTab() === 'pending'" [class.text-primary]="activeTab() === 'pending'" [class.bg-amber-500/10]="activeTab() !== 'pending'" [class.text-amber-600]="activeTab() !== 'pending'">
-              {{ pendingOrders().length }}
-            </span>
-          </button>
+       <!-- Quick Switch Tabs -->
+<div class="w-full sm:w-auto">
+  <!-- Mobile: stacked full-width buttons -->
+  <div class="grid grid-cols-1 gap-2 sm:hidden">
+    <button
+      (click)="activeTab.set('pending')"
+      class="w-full px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center justify-between"
+      [class.bg-primary]="activeTab() === 'pending'"
+      [class.text-white]="activeTab() === 'pending'"
+      [class.shadow-md]="activeTab() === 'pending'"
+      [class.bg-background]="activeTab() !== 'pending'"
+      [class.border]="activeTab() !== 'pending'"
+      [class.border-border]="activeTab() !== 'pending'"
+      [class.text-text-secondary]="activeTab() !== 'pending'"
+    >
+      <span>الطلبات المعلقة</span>
+      <span class="px-2 py-0.5 rounded-full text-[10px] font-black"
+            [class.bg-white]="activeTab() === 'pending'"
+            [class.text-primary]="activeTab() === 'pending'"
+            [class.bg-amber-500/10]="activeTab() !== 'pending'"
+            [class.text-amber-600]="activeTab() !== 'pending'">
+        {{ pendingOrders().length }}
+      </span>
+    </button>
 
-          <button
-            (click)="activeTab.set('new')"
-            class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center gap-2"
-            [class.bg-primary]="activeTab() === 'new'"
-            [class.text-white]="activeTab() === 'new'"
-            [class.shadow-md]="activeTab() === 'new'"
-            [class.text-text-secondary]="activeTab() !== 'new'"
-          >
-            <span>الطلبات الجديدة</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-black" [class.bg-white]="activeTab() === 'new'" [class.text-primary]="activeTab() === 'new'" [class.bg-blue-500/10]="activeTab() !== 'new'" [class.text-blue-600]="activeTab() !== 'new'">
-              {{ newOrders().length }}
-            </span>
-          </button>
+    <button
+      (click)="activeTab.set('new')"
+      class="w-full px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center justify-between"
+      [class.bg-primary]="activeTab() === 'new'"
+      [class.text-white]="activeTab() === 'new'"
+      [class.shadow-md]="activeTab() === 'new'"
+      [class.bg-background]="activeTab() !== 'new'"
+      [class.border]="activeTab() !== 'new'"
+      [class.border-border]="activeTab() !== 'new'"
+      [class.text-text-secondary]="activeTab() !== 'new'"
+    >
+      <span>الطلبات الجديدة</span>
+      <span class="px-2 py-0.5 rounded-full text-[10px] font-black"
+            [class.bg-white]="activeTab() === 'new'"
+            [class.text-primary]="activeTab() === 'new'"
+            [class.bg-blue-500/10]="activeTab() !== 'new'"
+            [class.text-blue-600]="activeTab() !== 'new'">
+        {{ newOrders().length }}
+      </span>
+    </button>
 
-          <button
-            (click)="activeTab.set('inquiries')"
-            class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center gap-2"
-            [class.bg-primary]="activeTab() === 'inquiries'"
-            [class.text-white]="activeTab() === 'inquiries'"
-            [class.shadow-md]="activeTab() === 'inquiries'"
-            [class.text-text-secondary]="activeTab() !== 'inquiries'"
-          >
-            <span>أحدث الاستفسارات والتذاكر</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-black" [class.bg-white]="activeTab() === 'inquiries'" [class.text-primary]="activeTab() === 'inquiries'" [class.bg-rose-500/10]="activeTab() !== 'inquiries'" [class.text-rose-600]="activeTab() !== 'inquiries'">
-              {{ recentInquiries().length }}
-            </span>
-          </button>
-        </div>
-      </div>
+    <button
+      (click)="activeTab.set('inquiries')"
+      class="w-full px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center justify-between"
+      [class.bg-primary]="activeTab() === 'inquiries'"
+      [class.text-white]="activeTab() === 'inquiries'"
+      [class.shadow-md]="activeTab() === 'inquiries'"
+      [class.bg-background]="activeTab() !== 'inquiries'"
+      [class.border]="activeTab() !== 'inquiries'"
+      [class.border-border]="activeTab() !== 'inquiries'"
+      [class.text-text-secondary]="activeTab() !== 'inquiries'"
+    >
+      <span>الاستفسارات والتذاكر</span>
+      <span class="px-2 py-0.5 rounded-full text-[10px] font-black"
+            [class.bg-white]="activeTab() === 'inquiries'"
+            [class.text-primary]="activeTab() === 'inquiries'"
+            [class.bg-rose-500/10]="activeTab() !== 'inquiries'"
+            [class.text-rose-600]="activeTab() !== 'inquiries'">
+        {{ recentInquiries().length }}
+      </span>
+    </button>
+  </div>
+
+  <!-- Desktop/tablet: original inline pill group -->
+  <div class="hidden sm:flex items-center bg-background p-1 rounded-2xl border border-border flex-wrap gap-1">
+    <button
+      (click)="activeTab.set('pending')"
+      class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
+      [class.bg-primary]="activeTab() === 'pending'"
+      [class.text-white]="activeTab() === 'pending'"
+      [class.shadow-md]="activeTab() === 'pending'"
+      [class.text-text-secondary]="activeTab() !== 'pending'"
+    >
+      <span>الطلبات المعلقة (انتظار إجراء)</span>
+      <span class="px-2 py-0.5 rounded-full text-[10px] font-black" [class.bg-white]="activeTab() === 'pending'" [class.text-primary]="activeTab() === 'pending'" [class.bg-amber-500/10]="activeTab() !== 'pending'" [class.text-amber-600]="activeTab() !== 'pending'">
+        {{ pendingOrders().length }}
+      </span>
+    </button>
+
+    <button
+      (click)="activeTab.set('new')"
+      class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
+      [class.bg-primary]="activeTab() === 'new'"
+      [class.text-white]="activeTab() === 'new'"
+      [class.shadow-md]="activeTab() === 'new'"
+      [class.text-text-secondary]="activeTab() !== 'new'"
+    >
+      <span>الطلبات الجديدة</span>
+      <span class="px-2 py-0.5 rounded-full text-[10px] font-black" [class.bg-white]="activeTab() === 'new'" [class.text-primary]="activeTab() === 'new'" [class.bg-blue-500/10]="activeTab() !== 'new'" [class.text-blue-600]="activeTab() !== 'new'">
+        {{ newOrders().length }}
+      </span>
+    </button>
+
+    <button
+      (click)="activeTab.set('inquiries')"
+      class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
+      [class.bg-primary]="activeTab() === 'inquiries'"
+      [class.text-white]="activeTab() === 'inquiries'"
+      [class.shadow-md]="activeTab() === 'inquiries'"
+      [class.text-text-secondary]="activeTab() !== 'inquiries'"
+    >
+      <span>أحدث الاستفسارات والتذاكر</span>
+      <span class="px-2 py-0.5 rounded-full text-[10px] font-black" [class.bg-white]="activeTab() === 'inquiries'" [class.text-primary]="activeTab() === 'inquiries'" [class.bg-rose-500/10]="activeTab() !== 'inquiries'" [class.text-rose-600]="activeTab() !== 'inquiries'">
+        {{ recentInquiries().length }}
+      </span>
+    </button>
+  </div>
+</div>
 
       <!-- Main Content Grid -->
       <div class="mt-6">

@@ -8,11 +8,12 @@ import { NotificationNavigationService } from '../../services/notification-navig
 import { SupportService } from '../../services/support.service';
 
 import { EmailVerificationBannerComponent } from '../../../shared/components/email-verification-banner/email-verification-banner.component';
+import { PhoneVerificationBannerComponent } from '../../../shared/components/phone-verification-banner/phone-verification-banner.component';
 
 @Component({
   selector: 'app-client-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, EmailVerificationBannerComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, EmailVerificationBannerComponent, PhoneVerificationBannerComponent],
   templateUrl: './client-layout.component.html',
   styleUrl: './client-layout.component.scss'
 })

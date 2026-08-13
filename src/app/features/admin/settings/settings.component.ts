@@ -36,6 +36,11 @@ export class SettingsComponent implements OnInit {
       label: 'الحد الأدنى لطلب السحب (ريال)',
       description: 'أقل مبلغ يمكن للمصمم سحبه في طلب واحد',
       icon: 'bi bi-wallet2'
+    },
+    StorageProvider: {
+      label: 'مزود خدمة التخزين السحابي',
+      description: 'اختر مكان تخزين الملفات الجديدة المرفوعة (المحلية أم Cloudflare R2)',
+      icon: 'bi bi-cloud-arrow-up'
     }
   };
 
@@ -63,7 +68,7 @@ export class SettingsComponent implements OnInit {
 
   saveSetting(key: string): void {
     const value = this.editValues[key];
-    if (!value || isNaN(+value) || +value <= 0) {
+    if (key !== 'StorageProvider' && (!value || isNaN(+value) || +value <= 0)) {
       this.toast.error('يرجى إدخال قيمة رقمية صحيحة أكبر من صفر');
       return;
     }

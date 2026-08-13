@@ -94,7 +94,7 @@ export class ClientDashboardComponent implements OnInit {
 
   getStatusLabel(status: OrderStatus): string {
     const labels: Record<number, string> = {
-      [OrderStatus.Draft]: 'مسودة',
+      [OrderStatus.Draft]: 'جديد',
       [OrderStatus.PendingAdminReview]: 'قيد مراجعة الإدارة',
       [OrderStatus.AssignedToLab]: 'تم تحويله للمعمل',
       [OrderStatus.LabReview]: 'قيد مراجعة المعمل',
@@ -127,10 +127,10 @@ export class ClientDashboardComponent implements OnInit {
   getLevelProgress(currentLevel?: string, completedCount?: number): number {
     const count = completedCount || 0;
     if (!currentLevel || currentLevel === 'Bronze') {
-      return Math.min(Math.round((count / 10) * 100), 100);
+      return Math.min(Math.round((count / 20) * 100), 100);
     }
     if (currentLevel === 'Silver') {
-      const silverCount = Math.max(0, count - 10);
+      const silverCount = Math.max(0, count - 20);
       return Math.min(Math.round((silverCount / 40) * 100), 100);
     }
     return 100;
@@ -139,15 +139,15 @@ export class ClientDashboardComponent implements OnInit {
   getLevelEncouragement(currentLevel?: string, completedCount?: number): string {
     const count = completedCount || 0;
     if (!currentLevel || currentLevel === 'Bronze') {
-      const remaining = Math.max(0, 10 - count);
+      const remaining = Math.max(0, 20 - count);
       return remaining > 0 
-        ? `أكمل ${remaining} من الحالات الإضافية للترقية إلى الفئة الفضية للحصول على خصم على جميع طلباتك!`
+        ? `أكمل المزيد من الحالات الإضافية للترقية إلى الفئة الفضية للحصول على خصم على جميع طلباتك!`
         : `أنت جاهز للترقية للفئة الفضية!`;
     }
     if (currentLevel === 'Silver') {
       const remaining = Math.max(0, 50 - count);
       return remaining > 0 
-        ? `أكمل ${remaining} من الحالات الإضافية للترقية إلى الفئة الذهبية للحصول على خصم وأولوية قصوى لتنفيذ تصاميمك!`
+        ? `أكمل المزيد من الحالات الإضافية للترقية إلى الفئة الذهبية للحصول على خصم وأولوية قصوى لتنفيذ تصاميمك!`
         : `أنت جاهز للترقية للفئة الذهبية!`;
     }
     return 'تهانينا! لقد وصلت إلى أعلى فئة عضوية ذهبية بنجاح. أنت الآن تستمتع بأفضل الأسعار المتاحة وبأعلى أولوية!';

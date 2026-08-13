@@ -48,8 +48,9 @@ export class ServicesComponent implements OnInit {
     pricingMethod: ['FixedCase', [Validators.required]],
     price: [0, [Validators.required, Validators.min(0)]],
     designerProfit: [50, [Validators.required, Validators.min(0)]],
-    minimumDeliveryHours: [24, [Validators.required, Validators.min(1)]]
-  });
+    minimumDeliveryHours: [24, [Validators.required, Validators.min(1)]],
+    duplicationTooth: [false]
+  }); 
 
   readonly pricingMethods = [
     { value: 'PerTooth', label: 'لكل سن', numValue: 0 },
@@ -129,7 +130,8 @@ export class ServicesComponent implements OnInit {
       pricingMethod: (this.form.value.pricingMethod as any) || 'FixedCase',
       price: this.form.value.price || 0,
       designerProfit: this.form.value.designerProfit || 0,
-      minimumDeliveryHours: this.form.value.minimumDeliveryHours || 24
+      minimumDeliveryHours: this.form.value.minimumDeliveryHours || 24,
+      duplicationTooth: this.form.value.duplicationTooth || false // Default value; adjust as needed
     };
 
     this.catalogService.createService(request).subscribe({

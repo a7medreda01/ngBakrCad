@@ -8,7 +8,7 @@ import { ServicesMapComponent } from '../../shared/components/services-map/servi
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, ServicesMapComponent],
+  imports: [CommonModule, RouterLink],
   templateUrl: './home.component.html',
 })
 export class HomeComponent implements OnInit, OnDestroy {

@@ -57,6 +57,11 @@ export class SupportService {
     return this.api.patch(`Support/tickets/${ticketId}/messages/read`, {});
   }
 
+  /** Update ticket status (admins can set any status; owner can close) */
+  updateTicketStatus(ticketId: string, status: number): Observable<any> {
+    return this.api.patch(`Support/tickets/${ticketId}/status`, { status });
+  }
+
   // --- FAQs CRUD ---
   getFaqs(): Observable<FaqDto[]> {
     return this.api.get<FaqDto[]>('Faqs');

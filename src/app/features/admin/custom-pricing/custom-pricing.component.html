@@ -21,7 +21,7 @@
         ? 'px-5 py-2.5 rounded-xl text-xs font-bold bg-primary text-white shadow-md'
         : 'px-5 py-2.5 rounded-xl text-xs font-bold bg-surface border border-border text-text-secondary hover:bg-background transition'"
     >
-      أرباح المصممين
+      أسعار المصممين
     </button>
   </div>
 
@@ -277,7 +277,7 @@
               <thead>
                 <tr class="text-xs text-text-secondary border-b border-border bg-background/30">
                   <th class="text-right font-bold px-6 py-3">الخدمة</th>
-                  <th class="text-right font-bold px-6 py-3">الربح الافتراضي</th>
+                  <th class="text-right font-bold px-6 py-3">السعر الافتراضي</th>
                   <th class="text-right font-bold px-6 py-3">الربح المخصص</th>
                   <th class="text-right font-bold px-6 py-3">الفرق</th>
                   <th class="px-6 py-3">الإجراء</th>
@@ -345,7 +345,7 @@
               <thead>
                 <tr class="text-xs text-text-secondary border-b border-border bg-background/30">
                   <th class="text-right font-bold px-6 py-3">الخدمة</th>
-                  <th class="text-right font-bold px-6 py-3">الربح الافتراضي</th>
+                  <th class="text-right font-bold px-6 py-3">السعر الافتراضي</th>
                   <th class="text-right font-bold px-6 py-3">طريقة التسعير</th>
                   <th class="px-6 py-3">الإجراء</th>
                 </tr>
@@ -477,7 +477,7 @@
           <p class="text-xs font-bold text-secondary mt-1">
             {{ i18n.currentLang() === 'ar' ? selectedProfitService()?.nameAr : selectedProfitService()?.nameEn }}
           </p>
-          <p class="text-[10px] text-text-secondary mt-1">الربح الافتراضي: {{ selectedProfitService()?.designerProfit }} SAR</p>
+          <p class="text-[10px] text-text-secondary mt-1">السعر الافتراضي: {{ selectedProfitService()?.designerProfit }} SAR</p>
         </div>
 
         <form [formGroup]="profitForm" (ngSubmit)="submitCustomProfit()" class="flex flex-col gap-4">

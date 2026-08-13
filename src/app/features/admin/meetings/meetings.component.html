@@ -64,62 +64,104 @@
       <p class="text-xs text-text-secondary mt-3">{{ i18n.isRtl() ? 'جاري تحميل الاجتماعات...' : 'Loading meetings...' }}</p>
     </div>
   } @else {
-    <!-- Compact Rows List -->
-    <div class="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
-      @for (meeting of filteredMeetings(); track meeting.id) {
-        <button
-          (click)="openModal(meeting)"
-          class="w-full flex items-center gap-4 px-5 py-4 border-b border-border/50 last:border-0
-                 hover:bg-primary/5 transition-all duration-200 text-start group"
-        >
-          <!-- Status Dot -->
+<!-- Compact Rows List -->
+<div class="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+  @for (meeting of filteredMeetings(); track meeting.id) {
+    <button
+      (click)="openModal(meeting)"
+      class="w-full flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 sm:px-5 py-4 border-b border-border/50 last:border-0
+             hover:bg-primary/5 transition-all duration-200 text-start group"
+    >
+      <!-- MOBILE ONLY: header row -> status badge + (dot & case code) -->
+      <div class="flex items-center justify-between gap-2 sm:hidden">
+        <span class="flex-shrink-0 text-[11px] font-bold px-2.5 py-1 rounded-full border"
+          [class.bg-amber-50]="meeting.status === 0"
+          [class.text-amber-700]="meeting.status === 0"
+          [class.border-amber-200]="meeting.status === 0"
+          [class.bg-emerald-50]="meeting.status === 1"
+          [class.text-emerald-700]="meeting.status === 1"
+          [class.border-emerald-200]="meeting.status === 1"
+          [class.bg-rose-50]="meeting.status === 2"
+          [class.text-rose-700]="meeting.status === 2"
+          [class.border-rose-200]="meeting.status === 2">
+          {{ getStatusLabel(meeting.status) }}
+        </span>
+
+        <div class="flex items-center gap-2">
           <span class="flex-shrink-0 w-2.5 h-2.5 rounded-full"
             [class.bg-amber-400]="meeting.status === 0"
             [class.bg-emerald-500]="meeting.status === 1"
             [class.bg-rose-400]="meeting.status === 2">
           </span>
-
-          <!-- Case Code -->
           <span class="flex-shrink-0 text-xs font-black text-primary bg-primary/5 border border-primary/15 px-3 py-1 rounded-full">
             {{ meeting.orderCode || meeting.labCode }}
           </span>
-
-          <!-- Proposed Time -->
-          <div class="flex-1 flex flex-col gap-0.5 min-w-0">
-            <span class="text-[11px] text-text-secondary">{{ i18n.isRtl() ? 'الوقت المقترح' : 'Proposed Time' }}</span>
-            <span class="text-sm font-bold text-secondary truncate">{{ meeting.proposedTime | date:'medium' }}</span>
-          </div>
-
-          <!-- Status Badge -->
-          <span class="hidden sm:inline flex-shrink-0 text-[11px] font-bold px-2.5 py-1 rounded-full border"
-            [class.bg-amber-50]="meeting.status === 0"
-            [class.text-amber-700]="meeting.status === 0"
-            [class.border-amber-200]="meeting.status === 0"
-            [class.bg-emerald-50]="meeting.status === 1"
-            [class.text-emerald-700]="meeting.status === 1"
-            [class.border-emerald-200]="meeting.status === 1"
-            [class.bg-rose-50]="meeting.status === 2"
-            [class.text-rose-700]="meeting.status === 2"
-            [class.border-rose-200]="meeting.status === 2">
-            {{ getStatusLabel(meeting.status) }}
-          </span>
-
-          <!-- Arrow -->
-          <svg class="flex-shrink-0 w-4 h-4 text-text-secondary/40 group-hover:text-primary transition-colors"
-               xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="i18n.isRtl() ? 'M15.75 19.5 8.25 12l7.5-7.5' : 'M8.25 4.5l7.5 7.5-7.5 7.5'" />
-          </svg>
-        </button>
-      } @empty {
-        <div class="py-20 text-center text-text-secondary">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-14 h-14 mx-auto text-text-secondary/30 mb-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 16.318A4.486 4.486 0 0 0 12.016 15a4.486 4.486 0 0 0-3.198 1.318M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
-          </svg>
-          <p class="text-sm font-bold">{{ i18n.isRtl() ? 'لا توجد اجتماعات في هذه القائمة.' : 'No meetings found.' }}</p>
-          <p class="text-xs mt-1">{{ i18n.isRtl() ? 'يمكن للطبيب أو المصمم طلب اجتماع من صفحة تفاصيل الحالة.' : 'Doctor or Designer can request a meeting from the case detail page.' }}</p>
         </div>
-      }
+      </div>
+
+      <!-- DESKTOP ONLY: dot + case code inline -->
+      <span class="hidden sm:inline-flex flex-shrink-0 w-2.5 h-2.5 rounded-full"
+        [class.bg-amber-400]="meeting.status === 0"
+        [class.bg-emerald-500]="meeting.status === 1"
+        [class.bg-rose-400]="meeting.status === 2">
+      </span>
+      <span class="hidden sm:inline-flex flex-shrink-0 text-xs font-black text-primary bg-primary/5 border border-primary/15 px-3 py-1 rounded-full">
+        {{ meeting.orderCode || meeting.labCode }}
+      </span>
+
+      <!-- Proposed Time -->
+      <div class="flex-1 flex flex-col gap-0.5 min-w-0">
+        <span class="text-[11px] text-text-secondary">{{ i18n.isRtl() ? 'الوقت المقترح' : 'Proposed Time' }}</span>
+        <span class="text-sm font-bold text-secondary truncate">{{ meeting.proposedTime | date:'medium' }}</span>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-2 sm:flex-shrink-0">
+        @if (meeting.status === 0 && isAdmin()) {
+          <button (click)="openApproveModal(meeting); $event.stopPropagation()"
+                  class="w-full sm:w-auto px-3 py-2 sm:py-1 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold transition shadow-sm flex items-center justify-center gap-1 whitespace-nowrap">
+            ✓ {{ i18n.isRtl() ? 'قبول وجدولة' : 'Approve' }}
+          </button>
+        }
+
+        @if (meeting.status === 1 && getJoinUrl(meeting)) {
+          <a [href]="getJoinUrl(meeting)" target="_blank" rel="noopener" (click)="$event.stopPropagation()"
+             class="w-full sm:w-auto px-3 py-2 sm:py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm flex items-center justify-center gap-1 whitespace-nowrap">
+             {{ i18n.isRtl() ? 'انضمام' : 'Join' }}
+          </a>
+        }
+
+        <!-- status badge: desktop only (mobile already shown above) -->
+        <span class="hidden sm:inline flex-shrink-0 text-[11px] font-bold px-2.5 py-1 rounded-full border"
+          [class.bg-amber-50]="meeting.status === 0"
+          [class.text-amber-700]="meeting.status === 0"
+          [class.border-amber-200]="meeting.status === 0"
+          [class.bg-emerald-50]="meeting.status === 1"
+          [class.text-emerald-700]="meeting.status === 1"
+          [class.border-emerald-200]="meeting.status === 1"
+          [class.bg-rose-50]="meeting.status === 2"
+          [class.text-rose-700]="meeting.status === 2"
+          [class.border-rose-200]="meeting.status === 2">
+          {{ getStatusLabel(meeting.status) }}
+        </span>
+      </div>
+
+      <!-- Arrow: desktop only -->
+      <svg class="hidden sm:block flex-shrink-0 w-4 h-4 text-text-secondary/40 group-hover:text-primary transition-colors"
+           xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="i18n.isRtl() ? 'M15.75 19.5 8.25 12l7.5-7.5' : 'M8.25 4.5l7.5 7.5-7.5 7.5'" />
+      </svg>
+    </button>
+  } @empty {
+    <div class="py-20 text-center text-text-secondary">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-14 h-14 mx-auto text-text-secondary/30 mb-4">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 16.318A4.486 4.486 0 0 0 12.016 15a4.486 4.486 0 0 0-3.198 1.318M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
+      </svg>
+      <p class="text-sm font-bold">{{ i18n.isRtl() ? 'لا توجد اجتماعات في هذه القائمة.' : 'No meetings found.' }}</p>
+      <p class="text-xs mt-1">{{ i18n.isRtl() ? 'يمكن للطبيب أو المصمم طلب اجتماع من صفحة تفاصيل الحالة.' : 'Doctor or Designer can request a meeting from the case detail page.' }}</p>
     </div>
+  }
+</div>
   }
 </div>
 
@@ -211,7 +253,7 @@
         <div class="flex flex-col gap-2 pt-2">
           <!-- Admin: Approve -->
           @if (selectedMeeting()!.status === 0 && isAdmin()) {
-            <button (click)="approve(selectedMeeting()!)"
+            <button (click)="openApproveModal(selectedMeeting()!)"
                     class="w-full px-5 py-3 rounded-xl bg-primary hover:bg-primary/90 text-white text-sm font-bold transition flex items-center justify-center gap-2 shadow-md">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -259,6 +301,55 @@
             {{ i18n.isRtl() ? 'إغلاق' : 'Close' }}
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Approval Confirmation Modal -->
+@if (isApproveModalOpen() && approveTarget()) {
+  <div class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+       (click)="closeApproveModal()">
+    <div class="relative w-full max-w-md bg-surface rounded-3xl shadow-2xl border border-border overflow-hidden p-6 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200"
+         [dir]="i18n.isRtl() ? 'rtl' : 'ltr'"
+         (click)="$event.stopPropagation()">
+      <h3 class="text-base font-black text-secondary">
+        {{ i18n.isRtl() ? 'جدولة وتأكيد موعد الاجتماع' : 'Schedule & Confirm Meeting' }}
+      </h3>
+      <p class="text-xs text-text-secondary">
+        {{ i18n.isRtl() ? 'اختر الموعد المناسب لجدولة الاجتماع على Zoom لهذا الطلب:' : 'Choose the scheduled time for the Zoom meeting:' }}
+      </p>
+
+      <!-- Option 1: Keep Proposed Time -->
+      <label class="flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer transition"
+        [class]="approveMode() === 'proposed' ? 'border-primary bg-primary/5' : 'border-border bg-background'">
+        <input type="radio" name="approveMode" value="proposed" [checked]="approveMode() === 'proposed'" (change)="approveMode.set('proposed')" class="mt-0.5 text-primary focus:ring-primary" />
+        <div class="flex flex-col gap-0.5 text-xs">
+          <span class="font-bold text-secondary">{{ i18n.isRtl() ? 'الموافقة على الموعد المقترح من العميل' : 'Approve Proposed Time' }}</span>
+          <span class="font-black text-primary dir-ltr text-end sm:text-start">{{ approveTarget()!.proposedTime | date:'medium' }}</span>
+        </div>
+      </label>
+
+      <!-- Option 2: Custom Time -->
+      <label class="flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer transition"
+        [class]="approveMode() === 'custom' ? 'border-primary bg-primary/5' : 'border-border bg-background'">
+        <input type="radio" name="approveMode" value="custom" [checked]="approveMode() === 'custom'" (change)="approveMode.set('custom')" class="mt-0.5 text-primary focus:ring-primary" />
+        <div class="flex flex-col gap-1.5 text-xs w-full">
+          <span class="font-bold text-secondary">{{ i18n.isRtl() ? 'تحديد موعد جديد آخر' : 'Select a New Custom Time' }}</span>
+          @if (approveMode() === 'custom') {
+            <input type="datetime-local" [ngModel]="customTime()" (ngModelChange)="customTime.set($event)"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-surface text-xs font-bold focus:outline-none focus:border-primary transition" />
+          }
+        </div>
+      </label>
+
+      <div class="flex justify-end gap-2.5 mt-3">
+        <button (click)="closeApproveModal()" class="px-4 py-2 bg-background hover:bg-border rounded-xl text-xs font-bold text-secondary transition">
+          {{ i18n.isRtl() ? 'إلغاء' : 'Cancel' }}
+        </button>
+        <button (click)="confirmApprove()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-md">
+          {{ i18n.isRtl() ? 'تأكيد وجدولة Zoom' : 'Confirm & Schedule Zoom' }}
+        </button>
       </div>
     </div>
   </div>

@@ -50,124 +50,130 @@
     </div>
   </div>
 
-  <div class="bg-surface rounded-2xl border border-border shadow-card max-w-2xl p-6">
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
-      <!-- Full Name -->
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-secondary">الاسم الكامل</label>
-        <input
-          type="text"
-          formControlName="fullName"
-          class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
-        />
-      </div>
+  <div class="flex flex-col lg:flex-row gap-6">
 
-      <!-- Phone Number -->
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-secondary">رقم الجوال</label>
-        <input
-          type="tel"
-          formControlName="phoneNumber"
-          class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
-        />
-      </div>
-
-      <!-- Clinic Name -->
-      @if (authService.currentUser()?.roles?.includes('Doctor') || authService.currentUser()?.roles?.includes('Lab')) {
+    <!-- كارت تعديل البيانات -->
+    <div class="bg-surface rounded-2xl border border-border shadow-card p-6 flex-1">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+        <!-- Full Name -->
         <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-bold text-secondary">اسم العيادة أو المركز</label>
+          <label class="text-xs font-bold text-secondary">الاسم الكامل</label>
           <input
             type="text"
-            formControlName="clinicName"
-            class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
-          />
-        </div>
-      }
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- Country -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-bold text-secondary">الدولة</label>
-          <input
-            type="text"
-            formControlName="country"
+            formControlName="fullName"
             class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
           />
         </div>
 
-        <!-- City -->
+        <!-- Phone Number -->
         <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-bold text-secondary">المدينة</label>
+          <label class="text-xs font-bold text-secondary">رقم الجوال</label>
           <input
-            type="text"
-            formControlName="city"
+            type="tel"
+            formControlName="phoneNumber"
             class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
           />
         </div>
-      </div>
 
-      <!-- Specialization -->
-      @if (authService.currentUser()?.roles?.includes('Designer')) {
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-bold text-secondary">التخصص / المهارة الفنية</label>
-          <input
-            type="text"
-            formControlName="specialization"
-            placeholder="مثال: CAD Designer, Orthodontics specialist"
-            class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
-          />
+        <!-- Clinic Name -->
+        @if (authService.currentUser()?.roles?.includes('Doctor') || authService.currentUser()?.roles?.includes('Lab')) {
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">اسم العيادة أو المركز</label>
+            <input
+              type="text"
+              formControlName="clinicName"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+          </div>
+        }
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Country -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">الدولة</label>
+            <input
+              type="text"
+              formControlName="country"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+          </div>
+
+          <!-- City -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">المدينة</label>
+            <input
+              type="text"
+              formControlName="city"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+          </div>
         </div>
-      }
 
-      <button
-        type="submit"
-        [disabled]="isLoading()"
-        class="w-fit bg-primary text-white px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-primary-dark transition active:scale-95 disabled:opacity-50 mt-2"
-      >
-        حفظ التعديلات
-      </button>
-    </form>
-  </div>
+        <!-- Specialization -->
+        @if (authService.currentUser()?.roles?.includes('Designer')) {
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-secondary">التخصص / المهارة الفنية</label>
+            <input
+              type="text"
+              formControlName="specialization"
+              placeholder="مثال: CAD Designer, Orthodontics specialist"
+              class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+            />
+          </div>
+        }
 
-  <div class="bg-surface rounded-2xl border border-border shadow-card max-w-2xl p-6 mt-4">
-    <div class="border-b border-border pb-4 mb-4">
-      <h2 class="text-lg font-bold text-secondary">تغيير كلمة المرور</h2>
+        <button
+          type="submit"
+          [disabled]="isLoading()"
+          class="w-fit bg-primary text-white px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-primary-dark transition active:scale-95 disabled:opacity-50 mt-2"
+        >
+          حفظ التعديلات
+        </button>
+      </form>
     </div>
-    <form [formGroup]="changePasswordForm" (ngSubmit)="onChangePasswordSubmit()" class="flex flex-col gap-5">
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-secondary">كلمة المرور الحالية</label>
-        <input
-          type="password"
-          formControlName="currentPassword"
-          class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
-        />
-      </div>
 
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-secondary">كلمة المرور الجديدة</label>
-        <input
-          type="password"
-          formControlName="newPassword"
-          class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
-        />
+    <!-- كارت تغيير كلمة المرور -->
+    <div class="bg-surface rounded-2xl border border-border shadow-card p-6 flex-1">
+      <div class="border-b border-border pb-4 mb-4">
+        <h2 class="text-lg font-bold text-secondary">تغيير كلمة المرور</h2>
       </div>
+      <form [formGroup]="changePasswordForm" (ngSubmit)="onChangePasswordSubmit()" class="flex flex-col gap-5">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-secondary">كلمة المرور الحالية</label>
+          <input
+            type="password"
+            formControlName="currentPassword"
+            class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+          />
+        </div>
 
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-secondary">تأكيد كلمة المرور الجديدة</label>
-        <input
-          type="password"
-          formControlName="confirmPassword"
-          class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
-        />
-      </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-secondary">كلمة المرور الجديدة</label>
+          <input
+            type="password"
+            formControlName="newPassword"
+            class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+          />
+        </div>
 
-      <button
-        type="submit"
-        [disabled]="isChangingPassword()"
-        class="w-fit bg-primary text-white px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-primary-dark transition active:scale-95 disabled:opacity-50 mt-2"
-      >
-        تغيير كلمة المرور
-      </button>
-    </form>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-secondary">تأكيد كلمة المرور الجديدة</label>
+          <input
+            type="password"
+            formControlName="confirmPassword"
+            class="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:border-primary transition"
+          />
+        </div>
+
+        <button
+          type="submit"
+          [disabled]="isChangingPassword()"
+          class="w-fit bg-primary text-white px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-primary-dark transition active:scale-95 disabled:opacity-50 mt-2"
+        >
+          تغيير كلمة المرور
+        </button>
+      </form>
+    </div>
+
   </div>
 </div>

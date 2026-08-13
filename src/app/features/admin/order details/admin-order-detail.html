@@ -9,67 +9,83 @@
   } @else if (!order()) {
   <div class="text-center text-xs text-text-secondary py-12">لم يتم العثور على الطلب.</div>
   } @else {
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border pb-4">
-    <div class="flex items-center gap-3">
-      <button (click)="goBack()" class="text-text-secondary hover:text-secondary text-sm">← رجوع</button>
-      <div>
-        <h1 class="text-xl font-extrabold text-secondary flex items-center gap-2">
-          {{ order()!.orderCode }}
+
+  <!-- ============================= HEADER ============================= -->
+  <div class="bg-surface rounded-3xl border border-border shadow-card px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex items-center gap-3 min-w-0">
+      <button (click)="goBack()"
+        class="w-8 h-8 rounded-xl bg-background border border-border flex items-center justify-center text-text-secondary hover:text-secondary hover:bg-slate-100 transition flex-shrink-0">
+        <i class="bi bi-arrow-right text-sm" [class.rotate-180]="!i18n.isRtl()"></i>
+      </button>
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="text-lg font-black text-secondary font-mono dir-ltr">#{{ order()!.orderCode }}</h1>
           @if (order()!.expressChecked) {
-          <span class="text-[10px] font-bold text-orange-600 bg-orange-50 rounded-md px-1.5 py-0.5">إكسبريس</span>
+          <span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-orange-600 bg-orange-50 border border-orange-200 rounded-full px-2 py-0.5">
+            <i class="bi bi-lightning-charge-fill"></i> إكسبريس
+          </span>
           }
-        </h1>
-        <p class="text-xs text-text-secondary mt-1" dir="rtl">
-          <bdi>{{ order()!.patientName }}</bdi> — {{ order()!.patientAge }} سنة — <bdi>{{ order()!.patientGender
-            }}</bdi>
+        </div>
+        <p class="text-xs text-text-secondary mt-0.5 flex items-center gap-2 flex-wrap" dir="rtl">
+          <span class="font-bold text-secondary"><bdi>{{ order()!.patientName }}</bdi></span>
+          <span class="w-1 h-1 rounded-full bg-border"></span>
+          <span>{{ order()!.patientAge }} سنة</span>
+          <span class="w-1 h-1 rounded-full bg-border"></span>
+          <span><bdi>{{ order()!.patientGender }}</bdi></span>
+          @if (order()!.clientName) {
+          <span class="w-1 h-1 rounded-full bg-border"></span>
+          <span>{{ order()!.clientName?.startsWith('د.') ? order()!.clientName : 'د. ' + order()!.clientName }}</span>
+          }
         </p>
       </div>
     </div>
 
-    <span class="inline-flex items-center gap-1.5 text-xs font-bold rounded-full px-3 py-1.5 self-start"
+    <span class="inline-flex items-center gap-1.5 text-xs font-bold rounded-full px-3.5 py-2 self-start sm:self-auto shadow-sm"
       [class]="statusMeta(order()!.status).badge">
-      <span class="w-2 h-2 rounded-full" [class]="statusMeta(order()!.status).dot"></span>
+      <span class="w-2 h-2 rounded-full animate-pulse" [class]="statusMeta(order()!.status).dot"></span>
       {{ statusLabel(order()!.status) }}
     </span>
   </div>
 
+  <!-- Alerts -->
   @if (isStuck()) {
-  <div class="bg-red-50 border border-red-200 rounded-2xl p-4 text-xs text-red-700 font-bold">
-    الطلب متوقف ولا يمكن نقله للخطوة التالية تلقائياً. يجب على الإدارة إعادة إسناد الطلب لمصمم آخر لمتابعة العمل.
+  <div class="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
+    <span class="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0"><i class="bi bi-exclamation-octagon-fill"></i></span>
+    <p class="text-xs text-red-700 font-bold leading-relaxed">
+      الطلب متوقف ولا يمكن نقله للخطوة التالية تلقائياً. يجب على الإدارة إعادة إسناد الطلب لمصمم آخر لمتابعة العمل.
+    </p>
   </div>
   } @else if (isSlaPaused()) {
-  <div class="bg-orange-50 border border-orange-200 rounded-2xl p-4 text-xs text-orange-700 font-bold">
-    حساب الوقت متوقف حالياً في هذه الحالة، سيتم استكماله تلقائياً عند الانتقال للحالة التالية.
+  <div class="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3">
+    <span class="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0"><i class="bi bi-pause-circle-fill"></i></span>
+    <p class="text-xs text-orange-700 font-bold leading-relaxed">
+      حساب الوقت متوقف حالياً في هذه الحالة، سيتم استكماله تلقائياً عند الانتقال للحالة التالية.
+    </p>
   </div>
   }
 
-  <!-- Quotation Management Card (Admin) -->
+  <!-- ============================= QUOTATION BANNER ============================= -->
   @if (!order()!.isPaid) {
-  <div
-    class="bg-gradient-to-r from-amber-500/10 to-amber-600/5 border border-amber-500/30 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm mb-6">
+  <div class="relative overflow-hidden bg-gradient-to-l from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-3xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
     <div class="flex gap-3">
-      <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-700">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-          class="w-5 h-5">
+      <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-700 flex-shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
         </svg>
       </div>
       <div class="flex-1">
-        <h4 class="text-sm font-black text-amber-800">طلب بانتظار التسعير / الاعتماد (لوحة المشرفين)</h4>
+        <h4 class="text-sm font-black text-amber-800">طلب بانتظار التسعير / الاعتماد</h4>
         <p class="text-xs text-amber-700/80 mt-1">
           @if (order()!.finalPrice === 0) {
-          السعر الحالي للطلب هو <span class="font-extrabold">0 SAR</span>. يرجى إدخال السعر المناسب في الحقل المخصص
-          أدناه.
+          السعر الحالي للطلب هو <span class="font-extrabold">0 SAR</span>. يرجى إدخال السعر المناسب في الحقل المخصص أدناه.
           } @else {
-          تم تسعير الطلب بقيمة <span class="font-extrabold">{{ order()!.finalPrice }} SAR</span> وهو بانتظار اعتماد
-          العميل أو اعتمادك المباشر في حال الاتفاق.
+          تم تسعير الطلب بقيمة <span class="font-extrabold">{{ order()!.finalPrice }} SAR</span> وهو بانتظار اعتماد العميل أو اعتمادك المباشر في حال الاتفاق.
           }
         </p>
 
         <div class="flex flex-wrap items-center gap-3 mt-3">
-          <div class="flex items-center gap-1.5 bg-surface border border-border rounded-xl px-3 py-1">
+          <div class="flex items-center gap-1.5 bg-surface border border-border rounded-xl px-3 py-1.5">
             <input type="number" min="0.01" step="0.01" [ngModel]="quotationPrice()"
               (ngModelChange)="quotationPrice.set($event)" placeholder="سعر الخدمة"
               class="w-24 text-xs bg-transparent focus:outline-none font-bold" />
@@ -85,203 +101,366 @@
 
     @if (order()!.finalPrice && order()!.finalPrice > 0) {
     <button (click)="approveQuotation()" [disabled]="isProcessing()"
-      class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition shadow-md active:scale-95 disabled:opacity-50">
+      class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition shadow-md active:scale-95 disabled:opacity-50 whitespace-nowrap">
       اعتماد الطلب وخصم التكلفة
     </button>
     }
   </div>
   }
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Left column: main info -->
-    <div class="lg:col-span-2 flex flex-col gap-6">
+  <!-- ============================= QUICK BAR: Status Date + Delivery + SLA + Designer ============================= -->
+  @if (order()!.slaTracking) {
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <!-- تاريخ الحالة -->
+    <div class="bg-surface rounded-2xl border border-border shadow-card p-4 flex items-center gap-3">
+      <span class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0"><i class="bi bi-calendar2-check-fill"></i></span>
+      <div class="min-w-0">
+        <span class="text-[11px] text-text-secondary block leading-tight">تاريخ الحالة</span>
+        <span class="text-xs font-black text-secondary truncate block">{{ order()!.slaTracking?.startedAt | date:'d MMM, h:mm a' }}</span>
+      </div>
+    </div>
 
-      <!-- Tabs -->
-      <div class="bg-surface rounded-2xl border border-border shadow-card p-4">
-        <div class="flex flex-wrap gap-2">
-          <button (click)="activeTab.set('summary')" class="rounded-full px-4 py-2 text-xs font-semibold transition"
-            [class]="activeTab() === 'summary' ? 'bg-primary text-white' : 'bg-background text-text-secondary hover:bg-slate-100'">الملخص</button>
-          <button (click)="activeTab.set('files')" class="rounded-full px-4 py-2 text-xs font-semibold transition"
-            [class]="activeTab() === 'files' ? 'bg-primary text-white' : 'bg-background text-text-secondary hover:bg-slate-100'">الملفات</button>
-          <button (click)="activeTab.set('history')" class="rounded-full px-4 py-2 text-xs font-semibold transition"
-            [class]="activeTab() === 'history' ? 'bg-primary text-white' : 'bg-background text-text-secondary hover:bg-slate-100'">سجل
-            الحالات</button>
-          <button (click)="activeTab.set('actions')" class="rounded-full px-4 py-2 text-xs font-semibold transition"
-            [class]="activeTab() === 'actions' ? 'bg-primary text-white' : 'bg-background text-text-secondary hover:bg-slate-100'">الإجراءات</button>
+    <!-- الوقت المتوقع للتسليم -->
+    <div class="bg-surface rounded-2xl border border-border shadow-card p-4 flex items-center gap-3">
+      <span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center flex-shrink-0"><i class="bi bi-truck"></i></span>
+      <div class="min-w-0">
+        <span class="text-[11px] text-text-secondary block leading-tight">الوقت المتوقع للتسليم</span>
+        <span class="text-xs font-black text-secondary truncate block">
+          {{ (isSlaPaused() && slaExpectedDueAt()) ? (slaExpectedDueAt() | date:'d MMM, h:mm a') : (order()!.slaTracking?.dueAt | date:'d MMM, h:mm a') }}
+        </span>
+      </div>
+    </div>
+
+    <!-- الوقت المتبقي -->
+    <div class="bg-surface rounded-2xl border border-border shadow-card p-4 flex items-center gap-3">
+      <span class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center flex-shrink-0"><i class="bi bi-stopwatch-fill"></i></span>
+      <div class="min-w-0">
+        <span class="text-[11px] text-text-secondary block leading-tight">الوقت المتبقي</span>
+        @if (isSlaPaused()) {
+        <span class="text-xs font-black text-text-secondary">متوقف مؤقتًا</span>
+        } @else if (isSlaBreached()) {
+        <span class="text-xs font-black text-red-600 flex items-center gap-1"><i class="bi bi-exclamation-triangle-fill"></i> انتهت المهلة</span>
+        } @else {
+        <span class="text-xs font-black text-secondary" dir="ltr">{{ slaHours() }}h {{ slaMinutes() }}m {{ slaSeconds() }}s</span>
+        }
+      </div>
+    </div>
+
+    <!-- المصمم المسؤول -->
+    <div class="bg-surface rounded-2xl border border-border shadow-card p-4 flex items-center gap-3">
+      <span class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center flex-shrink-0"><i class="bi bi-person-badge-fill"></i></span>
+      <div class="min-w-0 flex-1">
+        <span class="text-[11px] text-text-secondary block leading-tight">المصمم المسؤول</span>
+        <span class="text-xs font-black text-secondary truncate block">{{ currentDesignerName() || 'لم يتم الإسناد بعد' }}</span>
+      </div>
+      <button (click)="openAssignModal()" class="text-[10px] font-bold text-primary hover:underline whitespace-nowrap flex-shrink-0">
+        {{ currentDesignerName() ? 'تغيير' : 'إسناد' }}
+      </button>
+    </div>
+  </div>
+  } @else {
+  <!-- Designer only, when no SLA tracking exists -->
+  <div class="bg-surface rounded-2xl border border-border shadow-card p-4 flex items-center gap-3 w-fit">
+    <span class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center flex-shrink-0"><i class="bi bi-person-badge-fill"></i></span>
+    <div class="min-w-0">
+      <span class="text-[11px] text-text-secondary block leading-tight">المصمم المسؤول</span>
+      <span class="text-xs font-black text-secondary truncate block">{{ currentDesignerName() || 'لم يتم الإسناد بعد' }}</span>
+    </div>
+    <button (click)="openAssignModal()" class="text-[11px] font-bold text-primary hover:underline whitespace-nowrap">
+      {{ currentDesignerName() ? 'تغيير' : 'إسناد' }}
+    </button>
+  </div>
+  }
+
+  <!-- ============================= STATUS CHANGE — professional, clearly clickable ============================= -->
+  <div class="bg-surface rounded-3xl border border-border shadow-card p-5 flex flex-row gap-5 gap-md-2">
+    <div class="flex items-center gap-2.5">
+      <span class="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center flex-shrink-0 shadow-md shadow-primary/20"><i class="bi bi-arrow-left-right"></i></span>
+      <div>
+        <h2 class="text-sm font-black text-secondary">حالة الطلب</h2>
+        <p class="text-[11px] text-text-secondary">اختر الإجراء المناسب لنقل الطلب للخطوة التالية</p>
+      </div>
+    </div>
+
+    @if (!availableActions().length && order()!.status !== OrderStatus.DoctorRevisionRequested) {
+    <p class="text-xs text-text-secondary bg-background rounded-xl px-4 py-3">لا يوجد إجراء تلقائي متاح لهذه الحالة حالياً.</p>
+    } @else {
+    <div class="flex flex-wrap gap-3">
+      @for (action of availableActions(); track action.next) {
+      <button (click)="selectAction(action)"
+        class="group flex items-center gap-2 text-sm font-extrabold rounded-2xl pl-4 pr-5 py-3 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 active:shadow-sm"
+        [class]="{
+              'bg-primary text-white shadow-primary/25 hover:bg-primary-dark': action.style === 'primary',
+              'bg-green-600 text-white shadow-green-600/25 hover:bg-green-700': action.style === 'success',
+              'bg-red-600 text-white shadow-red-600/25 hover:bg-red-700': action.style === 'danger',
+              'bg-background text-secondary border border-border hover:bg-slate-100 shadow-none': action.style === 'neutral'
+            }">
+        <i class="text-base transition-transform group-hover:-translate-x-0.5"
+          [class]="{
+                'bi bi-arrow-left-circle-fill': action.style === 'primary',
+                'bi bi-check-circle-fill': action.style === 'success',
+                'bi bi-x-circle-fill': action.style === 'danger',
+                'bi bi-circle': action.style === 'neutral'
+              }"></i>
+        {{ action.label }}
+      </button>
+      }
+
+      @if (order()!.status === OrderStatus.DoctorRevisionRequested) {
+      <button (click)="openRedoPanel()"
+        class="group flex items-center gap-2 text-sm font-extrabold rounded-2xl pl-4 pr-5 py-3 bg-indigo-600 text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-700 hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all">
+        <i class="bi bi-arrow-repeat text-base transition-transform group-hover:rotate-180"></i>
+        فتح الطلب للتعديل
+      </button>
+      }
+    </div>
+    }
+  </div>
+
+
+  <!-- Confirm panels triggered from the quick bar above -->
+  @if (pendingAction()) {
+  <div class="bg-surface rounded-2xl border border-border shadow-card p-4 flex flex-col gap-3">
+    <p class="text-xs font-bold text-secondary">تأكيد: {{ pendingAction()!.label }}</p>
+
+    @if (pendingAction()!.requiresPreview) {
+    <label class="flex items-center gap-2 text-xs text-secondary">
+      <input type="checkbox" [ngModel]="sendPreview()" (ngModelChange)="sendPreview.set($event)" />
+      إرسال معاينة للعميل بدلاً من الانتقال مباشرة لمراجعة الطبيب
+    </label>
+    }
+
+    <textarea [ngModel]="actionNotes()" (ngModelChange)="actionNotes.set($event)" rows="2"
+      placeholder="ملاحظات {{ pendingAction()!.requiresNotes ? '(مطلوبة)' : '(اختياري)' }}"
+      class="w-full px-3 py-2 rounded-lg border border-border bg-background text-xs focus:outline-none focus:border-primary transition resize-none"></textarea>
+
+    <div class="flex justify-end gap-2">
+      <button (click)="cancelAction()"
+        class="px-3 py-1.5 rounded-lg text-xs font-bold text-secondary hover:bg-border transition">إلغاء</button>
+      <button (click)="confirmAction()" [disabled]="isSubmittingAction()"
+        class="px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-white hover:bg-primary-dark disabled:opacity-50 transition">
+        {{ isSubmittingAction() ? 'جاري التنفيذ...' : 'تأكيد' }}
+      </button>
+    </div>
+  </div>
+  }
+
+  @if (showRedoPanel()) {
+  <div class="bg-surface rounded-2xl border border-border shadow-card p-4 flex flex-col gap-3">
+    <p class="text-xs font-bold text-secondary">فتح الطلب للتعديل</p>
+
+    <label class="flex items-center gap-2 text-xs text-secondary">
+      <input type="checkbox" [ngModel]="redoIsPaid()" (ngModelChange)="redoIsPaid.set($event)" />
+      تعديل مدفوع (سيتم إنشاء فاتورة إضافية)
+    </label>
+
+    @if (redoIsPaid()) {
+    <input type="number" min="0" [ngModel]="redoAmount()" (ngModelChange)="redoAmount.set($event)"
+      placeholder="القيمة الإضافية (SAR)"
+      class="w-full px-3 py-2 rounded-lg border border-border bg-background text-xs focus:outline-none focus:border-primary transition" />
+    }
+
+    <textarea [ngModel]="redoNotes()" (ngModelChange)="redoNotes.set($event)" rows="2"
+      placeholder="سبب التعديل..."
+      class="w-full px-3 py-2 rounded-lg border border-border bg-background text-xs focus:outline-none focus:border-primary transition resize-none"></textarea>
+
+    <div class="flex justify-end gap-2">
+      <button (click)="closeRedoPanel()"
+        class="px-3 py-1.5 rounded-lg text-xs font-bold text-secondary hover:bg-border transition">إلغاء</button>
+      <button (click)="submitRedo()" [disabled]="isSubmittingRedo()"
+        class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 transition">
+        {{ isSubmittingRedo() ? 'جاري التنفيذ...' : 'تأكيد وإعادة فتح الطلب' }}
+      </button>
+    </div>
+  </div>
+  }
+
+  <div class="flex flex-col gap-6 min-w-0">
+
+      <!-- ===== Tabs bar ===== -->
+      <div class="bg-surface rounded-2xl border border-border shadow-card p-2">
+        <div class="flex flex-wrap gap-1.5">
+          <button (click)="activeTab.set('summary')"
+            class="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold transition"
+            [class]="activeTab() === 'summary' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-text-secondary hover:bg-background'">
+            <i class="bi bi-clipboard2-pulse"></i> الخدمات والحالة
+          </button>
+          <button (click)="activeTab.set('files')"
+            class="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold transition"
+            [class]="activeTab() === 'files' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-text-secondary hover:bg-background'">
+            <i class="bi bi-folder2-open"></i> الملفات
+            @if (order()!.files.length) {
+            <span class="text-[10px] rounded-full px-1.5"
+              [class]="activeTab() === 'files' ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'">{{ order()!.files.length }}</span>
+            }
+          </button>
+          <button (click)="activeTab.set('history')"
+            class="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold transition"
+            [class]="activeTab() === 'history' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-text-secondary hover:bg-background'">
+            <i class="bi bi-clock-history"></i> سجل الحالات
+            @if (history().length) {
+            <span class="text-[10px] rounded-full px-1.5"
+              [class]="activeTab() === 'history' ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'">{{ history().length }}</span>
+            }
+          </button>
+          <button (click)="activeTab.set('actions')"
+            class="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold transition"
+            [class]="activeTab() === 'actions' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-text-secondary hover:bg-background'">
+            <i class="bi bi-gear-wide-connected"></i> الإجراءات
+          </button>
         </div>
       </div>
 
-      <!-- Summary tab -->
+      <!-- ===== SUMMARY TAB ===== -->
       @if (activeTab() === 'summary') {
       <div class="flex flex-col gap-6">
 
-        <!-- 1. Patient & Doctor Core Info Card (Priority 1) -->
-        <div
-          class="bg-surface rounded-3xl border border-border shadow-card p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden">
-          <div class="flex items-center gap-4">
-            <div
-              class="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-xl shadow-inner">
-              👨‍⚕️
-            </div>
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-text-secondary">اسم الطبيب / العميل:</span>
-                <h3 class="text-base font-black text-secondary">{{ order()!.clientName ?
-                  (order()!.clientName?.startsWith('د.') ? order()!.clientName : 'د. ' + order()!.clientName) : 'د. طبيب
-                  الأسنان' }}</h3>
-              </div>
-              <div class="flex items-center gap-3 text-xs text-text-secondary">
-                <span>اسم المريض: <b class="text-secondary font-bold">{{ order()!.patientName }}</b></span>
-                <span>•</span>
-                <span>المرضى: <b>{{ order()!.patientAge }} سنة</b> ({{ order()!.patientGender }})</span>
-              </div>
+        <!-- PRIORITY 1 · Services + Interactive Odontogram side by side -->
+        <div class="bg-surface rounded-3xl border-2 border-primary/20 shadow-card overflow-hidden">
+          <div class="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-border bg-primary/5">
+            <span class="w-7 h-7 rounded-full bg-primary text-white text-xs font-black flex items-center justify-center flex-shrink-0">1</span>
+            <div class="min-w-0">
+              <h2 class="text-sm font-black text-secondary flex items-center gap-2">
+                <i class="bi bi-lightning-charge-fill text-primary"></i>
+                الخدمات المطلوبة وتحديد الأسنان
+              </h2>
+              <p class="text-[11px] text-text-secondary mt-0.5">اضغط على أي خدمة لتظليل أسنانها تلقائياً على المخطط التفاعلي</p>
             </div>
           </div>
 
-          <div
-            class="flex flex-col items-end gap-1 border-t sm:border-t-0 sm:border-r border-border pt-3 sm:pt-0 sm:pr-4 w-full sm:w-auto">
-            <span class="text-[11px] text-text-secondary">رقم الحالة (Case ID):</span>
-            <span class="text-sm font-black text-primary font-mono dir-ltr">#{{ order()!.orderCode }}</span>
+          <div class="grid grid-cols-1 lg:grid-cols-2">
+            <!-- Services table — appears first in DOM => right side in RTL -->
+            <div class="p-6 flex flex-col gap-4 lg:border-l border-border">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="text-text-secondary border-b border-border">
+                    <th class="text-right font-bold py-2">نوع الخدمة</th>
+                    <th class="text-right font-bold py-2">الكمية</th>
+                    <th class="text-right font-bold py-2">السعر</th>
+                    <th class="text-right font-bold py-2">الإجمالي</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (line of order()!.services; track line.serviceId) {
+                  <tr (click)="toggleServiceSelection(line.serviceId)"
+                      [class]="selectedServiceId() === line.serviceId ? 'bg-amber-500/10' : 'hover:bg-background/80'"
+                      class="border-b border-border/40 cursor-pointer transition-all">
+                    <td class="py-2.5 font-bold text-secondary flex flex-col gap-1">
+                      <span class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full" [class.bg-amber-500]="selectedServiceId() === line.serviceId" [class.bg-primary]="selectedServiceId() !== line.serviceId"></span>
+                        {{ line.nameAr || line.nameEn || '—' }}
+                      </span>
+                      @if (line.teeth && line.teeth.length > 0) {
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-primary/10 text-primary border border-primary/20 w-fit">
+                          🦷 الأسنان: {{ line.teeth.join(', ') }}
+                        </span>
+                      }
+                    </td>
+                    <td class="py-2.5 text-text-secondary font-bold">{{ line.quantity }}</td>
+                    <td class="py-2.5 text-text-secondary">{{ line.priceCharged }} SAR</td>
+                    <td class="py-2.5 font-black text-secondary">{{ line.subtotal }} SAR</td>
+                  </tr>
+                  }
+                </tbody>
+              </table>
+
+              <div class="flex flex-col gap-1.5 pt-2 text-xs">
+                <div class="flex justify-between text-text-secondary"><span>السعر الأساسي</span><span>{{ order()!.basePrice }} SAR</span></div>
+                @if (order()!.expressFee) {
+                <div class="flex justify-between text-text-secondary"><span>رسوم إكسبريس</span><span>{{ order()!.expressFee }} SAR</span></div>
+                }
+                @if (order()!.gumDesignFee) {
+                <div class="flex justify-between text-text-secondary"><span>تصميم اللثة</span><span>{{ order()!.gumDesignFee }} SAR</span></div>
+                }
+                <div class="flex justify-between font-black text-secondary text-sm pt-2 border-t border-border">
+                  <span>التكلفة الإجمالية</span><span class="text-primary">{{ order()!.finalPrice }} SAR</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Odontogram — appears second in DOM => left side in RTL -->
+            <div class="p-6 flex flex-col gap-3 bg-background/50">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold text-secondary flex items-center gap-1.5">
+                  <i class="bi bi-diagram-3-fill text-primary"></i> المخطط التفاعلي (Odontogram)
+                </span>
+                @if (selectedServiceId()) {
+                <button (click)="selectedServiceId.set(null)" class="text-[10px] font-bold text-amber-600 hover:underline flex items-center gap-1">
+                  <i class="bi bi-x-circle"></i> إلغاء التظليل
+                </button>
+                }
+              </div>
+              @if (order()!.selectedTeeth.length > 0) {
+              <div class="bg-surface rounded-2xl border border-border p-2">
+                <app-odontogram [selectedTeeth]="order()!.selectedTeeth || []" [highlightedTeeth]="activeServiceTeeth()" [readOnly]="true"></app-odontogram>
+              </div>
+              } @else {
+              <div class="flex-1 flex items-center justify-center text-center text-xs text-text-secondary bg-surface rounded-2xl border border-dashed border-border/70 p-8">
+                لم يتم تحديد أسنان لهذا الطلب.
+              </div>
+              }
+            </div>
           </div>
         </div>
 
-        <!-- 2. Auto-Loaded 3D Preview Component (Priority 4) -->
+        <!-- PRIORITY 2 · Live 3D Preview -->
         @if (selectedFiles().length > 0 || all3dFiles().length > 0) {
-        <div class="bg-surface rounded-3xl border border-border p-6 shadow-card flex flex-col gap-4">
+        <!-- <div class="bg-surface rounded-3xl border border-border p-6 shadow-card flex flex-col gap-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
             <div class="flex items-center gap-2.5">
-              <span
-                class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center text-sm font-black">🧊</span>
+              <span class="w-7 h-7 rounded-full bg-indigo-500 text-white text-xs font-black flex items-center justify-center flex-shrink-0">2</span>
+              <span class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center text-sm font-black">🧊</span>
               <div>
-                <h3 class="text-sm font-black text-secondary">المعاينة ثلاثية الأبعاد المباشرة (3D CAD Viewer)</h3>
-                <p class="text-[11px] text-text-secondary">معاينة تلقائية لأول ملف 3D متاح، مع إمكانية التحديد المتعدد
-                  لدمج الملفات</p>
+                <h3 class="text-sm font-black text-secondary">المعاينة ثلاثية الأبعاد المباشرة</h3>
+                <p class="text-[11px] text-text-secondary">معاينة تلقائية لأول ملف 3D متاح، مع إمكانية التحديد المتعدد لدمج الملفات</p>
               </div>
             </div>
-            <span
-              class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-600 border border-indigo-500/20">
-              {{ selectedFiles().length }} ملف 3D محدد للمعاينة
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 whitespace-nowrap">
+              {{ selectedFiles().length }} ملف 3D محدد
             </span>
           </div>
 
           <app-three-viewer [fileUrls]="viewerFileInputs()"></app-three-viewer>
 
-          <!-- Multi-file selection checkboxes under 3D viewer -->
           @if (all3dFiles().length > 1) {
           <div class="bg-background rounded-2xl border border-border p-4 mt-2">
-            <span class="text-xs font-bold text-secondary block mb-2">تحديد ملفات متعددة للمعاينة معاً (Multi-file
-              Checkbox):</span>
+            <span class="text-xs font-bold text-secondary block mb-2">تحديد ملفات متعددة للمعاينة معاً:</span>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
               @for (file of all3dFiles(); track file.id) {
               <label (click)="toggleFileSelection(file.id)"
                 class="flex items-center gap-2.5 p-2.5 rounded-xl border transition cursor-pointer"
                 [class]="isFileSelected(file.id) ? 'border-primary bg-primary/5 text-primary font-bold' : 'border-border bg-surface text-secondary'">
-                <input type="checkbox" [checked]="isFileSelected(file.id)"
-                  class="w-4 h-4 rounded text-primary focus:ring-primary/20 border-border" />
+                <input type="checkbox" [checked]="isFileSelected(file.id)" class="w-4 h-4 rounded text-primary focus:ring-primary/20 border-border" />
                 <span class="text-xs truncate font-mono dir-ltr" [title]="file.fileName">{{ file.fileName }}</span>
               </label>
               }
             </div>
           </div>
           }
-        </div>
+        </div> -->
         }
 
-        <!-- 3. Work Type & Services (Priority 3) -->
-        <div class="bg-surface rounded-3xl border border-border shadow-card p-6 flex flex-col gap-4">
-          <h2 class="text-sm font-black text-secondary flex items-center gap-2">
-            <span>⚙️</span>
-            نوع العمل والخدمات المطلوبة
-          </h2>
-          <table class="w-full text-xs">
-            <thead>
-              <tr class="text-text-secondary border-b border-border">
-                <th class="text-right font-bold py-2">نوع الخدمة</th>
-                <th class="text-right font-bold py-2">الكمية</th>
-                <th class="text-right font-bold py-2">السعر</th>
-                <th class="text-right font-bold py-2">الإجمالي</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (line of order()!.services; track line.serviceId) {
-              <tr (click)="toggleServiceSelection(line.serviceId)"
-                  [class]="selectedServiceId() === line.serviceId ? 'bg-amber-500/10' : 'hover:bg-background/80'"
-                  class="border-b border-border/40 cursor-pointer transition-all">
-                <td class="py-2.5 font-bold text-secondary flex flex-col gap-1">
-                  <span class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full" [class.bg-amber-500]="selectedServiceId() === line.serviceId" [class.bg-primary]="selectedServiceId() !== line.serviceId"></span>
-                    {{ line.nameAr || line.nameEn || '—' }}
-                  </span>
-                  @if (line.teeth && line.teeth.length > 0) {
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-primary/10 text-primary border border-primary/20 w-fit">
-                      🦷 الأسنان: {{ line.teeth.join(', ') }}
-                    </span>
-                  }
-                </td>
-                <td class="py-2.5 text-text-secondary font-bold">{{ line.quantity }}</td>
-                <td class="py-2.5 text-text-secondary">{{ line.priceCharged }} SAR</td>
-                <td class="py-2.5 font-black text-secondary">{{ line.subtotal }} SAR</td>
-              </tr>
-              }
-            </tbody>
-          </table>
-
-          <div class="flex flex-col gap-1.5 pt-2 text-xs">
-            <div class="flex justify-between text-text-secondary"><span>السعر الأساسي</span><span>{{ order()!.basePrice
-                }} SAR</span></div>
-            @if (order()!.expressFee) {
-            <div class="flex justify-between text-text-secondary"><span>رسوم إكسبريس</span><span>{{ order()!.expressFee
-                }} SAR</span></div>
-            }
-            @if (order()!.gumDesignFee) {
-            <div class="flex justify-between text-text-secondary"><span>تصميم اللثة</span><span>{{ order()!.gumDesignFee
-                }} SAR</span></div>
-            }
-            <div class="flex justify-between font-black text-secondary text-sm pt-2 border-t border-border">
-              <span>التكلفة الإجمالية</span><span class="text-primary">{{ order()!.finalPrice }} SAR</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4. Tooth Chart / Odontogram (Priority 3 - Exocad Image 2) -->
-        @if (order()!.selectedTeeth.length > 0) {
-        <div class="bg-surface rounded-3xl border border-border shadow-card p-4 flex flex-col gap-2">
-          <div class="flex items-center justify-between px-2">
-            <span class="text-xs font-extrabold text-secondary">رسم بياني وتحديد الأسنان (Exocad Odontogram)</span>
-            @if (selectedServiceId()) {
-              <button (click)="selectedServiceId.set(null)" class="text-[10px] font-bold text-amber-600 hover:underline">
-                ✕ إلغاء تظليل الخدمة
-              </button>
-            }
-          </div>
-          <app-odontogram [selectedTeeth]="order()!.selectedTeeth || []" [highlightedTeeth]="activeServiceTeeth()" [readOnly]="true"></app-odontogram>
-        </div>
-        }
-
-        <!-- 5. Doctor Notes -->
+        <!-- PRIORITY 3 · Doctor Notes -->
         @if (order()!.notes) {
-        <div class="bg-surface rounded-3xl border border-border shadow-card p-6 flex flex-col gap-2">
-          <h3 class="text-xs font-black text-secondary flex items-center gap-1.5">
-            <span>📝</span>
-            ملاحظات وتعليمات الطبيب
-          </h3>
-          <p
-            class="text-xs text-text-secondary bg-background p-4 rounded-2xl border border-border/80 leading-relaxed font-semibold">
+        <div class="bg-surface rounded-3xl border border-border shadow-card p-6 flex flex-col gap-3">
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-full bg-slate-400 text-white text-xs font-black flex items-center justify-center flex-shrink-0">3</span>
+            <h3 class="text-xs font-black text-secondary flex items-center gap-1.5">
+              <i class="bi bi-sticky-fill text-secondary"></i> ملاحظات وتعليمات الطبيب
+            </h3>
+          </div>
+          <p class="text-xs text-text-secondary bg-background p-4 rounded-2xl border border-border/80 leading-relaxed font-semibold">
             {{ order()!.notes }}
           </p>
         </div>
         }
 
-        <!-- 6. Designer Selection at Bottom (Priority: bottom of supervision page for starting work) -->
-        <div
-          class="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-3xl border-2 border-primary/30 shadow-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 mt-2">
+        <!-- PRIORITY 4 · Designer selection (execution step, kept at the bottom) -->
+        <div class="relative overflow-hidden bg-gradient-to-l from-primary/10 via-primary/5 to-transparent rounded-3xl border-2 border-primary/30 shadow-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
           <div class="flex items-center gap-4">
-            <div
-              class="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center text-xl font-black shadow-md">
-              🎨
-            </div>
+            <div class="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center text-xl font-black shadow-md">🎨</div>
             <div>
-              <h3 class="text-base font-black text-secondary">اختيار وتحديد المصمم لبدأ العمل</h3>
+              <h3 class="text-base font-black text-secondary">اختيار وتحديد المصمم لبدء العمل</h3>
               <p class="text-xs text-text-secondary mt-0.5">
                 المصمم الحالي: <b class="text-primary font-bold">{{ currentDesignerName() || 'لم يتم الإسناد بعد' }}</b>
               </p>
@@ -300,33 +479,29 @@
       </div>
       }
 
-      <!-- Files tab -->
+      <!-- ===== FILES TAB ===== -->
       @if (activeTab() === 'files') {
-      <div class="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-6 min-w-0">
-        <!-- 3D Viewer for Designer Files -->
+      <div class="bg-surface rounded-3xl border border-border shadow-card p-6 flex flex-col gap-6 min-w-0">
         @if (selectedFiles().length > 0) {
         <div class="bg-background rounded-2xl border border-border p-4 flex flex-col gap-3">
           <div class="flex justify-between items-center">
-            <h3 class="text-sm font-extrabold text-secondary">مستعرض التصميم ثلاثي الأبعاد</h3>
-            <span class="text-xs text-text-secondary">{{ selectedFiles().length }} ملف{{ selectedFiles().length > 1 ?
-              'ات' : '' }} مختار{{ selectedFiles().length > 1 ? 'ة' : '' }}</span>
+            <h3 class="text-sm font-extrabold text-secondary flex items-center gap-1.5"><i class="bi bi-badge-3d-fill text-primary"></i> مستعرض التصميم ثلاثي الأبعاد</h3>
+            <span class="text-xs text-text-secondary">{{ selectedFiles().length }} ملف{{ selectedFiles().length > 1 ? 'ات' : '' }} مختار{{ selectedFiles().length > 1 ? 'ة' : '' }}</span>
           </div>
           <app-three-viewer [fileUrls]="viewerFileInputs()"></app-three-viewer>
         </div>
         }
 
-        <div class="flex items-center justify-between gap-3 mb-4">
+        <div class="flex items-center justify-between gap-3">
           <div>
-            <h2 class="text-sm font-black text-secondary">الملفات</h2>
-            <p class="text-[11px] text-text-secondary mt-1">جميع الملفات والروابط الخارجية المرفوعة لهذا الطلب مرتبة
-              للعرض والتحميل.</p>
+            <h2 class="text-sm font-black text-secondary flex items-center gap-1.5"><i class="bi bi-folder2-open text-primary"></i> الملفات</h2>
+            <p class="text-[11px] text-text-secondary mt-1">جميع الملفات والروابط الخارجية المرفوعة لهذا الطلب مرتبة للعرض والتحميل.</p>
           </div>
-          <span class="text-[11px] text-text-secondary">{{ order()!.files.length }} ملف</span>
+          <span class="text-[11px] text-text-secondary bg-background px-2.5 py-1 rounded-full border border-border">{{ order()!.files.length }} ملف</span>
         </div>
 
         @if (!order()!.files.length) {
-        <div
-          class="rounded-2xl border border-dashed border-border/70 bg-slate-50 p-6 text-center text-xs text-text-secondary">
+        <div class="rounded-2xl border border-dashed border-border/70 bg-slate-50 p-6 text-center text-xs text-text-secondary">
           لا توجد ملفات مرفوعة لهذا الطلب.
         </div>
         } @else {
@@ -335,12 +510,12 @@
             <button type="button" (click)="activeFilesTab.set('client')"
               class="rounded-full px-3 py-1.5 text-[11px] font-bold transition"
               [class]="activeFilesTab() === 'client' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-slate-100'">
-              ملفات العميل
+              ملفات الحالة
             </button>
             <button type="button" (click)="activeFilesTab.set('designer')"
               class="rounded-full px-3 py-1.5 text-[11px] font-bold transition"
               [class]="activeFilesTab() === 'designer' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-slate-100'">
-              ملفات المصمم
+              ملفات التصميم
             </button>
           </div>
 
@@ -350,9 +525,14 @@
             <div class="text-xs font-bold uppercase text-secondary">ملفات الطلب</div>
             <div class="grid gap-3 min-w-0">
               @for (file of clientOrderFiles(); track file.id) {
-              <div
-                class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-background rounded-2xl border border-border/70 p-4 w-full min-w-0">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-background rounded-2xl border p-4 w-full min-w-0 transition"
+                [class.border-primary]="isFileSelected(file.id)"
+                [class.bg-primary/5]="isFileSelected(file.id)"
+                [class.border-border/70]="!isFileSelected(file.id)">
                 <div class="flex items-center gap-3 min-w-0 w-full">
+                  @if (!file.isExternalLink && ['stl', 'obj', 'ply'].includes(file.fileName.split('.').pop() || '')) {
+                  <input type="checkbox" [checked]="isFileSelected(file.id)" (change)="toggleFileSelection(file.id)" class="w-4 h-4 rounded cursor-pointer flex-shrink-0" />
+                  }
                   <span class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
                     [class]="file.isExternalLink ? 'bg-indigo-50 text-indigo-600' : 'bg-primary/10 text-primary'">
                     <i [class]="file.isExternalLink ? 'bi bi-link-45deg' : 'bi bi-file-earmark'"></i>
@@ -361,25 +541,19 @@
                     <p class="text-sm font-semibold text-secondary truncate" [dir]="'ltr'">{{ file.fileName }}</p>
                     <p class="text-[11px] text-text-secondary mt-1">
                       {{ file.category }}
-                      @if (file.isExternalLink) {
-                      — رابط خارجي
-                      } @else {
-                      — {{ (file.fileSize / 1024 / 1024).toFixed(1) }} MB
-                      }
+                      @if (file.isExternalLink) { — رابط خارجي } @else { — {{ (file.fileSize / 1024 / 1024).toFixed(1) }} MB }
                     </p>
                   </div>
                 </div>
                 @if (file.isExternalLink) {
                 <a [href]="file.externalUrl" target="_blank" rel="noopener noreferrer"
                   class="inline-flex items-center gap-2 rounded-full bg-indigo-50 text-indigo-600 px-4 py-2 text-xs font-semibold hover:bg-indigo-100 transition flex-shrink-0">
-                  <i class="bi bi-box-arrow-up-right"></i>
-                  فتح الرابط
+                  <i class="bi bi-box-arrow-up-right"></i> فتح الرابط
                 </a>
                 } @else {
                 <a [href]="file.filePath" target="_blank" rel="noopener noreferrer" download
                   class="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-2 text-xs font-semibold hover:bg-primary/20 transition flex-shrink-0">
-                  <i class="bi bi-download"></i>
-                  تنزيل
+                  <i class="bi bi-download"></i> تنزيل
                 </a>
                 }
               </div>
@@ -387,15 +561,20 @@
             </div>
           </div>
           }
-
+ 
           @if (clientResponseFiles().length) {
           <div class="space-y-3 min-w-0">
             <div class="text-xs font-bold uppercase text-secondary">ملفات تم تزويدها</div>
             <div class="grid gap-3 min-w-0">
               @for (file of clientResponseFiles(); track file.id) {
-              <div
-                class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-background rounded-2xl border border-border/70 p-4 w-full min-w-0">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-background rounded-2xl border p-4 w-full min-w-0 transition"
+                [class.border-primary]="isFileSelected(file.id)"
+                [class.bg-primary/5]="isFileSelected(file.id)"
+                [class.border-border/70]="!isFileSelected(file.id)">
                 <div class="flex items-center gap-3 min-w-0 w-full">
+                  @if (!file.isExternalLink && ['stl', 'obj', 'ply'].includes(file.fileName.split('.').pop() || '')) {
+                  <input type="checkbox" [checked]="isFileSelected(file.id)" (change)="toggleFileSelection(file.id)" class="w-4 h-4 rounded cursor-pointer flex-shrink-0" />
+                  }
                   <span class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
                     [class]="file.isExternalLink ? 'bg-indigo-50 text-indigo-600' : 'bg-primary/10 text-primary'">
                     <i [class]="file.isExternalLink ? 'bi bi-link-45deg' : 'bi bi-file-earmark'"></i>
@@ -404,25 +583,19 @@
                     <p class="text-sm font-semibold text-secondary truncate" [dir]="'ltr'">{{ file.fileName }}</p>
                     <p class="text-[11px] text-text-secondary mt-1">
                       {{ file.category }}
-                      @if (file.isExternalLink) {
-                      — رابط خارجي
-                      } @else {
-                      — {{ (file.fileSize / 1024 / 1024).toFixed(1) }} MB
-                      }
+                      @if (file.isExternalLink) { — رابط خارجي } @else { — {{ (file.fileSize / 1024 / 1024).toFixed(1) }} MB }
                     </p>
                   </div>
                 </div>
                 @if (file.isExternalLink) {
                 <a [href]="file.externalUrl" target="_blank" rel="noopener noreferrer"
                   class="inline-flex items-center gap-2 rounded-full bg-indigo-50 text-indigo-600 px-4 py-2 text-xs font-semibold hover:bg-indigo-100 transition flex-shrink-0">
-                  <i class="bi bi-box-arrow-up-right"></i>
-                  فتح الرابط
+                  <i class="bi bi-box-arrow-up-right"></i> فتح الرابط
                 </a>
                 } @else {
                 <a [href]="file.filePath" target="_blank" rel="noopener noreferrer" download
                   class="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-2 text-xs font-semibold hover:bg-primary/20 transition flex-shrink-0">
-                  <i class="bi bi-download"></i>
-                  تنزيل
+                  <i class="bi bi-download"></i> تنزيل
                 </a>
                 }
               </div>
@@ -431,9 +604,9 @@
           </div>
           }
 
+
           @if (!clientOrderFiles().length && !clientResponseFiles().length) {
-          <div
-            class="rounded-2xl border border-dashed border-border/70 bg-slate-50 p-6 text-center text-xs text-text-secondary">
+          <div class="rounded-2xl border border-dashed border-border/70 bg-slate-50 p-6 text-center text-xs text-text-secondary">
             لا توجد ملفات للعميل في هذا الطلب.
           </div>
           }
@@ -443,13 +616,10 @@
             <div class="text-xs font-bold uppercase text-secondary">معاينة</div>
             <div class="grid gap-3 min-w-0">
               @for (file of designerPreviewFiles(); track file.id) {
-              <div
-                [class]="'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-background rounded-2xl border p-4 transition w-full min-w-0 ' + (isFileSelected(file.id) ? 'border-primary bg-primary/5' : 'border-border/70')">
+              <div [class]="'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-background rounded-2xl border p-4 transition w-full min-w-0 ' + (isFileSelected(file.id) ? 'border-primary bg-primary/5' : 'border-border/70')">
                 <div class="flex items-center gap-3 min-w-0 flex-1">
-                  <!-- Checkbox for 3D files -->
                   @if (!file.isExternalLink && ['stl', 'obj', 'ply'].includes(file.fileName.split('.').pop() || '')) {
-                  <input type="checkbox" [checked]="isFileSelected(file.id)" (change)="toggleFileSelection(file.id)"
-                    class="w-4 h-4 rounded cursor-pointer flex-shrink-0" />
+                  <input type="checkbox" [checked]="isFileSelected(file.id)" (change)="toggleFileSelection(file.id)" class="w-4 h-4 rounded cursor-pointer flex-shrink-0" />
                   }
                   <span class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
                     [class]="file.isExternalLink ? 'bg-indigo-50 text-indigo-600' : 'bg-primary/10 text-primary'">
@@ -462,25 +632,19 @@
                       @case ('preview') { صورة معاينة }
                       @default { مرفق }
                       }
-                      @if (file.isExternalLink) {
-                      — رابط خارجي
-                      } @else {
-                      — {{ (file.fileSize / 1024 / 1024).toFixed(1) }} MB
-                      }
+                      @if (file.isExternalLink) { — رابط خارجي } @else { — {{ (file.fileSize / 1024 / 1024).toFixed(1) }} MB }
                     </p>
                   </div>
                 </div>
                 @if (file.isExternalLink) {
                 <a [href]="file.externalUrl" target="_blank" rel="noopener noreferrer"
                   class="inline-flex items-center gap-2 rounded-full bg-indigo-50 text-indigo-600 px-4 py-2 text-xs font-semibold hover:bg-indigo-100 transition flex-shrink-0">
-                  <i class="bi bi-box-arrow-up-right"></i>
-                  فتح الرابط
+                  <i class="bi bi-box-arrow-up-right"></i> فتح الرابط
                 </a>
                 } @else {
                 <a [href]="file.filePath" target="_blank" rel="noopener noreferrer" download
                   class="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-2 text-xs font-semibold hover:bg-primary/20 transition flex-shrink-0">
-                  <i class="bi bi-download"></i>
-                  تنزيل
+                  <i class="bi bi-download"></i> تنزيل
                 </a>
                 }
               </div>
@@ -494,13 +658,10 @@
             <div class="text-xs font-bold uppercase text-secondary">الملفات النهائية</div>
             <div class="grid gap-3 min-w-0">
               @for (file of designerFinalFiles(); track file.id) {
-              <div
-                [class]="'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-background rounded-2xl border p-4 transition w-full min-w-0 ' + (isFileSelected(file.id) ? 'border-emerald-500 bg-emerald-50' : 'border-border/70')">
+              <div [class]="'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-background rounded-2xl border p-4 transition w-full min-w-0 ' + (isFileSelected(file.id) ? 'border-emerald-500 bg-emerald-50' : 'border-border/70')">
                 <div class="flex items-center gap-3 min-w-0 flex-1">
-                  <!-- Checkbox for 3D files -->
                   @if (!file.isExternalLink && ['stl', 'obj', 'ply'].includes(file.fileName.split('.').pop() || '')) {
-                  <input type="checkbox" [checked]="isFileSelected(file.id)" (change)="toggleFileSelection(file.id)"
-                    class="w-4 h-4 rounded cursor-pointer flex-shrink-0" />
+                  <input type="checkbox" [checked]="isFileSelected(file.id)" (change)="toggleFileSelection(file.id)" class="w-4 h-4 rounded cursor-pointer flex-shrink-0" />
                   }
                   <span class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
                     [class]="file.isExternalLink ? 'bg-indigo-50 text-indigo-600' : 'bg-primary/10 text-primary'">
@@ -514,25 +675,19 @@
                       @case ('screenshot') { لقطة شاشة }
                       @default { مرفق }
                       }
-                      @if (file.isExternalLink) {
-                      — رابط خارجي
-                      } @else {
-                      — {{ (file.fileSize / 1024 / 1024).toFixed(1) }} MB
-                      }
+                      @if (file.isExternalLink) { — رابط خارجي } @else { — {{ (file.fileSize / 1024 / 1024).toFixed(1) }} MB }
                     </p>
                   </div>
                 </div>
                 @if (file.isExternalLink) {
                 <a [href]="file.externalUrl" target="_blank" rel="noopener noreferrer"
                   class="inline-flex items-center gap-2 rounded-full bg-indigo-50 text-indigo-600 px-4 py-2 text-xs font-semibold hover:bg-indigo-100 transition flex-shrink-0">
-                  <i class="bi bi-box-arrow-up-right"></i>
-                  فتح الرابط
+                  <i class="bi bi-box-arrow-up-right"></i> فتح الرابط
                 </a>
                 } @else {
                 <a [href]="file.filePath" target="_blank" rel="noopener noreferrer" download
                   class="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-2 text-xs font-semibold hover:bg-primary/20 transition flex-shrink-0">
-                  <i class="bi bi-download"></i>
-                  تنزيل
+                  <i class="bi bi-download"></i> تنزيل
                 </a>
                 }
               </div>
@@ -542,8 +697,7 @@
           }
 
           @if (!designerPreviewFiles().length && !designerFinalFiles().length) {
-          <div
-            class="rounded-2xl border border-dashed border-border/70 bg-slate-50 p-6 text-center text-xs text-text-secondary">
+          <div class="rounded-2xl border border-dashed border-border/70 bg-slate-50 p-6 text-center text-xs text-text-secondary">
             لا توجد ملفات للمصمم في هذا الطلب.
           </div>
           }
@@ -553,18 +707,16 @@
       </div>
       }
 
-      <!-- History tab -->
+      <!-- ===== HISTORY TAB ===== -->
       @if (activeTab() === 'history') {
-      <div class="bg-surface rounded-2xl border border-border shadow-card p-6">
+      <div class="bg-surface rounded-3xl border border-border shadow-card p-6">
         <div class="flex flex-row justify-between items-start gap-3 mb-4">
           <div>
-            <h2 class="text-sm font-black text-secondary">سجل الحالات</h2>
+            <h2 class="text-sm font-black text-secondary flex items-center gap-1.5"><i class="bi bi-clock-history text-primary"></i> سجل الحالات</h2>
             <p class="text-[11px] text-text-secondary mt-1">عرض مُرتّب لكل تغير حالة الطلب مع الوقت والملاحظات.</p>
           </div>
-          <span
-            class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-[11px] font-semibold flex-shrink-0">
-            <i class="bi bi-clock-history"></i>
-            {{ history().length }} حدث
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-[11px] font-semibold flex-shrink-0">
+            <i class="bi bi-clock-history"></i> {{ history().length }} حدث
           </span>
         </div>
 
@@ -574,8 +726,7 @@
           <div class="h-12 bg-slate-100 animate-pulse rounded-xl"></div>
         </div>
         } @else if (!history().length) {
-        <div
-          class="rounded-2xl border border-dashed border-border/70 bg-slate-50 p-6 text-center text-xs text-text-secondary">
+        <div class="rounded-2xl border border-dashed border-border/70 bg-slate-50 p-6 text-center text-xs text-text-secondary">
           لا يوجد سجل حالات حتى الآن.
         </div>
         } @else {
@@ -583,17 +734,14 @@
           <span class="absolute top-1 bottom-1 right-[7px] w-px bg-border"></span>
           @for (h of history(); track h.id) {
           <li class="relative">
-            <span
-              class="absolute -right-5 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full border-2 border-white bg-primary shadow-sm"></span>
-            <div
-              class="rounded-xl border border-border/60 bg-slate-50 px-3.5 py-2.5 flex items-center justify-between gap-3">
+            <span class="absolute -right-5 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full border-2 border-white bg-primary shadow-sm"></span>
+            <div class="rounded-xl border border-border/60 bg-slate-50 px-3.5 py-2.5 flex items-center justify-between gap-3">
               <div class="flex items-center gap-2 min-w-0 text-xs">
                 <span class="font-semibold text-secondary truncate">{{ statusLabel(h.oldStatus) }}</span>
                 <i class="bi bi-arrow-left text-text-secondary text-[10px] flex-shrink-0"></i>
                 <span class="font-semibold text-secondary truncate">{{ statusLabel(h.newStatus) }}</span>
               </div>
-              <span class="text-[10.5px] text-text-secondary flex-shrink-0 whitespace-nowrap">{{ h.createdAt | date:'d
-                MMM, h:mm a' }}</span>
+              <span class="text-[10.5px] text-text-secondary flex-shrink-0 whitespace-nowrap">{{ h.createdAt | date:'d MMM, h:mm a' }}</span>
             </div>
             @if (h.notes) {
             <p class="mt-1 mr-3.5 text-[11px] text-text-secondary leading-relaxed italic">"{{ h.notes }}"</p>
@@ -605,11 +753,11 @@
       </div>
       }
 
-      <!-- Actions tab -->
+      <!-- ===== ACTIONS TAB ===== -->
       @if (activeTab() === 'actions') {
-      <div class="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-6">
+      <div class="bg-surface rounded-3xl border border-border shadow-card p-6 flex flex-col gap-6">
         <div>
-          <h2 class="text-sm font-black text-secondary">الإجراءات</h2>
+          <h2 class="text-sm font-black text-secondary flex items-center gap-1.5"><i class="bi bi-gear-wide-connected text-primary"></i> الإجراءات</h2>
           <p class="text-[11px] text-text-secondary mt-1">مدير حالة الطلب، الإسناد، وإعادة الفتح.</p>
         </div>
 
@@ -645,189 +793,15 @@
             فتح الطلب للتعديل (مجاني/مدفوع)
           </button>
           }
-        </div>
 
-        @if (pendingAction()) {
-        <div class="bg-slate-50 rounded-2xl border border-border/70 p-4">
-          <p class="text-xs font-bold text-secondary mb-3">تأكيد: {{ pendingAction()!.label }}</p>
-
-          @if (pendingAction()!.requiresPreview) {
-          <label class="flex items-center gap-2 text-xs text-secondary">
-            <input type="checkbox" [ngModel]="sendPreview()" (ngModelChange)="sendPreview.set($event)" />
-            إرسال معاينة للعميل بدلاً من الانتقال مباشرة لمراجعة الطبيب
-          </label>
+          @if (pendingAction() || showRedoPanel()) {
+          <p class="mt-3 text-[11px] text-primary font-bold flex items-center gap-1.5">
+            <i class="bi bi-arrow-up-circle-fill"></i> أكمل التأكيد من الشريط أعلى الصفحة
+          </p>
           }
-
-          <textarea [ngModel]="actionNotes()" (ngModelChange)="actionNotes.set($event)" rows="2"
-            placeholder="ملاحظات {{ pendingAction()!.requiresNotes ? '(مطلوبة)' : '(اختياري)' }}"
-            class="w-full px-3 py-2 rounded-lg border border-border bg-surface text-xs focus:outline-none focus:border-primary transition resize-none"></textarea>
-
-          <div class="flex justify-end gap-2 mt-3">
-            <button (click)="cancelAction()"
-              class="px-3 py-1.5 rounded-lg text-xs font-bold text-secondary hover:bg-border transition">إلغاء</button>
-            <button (click)="confirmAction()" [disabled]="isSubmittingAction()"
-              class="px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-white hover:bg-primary-dark disabled:opacity-50 transition">
-              {{ isSubmittingAction() ? 'جاري التنفيذ...' : 'تأكيد' }}
-            </button>
-          </div>
         </div>
-        }
-
-        @if (showRedoPanel()) {
-        <div class="bg-slate-50 rounded-2xl border border-border/70 p-4">
-          <p class="text-xs font-bold text-secondary mb-3">فتح الطلب للتعديل</p>
-
-          <label class="flex items-center gap-2 text-xs text-secondary">
-            <input type="checkbox" [ngModel]="redoIsPaid()" (ngModelChange)="redoIsPaid.set($event)" />
-            تعديل مدفوع (سيتم إنشاء فاتورة إضافية)
-          </label>
-
-          @if (redoIsPaid()) {
-          <input type="number" min="0" [ngModel]="redoAmount()" (ngModelChange)="redoAmount.set($event)"
-            placeholder="القيمة الإضافية (SAR)"
-            class="w-full px-3 py-2 rounded-lg border border-border bg-surface text-xs focus:outline-none focus:border-primary transition" />
-          }
-
-          <textarea [ngModel]="redoNotes()" (ngModelChange)="redoNotes.set($event)" rows="2"
-            placeholder="سبب التعديل..."
-            class="w-full px-3 py-2 rounded-lg border border-border bg-surface text-xs focus:outline-none focus:border-primary transition resize-none"></textarea>
-
-          <div class="flex justify-end gap-2 mt-3">
-            <button (click)="closeRedoPanel()"
-              class="px-3 py-1.5 rounded-lg text-xs font-bold text-secondary hover:bg-border transition">إلغاء</button>
-            <button (click)="submitRedo()" [disabled]="isSubmittingRedo()"
-              class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 transition">
-              {{ isSubmittingRedo() ? 'جاري التنفيذ...' : 'تأكيد وإعادة فتح الطلب' }}
-            </button>
-          </div>
-        </div>
-        }
       </div>
       }
-    </div>
-
-    <!-- Right column: SLA + actions -->
-    <div class="flex flex-col gap-6">
-
-      <!-- SLA -->
-      @if (order()!.slaTracking) {
-      <div class="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-2 text-xs">
-        <h2 class="text-sm font-black text-secondary mb-1">SLA</h2>
-        <div class="flex justify-between"><span class="text-text-secondary">بدأ في</span><span
-            class="font-bold text-secondary">{{ order()!.slaTracking?.startedAt | date:'short' }}</span></div>
-        <div class="flex justify-between"><span class="text-text-secondary">الموعد النهائي</span><span
-            class="font-bold text-secondary">{{ order()!.slaTracking?.dueAt | date:'short' }}</span></div>
-        @if (slaExpectedDueAt()) {
-        <div class="flex justify-between"><span class="text-text-secondary">الموعد المتوقع بعد التوقف</span><span
-            class="font-bold text-secondary">{{ slaExpectedDueAt() | date:'short' }}</span></div>
-        }
-        @if (order()!.slaTracking?.completedAt) {
-        <div class="flex justify-between"><span class="text-text-secondary">اكتمل في</span><span
-            class="font-bold text-secondary">{{ order()!.slaTracking?.completedAt | date:'short' }}</span></div>
-        }
-        @if (isSlaBreached()) {
-        <div class="mt-1 text-red-600 font-bold">⚠ تم تجاوز الموعد المحدد</div>
-        }
-      </div>
-      }
-
-      <!-- Assignment -->
-      <div class="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-3">
-        <h2 class="text-sm font-black text-secondary">المصمم المسؤول</h2>
-        <p class="text-xs text-text-secondary">{{ currentDesignerName() || 'لم يتم الإسناد بعد' }}</p>
-        <button (click)="openAssignModal()" class="text-xs font-bold text-primary hover:underline self-start">
-          {{ currentDesignerName() ? 'إعادة إسناد لمصمم آخر' : 'إسناد مصمم' }}
-        </button>
-      </div>
-
-      <!-- Status actions -->
-      <div class="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-3">
-        <h2 class="text-sm font-black text-secondary">تغيير الحالة</h2>
-
-        @if (!availableActions().length && order()!.status !== OrderStatus.DoctorRevisionRequested) {
-        <p class="text-xs text-text-secondary">لا يوجد إجراء تلقائي متاح لهذه الحالة حالياً.</p>
-        }
-
-        <div class="flex flex-col gap-2">
-          @for (action of availableActions(); track action.next) {
-          <button (click)="selectAction(action)" class="w-full text-xs font-bold rounded-xl px-3 py-2.5 transition"
-            [class]="{
-                  'bg-primary text-white hover:bg-primary-dark': action.style === 'primary',
-                  'bg-green-600 text-white hover:bg-green-700': action.style === 'success',
-                  'bg-red-600 text-white hover:bg-red-700': action.style === 'danger',
-                  'bg-background text-secondary hover:bg-border': action.style === 'neutral'
-                }">
-            {{ action.label }}
-          </button>
-          }
-
-          @if (order()!.status === OrderStatus.DoctorRevisionRequested) {
-          <button (click)="openRedoPanel()"
-            class="w-full text-xs font-bold rounded-xl px-3 py-2.5 bg-indigo-600 text-white hover:bg-indigo-700 transition">
-            فتح الطلب للتعديل (مجاني/مدفوع)
-          </button>
-          }
-        </div>
-
-        <!-- Confirm panel for a selected action -->
-        @if (pendingAction()) {
-        <div class="mt-2 bg-background rounded-xl p-4 flex flex-col gap-3">
-          <p class="text-xs font-bold text-secondary">تأكيد: {{ pendingAction()!.label }}</p>
-
-          @if (pendingAction()!.requiresPreview) {
-          <label class="flex items-center gap-2 text-xs text-secondary">
-            <input type="checkbox" [ngModel]="sendPreview()" (ngModelChange)="sendPreview.set($event)" />
-            إرسال معاينة للعميل بدلاً من الانتقال مباشرة لمراجعة الطبيب
-          </label>
-          }
-
-          <textarea [ngModel]="actionNotes()" (ngModelChange)="actionNotes.set($event)" rows="2"
-            placeholder="ملاحظات {{ pendingAction()!.requiresNotes ? '(مطلوبة)' : '(اختياري)' }}"
-            class="w-full px-3 py-2 rounded-lg border border-border bg-surface text-xs focus:outline-none focus:border-primary transition resize-none"></textarea>
-
-          <div class="flex justify-end gap-2">
-            <button (click)="cancelAction()"
-              class="px-3 py-1.5 rounded-lg text-xs font-bold text-secondary hover:bg-border transition">إلغاء</button>
-            <button (click)="confirmAction()" [disabled]="isSubmittingAction()"
-              class="px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-white hover:bg-primary-dark disabled:opacity-50 transition">
-              {{ isSubmittingAction() ? 'جاري التنفيذ...' : 'تأكيد' }}
-            </button>
-          </div>
-        </div>
-        }
-
-        <!-- Redo panel -->
-        @if (showRedoPanel()) {
-        <div class="mt-2 bg-background rounded-xl p-4 flex flex-col gap-3">
-          <p class="text-xs font-bold text-secondary">فتح الطلب للتعديل</p>
-
-          <label class="flex items-center gap-2 text-xs text-secondary">
-            <input type="checkbox" [ngModel]="redoIsPaid()" (ngModelChange)="redoIsPaid.set($event)" />
-            تعديل مدفوع (سيتم إنشاء فاتورة إضافية)
-          </label>
-
-          @if (redoIsPaid()) {
-          <input type="number" min="0" [ngModel]="redoAmount()" (ngModelChange)="redoAmount.set($event)"
-            placeholder="القيمة الإضافية (SAR)"
-            class="w-full px-3 py-2 rounded-lg border border-border bg-surface text-xs focus:outline-none focus:border-primary transition" />
-          }
-
-          <textarea [ngModel]="redoNotes()" (ngModelChange)="redoNotes.set($event)" rows="2"
-            placeholder="سبب التعديل..."
-            class="w-full px-3 py-2 rounded-lg border border-border bg-surface text-xs focus:outline-none focus:border-primary transition resize-none"></textarea>
-
-          <div class="flex justify-end gap-2">
-            <button (click)="closeRedoPanel()"
-              class="px-3 py-1.5 rounded-lg text-xs font-bold text-secondary hover:bg-border transition">إلغاء</button>
-            <button (click)="submitRedo()" [disabled]="isSubmittingRedo()"
-              class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 transition">
-              {{ isSubmittingRedo() ? 'جاري التنفيذ...' : 'تأكيد وإعادة فتح الطلب' }}
-            </button>
-          </div>
-        </div>
-        }
-      </div>
-    </div>
   </div>
   }
 

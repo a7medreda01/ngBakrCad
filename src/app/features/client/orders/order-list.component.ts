@@ -48,17 +48,12 @@ export class OrderListComponent implements OnInit {
    * --- جديد: قائمة الفلترة بتتولد من STATUS_META مباشرة بدل أرقام هاردكود
    * (كان فيه value="1" بلابل "قيد المراجعة" مش دقيقة، وناقص أغلب الحالات) ---
    */
-  readonly statusFilterOptions = Object.entries(STATUS_META)
-    .filter(([key]) => !isNaN(Number(key)))
-    .map(([key, meta]) => ({ value: key, label: meta.label }));
+  readonly statusFilterOptions = [
+    { value: '', label: 'كل الحالات' },
+    { value: 'new', label: 'حالات جديدة' },
+    { value: 'active', label: 'حالات نشطة' }
+  ];
 
-  /**
-   * --- معدّل: الفلتر كان فيه باغ حقيقي هنا:
-   * فلتر "الأولوية" (مستعجل / عادي) كان بيتحدد في filterPriority()
-   * لكن ملوش أي تأثير فعلي، لأ الباك إند مش مستقبل بارامتر أولوية،
-   * ولا الـ computed ده كان بيستخدمه في الفلترة أصلاً.
-   * فدلوقتي بنفلتر بالأولوية محليًا (client-side) على orders() زي ما بنعمل بالظبط مع البحث النصي. ---
-   */
   readonly filteredOrders = computed(() => {
     let list = this.orders();
 
@@ -67,8 +62,18 @@ export class OrderListComponent implements OnInit {
       list = list.filter(o =>
         o.orderCode.toLowerCase().includes(query) ||
         (o.patientName && o.patientName.toLowerCase().includes(query)) ||
+        (o.patientFileNumber && o.patientFileNumber.toLowerCase().includes(query)) ||
         (o.designerCode && o.designerCode.toLowerCase().includes(query))
       );
+    }
+
+    const status = this.filterStatus();
+    if (status === 'new') {
+      const newStatuses = [OrderStatus.Draft, OrderStatus.PendingAdminReview, OrderStatus.AssignedToLab, OrderStatus.LabReview, OrderStatus.LabAccepted];
+      list = list.filter(o => newStatuses.includes(o.status));
+    } else if (status === 'active') {
+      const activeStatuses = [OrderStatus.InDesign, OrderStatus.QualityReview, OrderStatus.DoctorReview, OrderStatus.WaitingClientReview, OrderStatus.WaitingDoctorResponse, OrderStatus.ReadyForDownload, OrderStatus.WaitingClientResponse];
+      list = list.filter(o => activeStatuses.includes(o.status));
     }
 
     const priority = this.filterPriority();
@@ -87,10 +92,9 @@ export class OrderListComponent implements OnInit {
 
   loadOrders(): void {
     this.isLoading.set(true);
-    const statusParam = this.filterStatus() || undefined;
     const sortParam = `${this.sortBy()}:${this.sortDesc() ? 'desc' : 'asc'}`;
 
-    this.orderService.getMyOrders(this.currentPage(), this.pageSize(), statusParam, sortParam).subscribe({
+    this.orderService.getMyOrders(this.currentPage(), this.pageSize(), undefined, sortParam).subscribe({
       next: (res: any) => {
         const rawItems: OrderDto[] = res?.data || res?.items || res || [];
         this.orders.set(rawItems.map(normalizeOrder));
@@ -111,14 +115,8 @@ export class OrderListComponent implements OnInit {
     this.loadOrders();
   }
 
-  /**
-   * --- معدّل: فلتر الأولوية (express/normal) بقى client-side بحت (مش محتاج يرجع لسيرفر)
-   * عشان كده مش بنستدعي loadOrders() تاني لو اللي اتغير هو الأولوية بس،
-   * أما فلتر الحالة (status) فلازم يرجع للسيرفر لأنه بيأثر على الـ pagination الحقيقية. ---
-   */
   onFilterChange(): void {
     this.currentPage.set(1);
-    this.loadOrders();
   }
 
   onPriorityFilterChange(): void {

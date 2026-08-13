@@ -7,12 +7,19 @@
       <p class="text-xs text-text-secondary mt-0.5">متابعة وإسناد طلبات التصميم الرقمي للأسنان</p>
     </div>
     <div class="flex items-center gap-2">
+      <a routerLink="/admin/orders/create"
+        class="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold transition shadow-sm flex items-center gap-2">
+        <i class="bi bi-plus-lg"></i>
+        <span>إنشاء طلب جديد للطبيب</span>
+      </a>
       <div class="text-xs font-bold text-text-secondary bg-surface border border-border rounded-xl px-4 py-2.5 flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
         <span>{{ totalCount() }} طلب</span>
       </div>
     </div>
   </div>
+
+
 
   <!-- ═══════════════════════════════ TOOLBAR ═══════════════════════════════ -->
   <div class="flex flex-col sm:flex-row gap-3">

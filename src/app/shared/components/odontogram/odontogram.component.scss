@@ -11,28 +11,19 @@
 
 .odontogram-svg {
   width: 100%;
-  max-width: 600px;
+  /* Real anatomical viewBox (478.6 x 817.16) is taller/narrower than the old
+     generic layout, so the cap is narrower to keep teeth from over-scaling. */
+  max-width: 460px;
   height: auto;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.05));
 }
 
-.side-label {
-  font-size: 13px;
-  font-weight: 700;
-  fill: #94A3B8;
-  font-family: system-ui, sans-serif;
-  letter-spacing: 0.05em;
-  user-select: none;
-}
-
-.midline {
-  stroke: #E2E8F0;
-  stroke-width: 2;
-  stroke-dasharray: 4 4;
-  opacity: 0.6;
-}
-
-.tooth-group {
+/* ===========================================================
+   Tooth group — matches [class.selected] / [class.committed] /
+   [class.read-only] bindings set on <g class="tooth-item"> in
+   the template.
+   =========================================================== */
+.tooth-item {
   cursor: pointer;
   user-select: none;
 
@@ -40,186 +31,82 @@
     cursor: default;
   }
 
-  &[role="button"] {
+  &[role='button'] {
     outline: none;
 
-    &:focus-visible {
-      .tooth-label {
-        text-decoration: underline;
-        text-decoration-thickness: 2px;
-        text-underline-offset: 4px;
-      }
-    }
-
-    &:hover {
-      .tooth-crown {
-        fill: #DBEAFE !important;
-        filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.2));
-      }
-
-      .tooth-label {
-        font-size: 14px;
-        font-weight: 800;
-      }
+    &:focus-visible text {
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 3px;
     }
   }
 
-  .tooth-crown {
-    fill: url(#toothGradient);
-    stroke: #CBD5E1;
-    stroke-width: 1.2;
-    transition: all 0.1s ease;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05));
-
-    &:hover {
-      stroke: #94A3B8;
-      stroke-width: 1.4;
-    }
+  /* Default (unselected, uncommitted) hover feedback — solid blue fill,
+     matches interactive/"about to pick" state. Only applies when the tooth
+     isn't already selected/committed, so it never masks those colors. */
+  &:not(.selected):not(.committed):not(.read-only):hover .tooth-crown {
+    fill: #3B82F6;
   }
 
-  .tooth-root {
-    opacity: 0.3;
-    transition: opacity 0.1s ease;
-  }
-
-  .tooth-groove {
-    fill: none;
-    stroke: #CBD5E1;
-    stroke-width: 0.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    transition: stroke 0.1s ease;
-    pointer-events: none;
-    opacity: 0.6;
-  }
-
-  .tooth-shadow-detail {
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.1s ease;
-  }
-
-  .tooth-label {
-    font-size: 12px;
-    font-weight: 700;
-    fill: #64748B;
-    font-family: system-ui, -apple-system, sans-serif;
-    pointer-events: none;
-    transition: all 0.1s ease;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-    user-select: none;
-  }
-
-  /* Default state: light gray */
-  &:not(.selected) {
-    .tooth-crown {
-      fill: url(#toothGradient);
-      stroke: #94A3B8;
-      stroke-width: 1.2;
-
-      &:hover {
-        filter: drop-shadow(0 3px 6px rgba(59, 130, 246, 0.15));
-      }
-    }
-
-    .tooth-groove {
-      stroke: #CBD5E1;
-      opacity: 0.5;
-    }
-
-    .tooth-label {
-      fill: #64748B;
-      font-weight: 700;
-    }
-  }
-
-  /* Selected state: blue with glow */
+  /* Selected — strong red */
   &.selected {
+    animation: toothPulse 0.18s ease-out;
+  }
+
+  /* Committed — pale red, persistent marker for teeth already assigned in the order */
+  &.committed:not(.selected) {
     .tooth-crown {
-      fill: url(#toothSelectedGradient);
-      stroke: #1E40AF;
-      stroke-width: 2;
-      filter: drop-shadow(0 4px 12px rgba(30, 64, 175, 0.35));
+      transition: filter 0.15s ease;
     }
 
-    .tooth-groove {
-      stroke: rgba(255, 255, 255, 0.7);
-      stroke-width: 1;
-      opacity: 0.8;
-    }
-
-    .tooth-shadow-detail {
-      opacity: 1;
-    }
-
-    .tooth-label {
-      fill: #1E40AF;
-      font-weight: 800;
-      font-size: 14px;
-      text-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
-    }
-
-    .tooth-container {
-      animation: toothPulse 0.2s ease-out;
+    &:hover .tooth-crown {
+      filter: brightness(1.05);
     }
   }
 
-  /* Arch reference colors (subtle) */
-  &[data-jaw="upper"]:hover .tooth-label {
-    fill: #2563EB;
-  }
-
-  &[data-jaw="lower"]:hover .tooth-label {
-    fill: #059669;
+  &.read-only {
+    pointer-events: none;
   }
 }
 
-/* Animations */
+/* Subtle pulse when a tooth becomes selected */
 @keyframes toothPulse {
   0% {
-    transform: scale(0.98);
-    opacity: 0.8;
+    transform: scale(0.97);
   }
-
-  50% {
-    transform: scale(1.05);
+  60% {
+    transform: scale(1.03);
   }
-
   100% {
     transform: scale(1);
-    opacity: 1;
   }
 }
 
-@keyframes toothGlow {
-
-  0%,
-  100% {
-    filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.1));
-  }
-
-  50% {
-    filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.3));
-  }
-}
-
+/* Legend dots (static color swatches, kept independent of SVG defs) */
 .legend-dot {
   display: inline-block;
   width: 12px;
   height: 12px;
-  border-radius: 3px;
-  transition: all 0.1s ease;
-
-  &--default {
-    background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
-    border: 1.5px solid #94A3B8;
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8);
-  }
+  border-radius: 999px;
 
   &--selected {
-    background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%);
-    border: 1.5px solid #1E40AF;
-    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
+    background: #EF4444;
+    border: 1.5px solid #991b1b;
+  }
+
+  &--committed {
+    background: #FCA5A5;
+    border: 1.5px solid #ef4444;
+  }
+
+  &--highlighted {
+    background: #22C55E;
+    border: 1.5px solid #166534;
+  }
+
+  &--default {
+    background: #FFFFFF;
+    border: 1.5px solid #94a3b8;
   }
 }
 
@@ -229,24 +116,14 @@
     max-width: 100%;
   }
 
-  .tooth-group {
-    .tooth-label {
-      font-size: 11px;
-
-      &:hover {
-        font-size: 12px;
-      }
-    }
-
-    &.selected .tooth-label {
-      font-size: 13px;
-    }
+  .tooth-item text {
+    font-size: 10px;
   }
 }
 
-/* Accessibility improvements */
-.tooth-group:focus-visible {
-  outline: 2px solid #3B82F6;
+/* Accessibility */
+.tooth-item:focus-visible {
+  outline: 2px solid #8eeff6;
   outline-offset: 2px;
   border-radius: 2px;
 }
